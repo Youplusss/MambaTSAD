@@ -1,0 +1,2 @@
+[2025-12-01 17:10:54,342] [INFO] 日志已写入：./logs/smd_all/MambaTSAD_20251201_171054.log
+[2025-12-01 17:10:54,343] [INFO] 参数配置：Namespace(processed_root='./data_processed/SMD', log_dir='./logs/smd_all', win_size=100, train_stride=1, test_stride=5, batch_size=64, epochs=50, lr=0.001, weight_decay=0.0001, seed=42, no_amp=False)
