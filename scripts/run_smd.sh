@@ -16,5 +16,6 @@ CUDA_VISIBLE_DEVICES=0 python main_smd.py \
   --test_stride 5 \
   --batch_size 64 \
   --epochs 50 \
-  --lr 1e-3 \
-  --weight_decay 1e-4
+  --lr 1e-4 \
+  --weight_decay 5e-3 \
+  --no_amp

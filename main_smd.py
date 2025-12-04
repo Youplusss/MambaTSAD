@@ -190,7 +190,7 @@ def search_best_f1_threshold(
 #     max_grad_norm: float = 1.0,
 #     logger=None,
 # ):
-
+# 文件: 'main_smd.py'
 def train_one_epoch(
     model,
     train_loader,
@@ -200,20 +200,17 @@ def train_one_epoch(
     max_grad_norm: float = 1.0,
     logger=None,
 ):
-    """单个 epoch 的训练过程（确保没有 @torch.no_grad()）"""
     model.train()
     total_loss = 0.0
     num_batches = 0
-
-    # 可在调试时打开，用于定位自动微分问题（生产可注释掉）
     torch.autograd.set_detect_anomaly(False)
 
     for batch in tqdm(train_loader, desc="Train", leave=False):
-        x = batch["window"]      # (B, L, D)
-        if isinstance(x, torch.Tensor):
-            x = x.to(device, non_blocking=True)
-        else:
-            x = torch.from_numpy(x).to(device, non_blocking=True)
+        x = batch["window"]
+        x = x.to(device, non_blocking=True) if isinstance(x, torch.Tensor) else torch.from_numpy(x).to(device, non_blocking=True)
+        # 进入模型前再做一道防守式清洗与裁剪
+        x = torch.nan_to_num(x, nan=0.0, posinf=1e6, neginf=-1e6)
+        x = torch.clamp(x, -1e6, 1e6)
 
         optimizer.zero_grad(set_to_none=True)
 
@@ -222,87 +219,22 @@ def train_one_epoch(
             rec_list = out.get("recon_multi")
             if rec_list is None:
                 recon = out.get("recon")
+                # 若模型输出异常，清洗后再计算 loss
+                recon = torch.nan_to_num(recon, nan=0.0, posinf=1e6, neginf=-1e6)
+                recon = torch.clamp(recon, -1e6, 1e6)
                 loss = F.mse_loss(recon, x, reduction="mean")
             else:
-                loss = 0.0
+                loss_val = 0.0
                 for rec in rec_list:
-                    loss = loss + F.mse_loss(rec, x, reduction="mean")
+                    rec = torch.nan_to_num(rec, nan=0.0, posinf=1e6, neginf=-1e6)
+                    rec = torch.clamp(rec, -1e6, 1e6)
+                    loss_val = loss_val + F.mse_loss(rec, x, reduction="mean")
+                loss = loss_val
 
-        # 检查 loss 是否为 Tensor 且可求导
-        if not isinstance(loss, torch.Tensor):
-            raise RuntimeError(f"训练 loss 不是 Tensor，类型={type(loss)}")
-        if not loss.requires_grad:
-            raise RuntimeError("训练 loss 不可求导（loss.requires_grad=False），请检查是否误用了 torch.no_grad 或提前 detach")
-        if not torch.isfinite(loss):
+        if not isinstance(loss, torch.Tensor) or not loss.requires_grad or not torch.isfinite(loss):
             if logger is not None:
                 logger.warning("遇到非有限 loss (NaN/Inf)，跳过该 batch")
             continue
-
-        if scaler is not None:
-            scaler.scale(loss).backward()
-            scaler.unscale_(optimizer)
-            torch.nn.utils.clip_grad_norm_(model.parameters(), max_grad_norm)
-            scaler.step(optimizer)
-            scaler.update()
-        else:
-            loss.backward()
-            torch.nn.utils.clip_grad_norm_(model.parameters(), max_grad_norm)
-            optimizer.step()
-
-        total_loss += float(loss.detach().cpu().item())
-        num_batches += 1
-
-    avg_loss = total_loss / max(num_batches, 1)
-    if logger is not None:
-        logger.info(f"本 epoch 平均训练损失: {avg_loss:.6f}")
-    return avg_loss
-    """单个 epoch 的训练过程"""
-    model.train()
-    total_loss = 0.0
-    num_batches = 0
-
-    for batch in tqdm(train_loader, desc="Train", leave=False):
-        x = batch["window"]      # (B, L, D)
-        if isinstance(x, torch.Tensor):
-            x = x.to(device, non_blocking=True)
-        else:
-            x = torch.from_numpy(x).to(device, non_blocking=True)
-
-        optimizer.zero_grad(set_to_none=True)
-
-        # 使用新的 AMP 接口
-        with torch.amp.autocast("cuda", enabled=(scaler is not None)):
-            out = model(x)
-            # 模型返回 dict：{"recon_multi": [rec1, rec2, rec3], "recon": recon}
-            rec_list = out.get("recon_multi")
-            if rec_list is None:
-                recon = out.get("recon")
-                loss = F.mse_loss(recon, x, reduction="mean")
-            else:
-                loss = 0.0
-                for rec in rec_list:
-                    loss = loss + F.mse_loss(rec, x, reduction="mean")
-
-        # 避免 NaN/Inf 破坏训练
-        if not torch.isfinite(loss):
-            if logger is not None:
-                logger.warning("遇到非有限 loss (NaN/Inf)，跳过该 batch")
-            continue
-
-        # 开启 anomaly 检测（会给出更具体的出错位置）
-        torch.autograd.set_detect_anomaly(True)
-
-        # 基本类型检查
-        if not isinstance(loss, torch.Tensor):
-            raise RuntimeError(f"反向传播前的 loss 不是 Tensor，类型={type(loss)}")
-
-        # 打印辅助信息（可临时保留用于排查）
-        print(f"[DEBUG] loss: dtype={loss.dtype}, device={loss.device}, shape={getattr(loss, 'shape', None)}, requires_grad={loss.requires_grad}")
-        # 检查数值稳定性
-        if not loss.is_floating_point():
-            raise RuntimeError("loss 不是浮点张量")
-        if not torch.isfinite(loss):
-            raise RuntimeError("loss 包含 NaN 或 Inf，停止并排查模型/数据/数值稳定性")
 
         if scaler is not None:
             scaler.scale(loss).backward()

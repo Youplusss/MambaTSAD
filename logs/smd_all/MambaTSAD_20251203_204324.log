@@ -1,0 +1,220 @@
+[2025-12-03 20:43:24,287] [INFO] 日志已写入：./logs/smd_all/MambaTSAD_20251203_204324.log
+[2025-12-03 20:43:24,288] [INFO] 参数配置：Namespace(processed_root='./dataset/SMD', log_dir='./logs/smd_all', win_size=100, train_stride=1, test_stride=5, batch_size=64, epochs=50, lr=0.0001, weight_decay=0.005, seed=42, no_amp=True, max_grad_norm=1.0, patience=8, no_point_adjust=False)
+[2025-12-03 20:43:24,326] [INFO] SMD 多机数据集构建完成：machines=['machine-1-1'], input_dim=38, len(train)=28380, len(test)=5676
+[2025-12-03 20:43:25,490] [INFO] 模型结构：
+MambaTSAD(
+  (encoder): Linear(in_features=38, out_features=128, bias=True)
+  (level1): ModuleList(
+    (0-1): 2 x LSSBlockTS(
+      (global_layers): ModuleList(
+        (0-1): 2 x BiMambaBlock(
+          (norm): LayerNorm((128,), eps=1e-05, elementwise_affine=True)
+          (mamba_fwd): Mamba(
+            (in_proj): Linear(in_features=128, out_features=512, bias=False)
+            (conv1d): Conv1d(256, 256, kernel_size=(4,), stride=(1,), padding=(3,), groups=256)
+            (act): SiLU()
+            (x_proj): Linear(in_features=256, out_features=40, bias=False)
+            (dt_proj): Linear(in_features=8, out_features=256, bias=True)
+            (out_proj): Linear(in_features=256, out_features=128, bias=False)
+          )
+          (mamba_bwd): Mamba(
+            (in_proj): Linear(in_features=128, out_features=512, bias=False)
+            (conv1d): Conv1d(256, 256, kernel_size=(4,), stride=(1,), padding=(3,), groups=256)
+            (act): SiLU()
+            (x_proj): Linear(in_features=256, out_features=40, bias=False)
+            (dt_proj): Linear(in_features=8, out_features=256, bias=True)
+            (out_proj): Linear(in_features=256, out_features=128, bias=False)
+          )
+          (ffn): Sequential(
+            (0): LayerNorm((128,), eps=1e-05, elementwise_affine=True)
+            (1): Linear(in_features=128, out_features=512, bias=True)
+            (2): GELU(approximate='none')
+            (3): Dropout(p=0.1, inplace=False)
+            (4): Linear(in_features=512, out_features=128, bias=True)
+          )
+          (dropout): Dropout(p=0.1, inplace=False)
+        )
+      )
+      (local_branches): ModuleList(
+        (0): LocalConvBlock1D(
+          (block): Sequential(
+            (0): Conv1d(128, 128, kernel_size=(1,), stride=(1,))
+            (1): InstanceNorm1d(128, eps=1e-05, momentum=0.1, affine=False, track_running_stats=False)
+            (2): SiLU()
+            (3): Conv1d(128, 128, kernel_size=(5,), stride=(1,), padding=(2,), groups=128)
+            (4): InstanceNorm1d(128, eps=1e-05, momentum=0.1, affine=False, track_running_stats=False)
+            (5): SiLU()
+            (6): Conv1d(128, 128, kernel_size=(1,), stride=(1,))
+          )
+        )
+        (1): LocalConvBlock1D(
+          (block): Sequential(
+            (0): Conv1d(128, 128, kernel_size=(1,), stride=(1,))
+            (1): InstanceNorm1d(128, eps=1e-05, momentum=0.1, affine=False, track_running_stats=False)
+            (2): SiLU()
+            (3): Conv1d(128, 128, kernel_size=(7,), stride=(1,), padding=(3,), groups=128)
+            (4): InstanceNorm1d(128, eps=1e-05, momentum=0.1, affine=False, track_running_stats=False)
+            (5): SiLU()
+            (6): Conv1d(128, 128, kernel_size=(1,), stride=(1,))
+          )
+        )
+      )
+      (proj): Linear(in_features=384, out_features=128, bias=True)
+    )
+  )
+  (level2): ModuleList(
+    (0-1): 2 x LSSBlockTS(
+      (global_layers): ModuleList(
+        (0-1): 2 x BiMambaBlock(
+          (norm): LayerNorm((128,), eps=1e-05, elementwise_affine=True)
+          (mamba_fwd): Mamba(
+            (in_proj): Linear(in_features=128, out_features=512, bias=False)
+            (conv1d): Conv1d(256, 256, kernel_size=(4,), stride=(1,), padding=(3,), groups=256)
+            (act): SiLU()
+            (x_proj): Linear(in_features=256, out_features=40, bias=False)
+            (dt_proj): Linear(in_features=8, out_features=256, bias=True)
+            (out_proj): Linear(in_features=256, out_features=128, bias=False)
+          )
+          (mamba_bwd): Mamba(
+            (in_proj): Linear(in_features=128, out_features=512, bias=False)
+            (conv1d): Conv1d(256, 256, kernel_size=(4,), stride=(1,), padding=(3,), groups=256)
+            (act): SiLU()
+            (x_proj): Linear(in_features=256, out_features=40, bias=False)
+            (dt_proj): Linear(in_features=8, out_features=256, bias=True)
+            (out_proj): Linear(in_features=256, out_features=128, bias=False)
+          )
+          (ffn): Sequential(
+            (0): LayerNorm((128,), eps=1e-05, elementwise_affine=True)
+            (1): Linear(in_features=128, out_features=512, bias=True)
+            (2): GELU(approximate='none')
+            (3): Dropout(p=0.1, inplace=False)
+            (4): Linear(in_features=512, out_features=128, bias=True)
+          )
+          (dropout): Dropout(p=0.1, inplace=False)
+        )
+      )
+      (local_branches): ModuleList(
+        (0): LocalConvBlock1D(
+          (block): Sequential(
+            (0): Conv1d(128, 128, kernel_size=(1,), stride=(1,))
+            (1): InstanceNorm1d(128, eps=1e-05, momentum=0.1, affine=False, track_running_stats=False)
+            (2): SiLU()
+            (3): Conv1d(128, 128, kernel_size=(5,), stride=(1,), padding=(2,), groups=128)
+            (4): InstanceNorm1d(128, eps=1e-05, momentum=0.1, affine=False, track_running_stats=False)
+            (5): SiLU()
+            (6): Conv1d(128, 128, kernel_size=(1,), stride=(1,))
+          )
+        )
+        (1): LocalConvBlock1D(
+          (block): Sequential(
+            (0): Conv1d(128, 128, kernel_size=(1,), stride=(1,))
+            (1): InstanceNorm1d(128, eps=1e-05, momentum=0.1, affine=False, track_running_stats=False)
+            (2): SiLU()
+            (3): Conv1d(128, 128, kernel_size=(7,), stride=(1,), padding=(3,), groups=128)
+            (4): InstanceNorm1d(128, eps=1e-05, momentum=0.1, affine=False, track_running_stats=False)
+            (5): SiLU()
+            (6): Conv1d(128, 128, kernel_size=(1,), stride=(1,))
+          )
+        )
+      )
+      (proj): Linear(in_features=384, out_features=128, bias=True)
+    )
+  )
+  (level3): ModuleList(
+    (0-1): 2 x LSSBlockTS(
+      (global_layers): ModuleList(
+        (0-1): 2 x BiMambaBlock(
+          (norm): LayerNorm((128,), eps=1e-05, elementwise_affine=True)
+          (mamba_fwd): Mamba(
+            (in_proj): Linear(in_features=128, out_features=512, bias=False)
+            (conv1d): Conv1d(256, 256, kernel_size=(4,), stride=(1,), padding=(3,), groups=256)
+            (act): SiLU()
+            (x_proj): Linear(in_features=256, out_features=40, bias=False)
+            (dt_proj): Linear(in_features=8, out_features=256, bias=True)
+            (out_proj): Linear(in_features=256, out_features=128, bias=False)
+          )
+          (mamba_bwd): Mamba(
+            (in_proj): Linear(in_features=128, out_features=512, bias=False)
+            (conv1d): Conv1d(256, 256, kernel_size=(4,), stride=(1,), padding=(3,), groups=256)
+            (act): SiLU()
+            (x_proj): Linear(in_features=256, out_features=40, bias=False)
+            (dt_proj): Linear(in_features=8, out_features=256, bias=True)
+            (out_proj): Linear(in_features=256, out_features=128, bias=False)
+          )
+          (ffn): Sequential(
+            (0): LayerNorm((128,), eps=1e-05, elementwise_affine=True)
+            (1): Linear(in_features=128, out_features=512, bias=True)
+            (2): GELU(approximate='none')
+            (3): Dropout(p=0.1, inplace=False)
+            (4): Linear(in_features=512, out_features=128, bias=True)
+          )
+          (dropout): Dropout(p=0.1, inplace=False)
+        )
+      )
+      (local_branches): ModuleList(
+        (0): LocalConvBlock1D(
+          (block): Sequential(
+            (0): Conv1d(128, 128, kernel_size=(1,), stride=(1,))
+            (1): InstanceNorm1d(128, eps=1e-05, momentum=0.1, affine=False, track_running_stats=False)
+            (2): SiLU()
+            (3): Conv1d(128, 128, kernel_size=(5,), stride=(1,), padding=(2,), groups=128)
+            (4): InstanceNorm1d(128, eps=1e-05, momentum=0.1, affine=False, track_running_stats=False)
+            (5): SiLU()
+            (6): Conv1d(128, 128, kernel_size=(1,), stride=(1,))
+          )
+        )
+        (1): LocalConvBlock1D(
+          (block): Sequential(
+            (0): Conv1d(128, 128, kernel_size=(1,), stride=(1,))
+            (1): InstanceNorm1d(128, eps=1e-05, momentum=0.1, affine=False, track_running_stats=False)
+            (2): SiLU()
+            (3): Conv1d(128, 128, kernel_size=(7,), stride=(1,), padding=(3,), groups=128)
+            (4): InstanceNorm1d(128, eps=1e-05, momentum=0.1, affine=False, track_running_stats=False)
+            (5): SiLU()
+            (6): Conv1d(128, 128, kernel_size=(1,), stride=(1,))
+          )
+        )
+      )
+      (proj): Linear(in_features=384, out_features=128, bias=True)
+    )
+  )
+  (decoder): Linear(in_features=128, out_features=38, bias=True)
+)
+[2025-12-03 20:43:25,492] [INFO] ========== Epoch 1/50 ==========
+[2025-12-03 20:43:59,994] [INFO] 本 epoch 平均训练损失: 0.362275
+[2025-12-03 20:44:11,360] [INFO] [Eval] F1=0.9993, P=0.9985, R=1.0000, AUC=0.8710, thr=81.403859, point_adjust=True
+[2025-12-03 20:44:11,467] [INFO] 发现更优模型，已保存至 ./logs/smd_all/best_model.pt
+[2025-12-03 20:44:11,726] [INFO] 已保存可视化图：./logs/smd_all/scores_epoch1.png
+[2025-12-03 20:44:11,726] [INFO] ========== Epoch 2/50 ==========
+[2025-12-03 20:44:44,289] [INFO] 本 epoch 平均训练损失: 0.209443
+[2025-12-03 20:44:55,246] [INFO] [Eval] F1=0.9993, P=0.9985, R=1.0000, AUC=0.8675, thr=103.797013, point_adjust=True
+[2025-12-03 20:44:55,481] [INFO] 已保存可视化图：./logs/smd_all/scores_epoch2.png
+[2025-12-03 20:44:55,481] [INFO] ========== Epoch 3/50 ==========
+[2025-12-03 20:45:28,814] [INFO] 本 epoch 平均训练损失: 0.203587
+[2025-12-03 20:45:39,977] [INFO] [Eval] F1=0.9989, P=0.9985, R=0.9993, AUC=0.8650, thr=106.565778, point_adjust=True
+[2025-12-03 20:45:40,215] [INFO] 已保存可视化图：./logs/smd_all/scores_epoch3.png
+[2025-12-03 20:45:40,216] [INFO] ========== Epoch 4/50 ==========
+[2025-12-03 20:46:13,907] [INFO] 本 epoch 平均训练损失: 0.201071
+[2025-12-03 20:46:25,170] [INFO] [Eval] F1=0.9989, P=0.9978, R=1.0000, AUC=0.8628, thr=55.684530, point_adjust=True
+[2025-12-03 20:46:25,407] [INFO] 已保存可视化图：./logs/smd_all/scores_epoch4.png
+[2025-12-03 20:46:25,407] [INFO] ========== Epoch 5/50 ==========
+[2025-12-03 20:46:58,112] [INFO] 本 epoch 平均训练损失: 0.199468
+[2025-12-03 20:47:09,559] [INFO] [Eval] F1=0.9989, P=0.9978, R=1.0000, AUC=0.8615, thr=56.087701, point_adjust=True
+[2025-12-03 20:47:09,798] [INFO] 已保存可视化图：./logs/smd_all/scores_epoch5.png
+[2025-12-03 20:47:09,798] [INFO] ========== Epoch 6/50 ==========
+[2025-12-03 20:47:45,114] [INFO] 本 epoch 平均训练损失: 0.198535
+[2025-12-03 20:47:56,100] [INFO] [Eval] F1=0.9989, P=0.9978, R=1.0000, AUC=0.8606, thr=42.026144, point_adjust=True
+[2025-12-03 20:47:56,334] [INFO] 已保存可视化图：./logs/smd_all/scores_epoch6.png
+[2025-12-03 20:47:56,334] [INFO] ========== Epoch 7/50 ==========
+[2025-12-03 20:48:29,512] [INFO] 本 epoch 平均训练损失: 0.197779
+[2025-12-03 20:48:40,767] [INFO] [Eval] F1=0.9989, P=0.9978, R=1.0000, AUC=0.8597, thr=40.899518, point_adjust=True
+[2025-12-03 20:48:41,014] [INFO] 已保存可视化图：./logs/smd_all/scores_epoch7.png
+[2025-12-03 20:48:41,015] [INFO] ========== Epoch 8/50 ==========
+[2025-12-03 20:49:14,084] [INFO] 本 epoch 平均训练损失: 0.197045
+[2025-12-03 20:49:25,362] [INFO] [Eval] F1=0.9989, P=0.9978, R=1.0000, AUC=0.8583, thr=39.790268, point_adjust=True
+[2025-12-03 20:49:25,611] [INFO] 已保存可视化图：./logs/smd_all/scores_epoch8.png
+[2025-12-03 20:49:25,611] [INFO] ========== Epoch 9/50 ==========
+[2025-12-03 20:49:59,461] [INFO] 本 epoch 平均训练损失: 0.196422
+[2025-12-03 20:50:10,618] [INFO] [Eval] F1=0.9989, P=0.9978, R=1.0000, AUC=0.8584, thr=39.887698, point_adjust=True
+[2025-12-03 20:50:10,619] [INFO] 早停触发：连续 8 个 epoch F1 未提升，在第 9 个 epoch 停止训练。
+[2025-12-03 20:50:10,619] [INFO] 训练结束，最佳 F1=0.9993, 最佳指标={'precision': 0.9985174203076408, 'recall': 0.9999999999962881, 'f1': 0.9992581552336851, 'auc': 0.871035354745908, 'threshold': 81.40385932922364, 'use_point_adjust': True}
