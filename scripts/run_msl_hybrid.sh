@@ -4,7 +4,7 @@
 DATA_ROOT=./dataset/MSL
 LOG_DIR=./logs/msl_hybrid
 
-CUDA_VISIBLE_DEVICES=6 python -u main.py \
+CUDA_VISIBLE_DEVICES=1 python -u main.py \
   --dataset msl \
   --branch hybrid \
   --processed_root ${DATA_ROOT} \
@@ -13,8 +13,8 @@ CUDA_VISIBLE_DEVICES=6 python -u main.py \
   --pred_len 10 \
   --batch_size 64 \
   --epochs 50 \
-  --lr 1e-3 \
-  --weight_decay 1e-4 \
+  --lr 1e-4 \
+  --weight_decay 5e-4 \
   --train_stride 1 \
   --test_stride 1 \
   --lambda_recon 1.0 \
