@@ -9,11 +9,11 @@
 PROCESSED_ROOT=./dataset/MSL
 LOG_DIR=./logs/msl
 
-CUDA_VISIBLE_DEVICES=0 python main.py \
+CUDA_VISIBLE_DEVICES=1 python main.py \
   --dataset msl \
   --processed_root ${PROCESSED_ROOT} \
   --log_dir ${LOG_DIR} \
-  --win_size 100 \
+  --win_size 50 \
   --train_stride 1 \
   --test_stride 5 \
   --batch_size 64 \

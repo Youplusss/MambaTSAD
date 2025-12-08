@@ -120,6 +120,38 @@ def load_preprocessed_msl_channel(
     return train, test, labels
 
 
+# -------- 与 SMD 保持一致的非有限值处理策略 --------
+
+def fill_sequence_with_own_feature_mean(seq: np.ndarray) -> np.ndarray:
+    """
+    对单个序列 (T, D)：将非有限值替成该序列每列的均值（忽略非有限值计算均值）。
+    若某特征列全为非有限，则填 0.0。
+    返回 float32 的新数组。
+    """
+    s = seq.astype(np.float32, copy=True)
+    s_nan = np.where(np.isfinite(s), s, np.nan)
+    feat_mean = np.nanmean(s_nan, axis=0)
+    feat_mean = np.where(np.isfinite(feat_mean), feat_mean, 0.0).astype(np.float32)
+    mask = ~np.isfinite(s)
+    if mask.any():
+        s = np.where(np.isfinite(s), s, feat_mean)
+    return s.astype(np.float32)
+
+
+def fill_sequence_with_train_mean(train_seq: np.ndarray, seq_to_fill: np.ndarray) -> np.ndarray:
+    """
+    推荐：使用 train_seq 的特征均值去填充同一通道的 seq_to_fill（例如 test）。
+    """
+    train = train_seq.astype(np.float32)
+    train_nan = np.where(np.isfinite(train), train, np.nan)
+    feat_mean = np.nanmean(train_nan, axis=0)
+    feat_mean = np.where(np.isfinite(feat_mean), feat_mean, 0.0).astype(np.float32)
+
+    s = seq_to_fill.astype(np.float32, copy=True)
+    s = np.where(np.isfinite(s), s, feat_mean)
+    return s.astype(np.float32)
+
+
 class MSLMultiWindowDataset(Dataset):
     """
     多通道版本滑动窗口数据集：
@@ -167,7 +199,7 @@ class MSLMultiWindowDataset(Dataset):
         seq = self.sequences[seq_idx]
         win = seq[start : start + self.win_size].astype(np.float32)
 
-        # 防守式数值清洗
+        # 防守式数值清洗（兜底）
         if not np.isfinite(win).all():
             win = np.nan_to_num(win, nan=0.0, posinf=1e6, neginf=-1e6)
 
@@ -202,6 +234,7 @@ def build_msl_multi_datasets(
     """
     channel_ids = load_channel_ids(processed_root)
 
+    use_train_mean_for_test = True
     train_seqs: List[np.ndarray] = []
     test_seqs: List[np.ndarray] = []
     labels_list: List[np.ndarray] = []
@@ -209,14 +242,17 @@ def build_msl_multi_datasets(
     for cid in channel_ids:
         train, test, labels = load_preprocessed_msl_channel(processed_root, cid)
 
-        # 基础数值清洗
-        train = np.nan_to_num(train, nan=0.0, posinf=1e6, neginf=-1e6).astype(np.float32)
-        test = np.nan_to_num(test, nan=0.0, posinf=1e6, neginf=-1e6).astype(np.float32)
+        # 与 SMD 对齐的非有限值处理策略：
+        train = fill_sequence_with_own_feature_mean(train)
+        if use_train_mean_for_test:
+            test = fill_sequence_with_train_mean(train, test)
+        else:
+            test = fill_sequence_with_own_feature_mean(test)
         labels = np.where(np.isfinite(labels), labels, 0).astype(np.int64)
 
-        train_seqs.append(train)
-        test_seqs.append(test)
-        labels_list.append(labels)
+        train_seqs.append(train.astype(np.float32))
+        test_seqs.append(test.astype(np.float32))
+        labels_list.append(labels.astype(np.int64))
 
     # 归一化：在所有训练序列上计算全局统计量，然后应用到 train/test
     norm_stats = compute_global_norm_stats(train_seqs, method="zscore")

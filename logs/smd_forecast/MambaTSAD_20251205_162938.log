@@ -1,0 +1,635 @@
+[2025-12-05 16:29:38,368] [INFO] 日志已写入：./logs/smd_forecast/MambaTSAD_20251205_162938.log
+[2025-12-05 16:29:38,379] [INFO] 参数配置：Namespace(dataset='smd', processed_root='./dataset/MSL', log_dir='./logs/smd_forecast', win_size=100, task='forecast', pred_len=10, train_stride=1, test_stride=1, batch_size=64, epochs=50, lr=0.001, weight_decay=0.0001, seed=42, no_amp=False, max_grad_norm=1.0, patience=8, no_point_adjust=False)
+[2025-12-05 16:29:38,519] [INFO] SMD 多机数据集 构建完成：entities=['C-1', 'C-2', 'D-14', 'D-15', 'D-16', 'F-4', 'F-5', 'F-7', 'F-8', 'M-1', 'M-2', 'M-3', 'M-4', 'M-5', 'M-6', 'M-7', 'P-10', 'P-11', 'P-14', 'P-15', 'S-2', 'T-12', 'T-13', 'T-4', 'T-5', 'T-8', 'T-9'], input_dim=55, len(train)=55644, len(test)=71056
+[2025-12-05 16:29:39,261] [INFO] 任务类型：预测分支（forecast），context_len=90, pred_len=10
+[2025-12-05 16:29:40,212] [INFO] 模型结构：
+MambaTSADForecast(
+  (enc_embedding): InvertedTimeEmbedding(
+    (proj): Linear(in_features=90, out_features=128, bias=True)
+    (dropout): Dropout(p=0.1, inplace=False)
+  )
+  (encoder_layers): ModuleList(
+    (0-2): 3 x BiMambaBlock1D(
+      (norm): LayerNorm((128,), eps=1e-05, elementwise_affine=True)
+      (mamba_fwd): Mamba(
+        (in_proj): Linear(in_features=128, out_features=512, bias=False)
+        (conv1d): Conv1d(256, 256, kernel_size=(4,), stride=(1,), padding=(3,), groups=256)
+        (act): SiLU()
+        (x_proj): Linear(in_features=256, out_features=40, bias=False)
+        (dt_proj): Linear(in_features=8, out_features=256, bias=True)
+        (out_proj): Linear(in_features=256, out_features=128, bias=False)
+      )
+      (mamba_bwd): Mamba(
+        (in_proj): Linear(in_features=128, out_features=512, bias=False)
+        (conv1d): Conv1d(256, 256, kernel_size=(4,), stride=(1,), padding=(3,), groups=256)
+        (act): SiLU()
+        (x_proj): Linear(in_features=256, out_features=40, bias=False)
+        (dt_proj): Linear(in_features=8, out_features=256, bias=True)
+        (out_proj): Linear(in_features=256, out_features=128, bias=False)
+      )
+      (ffn): Sequential(
+        (0): LayerNorm((128,), eps=1e-05, elementwise_affine=True)
+        (1): Linear(in_features=128, out_features=512, bias=True)
+        (2): GELU(approximate='none')
+        (3): Dropout(p=0.1, inplace=False)
+        (4): Linear(in_features=512, out_features=128, bias=True)
+      )
+      (dropout): Dropout(p=0.1, inplace=False)
+    )
+  )
+  (enc_norm): LayerNorm((128,), eps=1e-05, elementwise_affine=True)
+  (projector): Linear(in_features=128, out_features=10, bias=True)
+)
+[2025-12-05 16:29:40,213] [INFO] ========== Epoch 1/50 ==========
+[2025-12-05 16:30:02,115] [INFO] 本 epoch（预测分支）平均训练损失: 0.563182
+[2025-12-05 16:30:34,352] [INFO] [Eval] F1=0.8895, P=0.9277, R=0.8542, AUC=0.6547, thr=10.234647, point_adjust=True
+[2025-12-05 16:30:34,374] [INFO] 发现更优模型，已保存至 ./logs/smd_forecast/best_model.pt
+[2025-12-05 16:30:34,672] [INFO] 已保存可视化图：./logs/smd_forecast/scores_epoch1.png
+[2025-12-05 16:30:34,672] [INFO] ========== Epoch 2/50 ==========
+[2025-12-05 16:30:54,593] [INFO] 本 epoch（预测分支）平均训练损失: 0.556420
+[2025-12-05 16:31:25,997] [INFO] [Eval] F1=0.8895, P=0.9277, R=0.8542, AUC=0.6565, thr=10.233149, point_adjust=True
+[2025-12-05 16:31:26,254] [INFO] 已保存可视化图：./logs/smd_forecast/scores_epoch2.png
+[2025-12-05 16:31:26,254] [INFO] ========== Epoch 3/50 ==========
+[2025-12-05 16:31:45,599] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:31:46,716] [INFO] 本 epoch（预测分支）平均训练损失: 0.554995
+[2025-12-05 16:32:19,317] [INFO] [Eval] F1=0.8891, P=0.9098, R=0.8693, AUC=0.6611, thr=4.699457, point_adjust=True
+[2025-12-05 16:32:19,577] [INFO] 已保存可视化图：./logs/smd_forecast/scores_epoch3.png
+[2025-12-05 16:32:19,577] [INFO] ========== Epoch 4/50 ==========
+[2025-12-05 16:32:35,567] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:32:35,656] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:32:35,687] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:32:35,740] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:32:35,768] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:32:35,857] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:32:35,988] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:32:36,077] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:32:36,097] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:32:36,497] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:32:36,571] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:32:36,703] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:32:36,712] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:32:36,743] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:32:36,775] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:32:36,783] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:32:36,817] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:32:36,826] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:32:36,905] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:32:36,983] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:32:37,137] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:32:37,165] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:32:37,174] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:32:37,203] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:32:37,271] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:32:37,299] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:32:37,366] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:32:37,421] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:32:37,452] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:32:37,521] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:32:37,529] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:32:37,558] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:32:37,697] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:32:37,736] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:32:37,747] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:32:39,343] [INFO] 本 epoch（预测分支）平均训练损失: 0.556271
+[2025-12-05 16:33:10,146] [INFO] [Eval] F1=0.8890, P=0.9097, R=0.8693, AUC=0.6651, thr=4.678933, point_adjust=True
+[2025-12-05 16:33:10,408] [INFO] 已保存可视化图：./logs/smd_forecast/scores_epoch4.png
+[2025-12-05 16:33:10,409] [INFO] ========== Epoch 5/50 ==========
+[2025-12-05 16:33:23,513] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:33:23,700] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:33:23,753] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:33:23,800] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:33:23,849] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:33:23,878] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:33:24,079] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:33:24,087] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:33:24,198] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:33:24,248] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:33:24,285] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:33:27,075] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:33:27,284] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:33:27,351] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:33:27,379] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:33:27,542] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:33:27,574] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:33:27,582] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:33:27,590] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:33:27,619] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:33:27,647] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:33:27,701] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:33:27,735] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:33:27,762] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:33:27,770] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:33:27,778] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:33:27,806] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:33:27,867] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:33:27,894] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:33:27,921] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:33:28,069] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:33:28,099] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:33:28,161] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:33:28,170] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:33:28,178] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:33:28,273] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:33:28,281] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:33:28,288] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:33:28,316] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:33:28,324] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:33:28,351] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:33:28,360] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:33:28,368] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:33:28,464] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:33:28,572] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:33:28,684] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:33:28,692] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:33:28,764] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:33:28,772] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:33:28,799] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:33:28,807] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:33:28,840] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:33:28,867] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:33:28,948] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:33:28,981] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:33:30,025] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:33:30,033] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:33:30,144] [INFO] 本 epoch（预测分支）平均训练损失: 0.553877
+[2025-12-05 16:34:00,431] [INFO] [Eval] F1=0.8898, P=0.9284, R=0.8542, AUC=0.6626, thr=10.232478, point_adjust=True
+[2025-12-05 16:34:00,454] [INFO] 发现更优模型，已保存至 ./logs/smd_forecast/best_model.pt
+[2025-12-05 16:34:00,732] [INFO] 已保存可视化图：./logs/smd_forecast/scores_epoch5.png
+[2025-12-05 16:34:00,732] [INFO] ========== Epoch 6/50 ==========
+[2025-12-05 16:34:00,927] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:01,002] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:01,027] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:01,054] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:01,061] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:01,119] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:01,243] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:01,322] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:01,381] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:01,445] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:01,503] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:01,511] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:01,540] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:01,547] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:01,680] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:01,733] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:01,741] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:01,821] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:01,830] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:01,857] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:01,929] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:01,938] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:01,946] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:01,976] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:01,989] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:01,999] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:02,008] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:02,017] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:02,120] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:02,129] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:02,167] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:02,186] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:02,222] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:02,231] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:02,239] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:02,277] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:02,285] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:02,325] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:02,343] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:02,351] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:02,399] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:02,407] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:02,434] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:02,493] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:02,501] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:02,603] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:02,768] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:02,776] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:02,912] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:03,015] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:03,081] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:03,168] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:03,176] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:03,184] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:03,271] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:03,349] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:03,357] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:03,364] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:03,373] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:03,415] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:03,481] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:03,534] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:03,575] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:03,649] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:03,728] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:03,792] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:03,800] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:03,808] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:03,901] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:04,080] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:04,088] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:04,138] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:04,146] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:04,269] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:04,278] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:04,401] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:04,429] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:04,558] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:04,624] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:04,934] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:05,247] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:05,294] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:05,311] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:05,340] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:05,348] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:05,395] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:05,415] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:05,425] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:05,452] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:05,484] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:05,500] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:05,509] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:05,540] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:05,552] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:05,566] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:05,670] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:05,679] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:05,688] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:05,696] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:05,743] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:05,750] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:05,812] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:05,820] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:05,827] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:05,920] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:05,928] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:06,017] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:06,087] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:06,121] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:06,170] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:06,259] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:06,618] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:06,902] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:07,154] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:07,317] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:07,548] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:07,687] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:07,717] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:07,771] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:07,902] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:07,983] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:07,991] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:08,044] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:08,053] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:08,061] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:08,074] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:08,283] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:08,299] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:08,308] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:08,336] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:08,413] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:08,659] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:08,742] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:08,976] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:08,984] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:08,992] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:09,093] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:09,159] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:09,166] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:09,340] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:09,700] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:10,201] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:10,447] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:12,930] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:12,978] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:13,013] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:13,803] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:13,814] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:13,888] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:13,937] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:14,094] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:14,478] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:14,525] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:14,926] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:15,410] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:16,152] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:16,393] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:16,421] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:16,435] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:16,602] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:16,681] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:16,700] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:16,811] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:16,909] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:17,098] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:17,159] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:17,236] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:17,293] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:17,366] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:17,374] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:17,494] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:17,502] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:17,664] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:17,692] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:17,915] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:17,964] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:17,991] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:18,019] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:18,512] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:18,579] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:18,588] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:18,681] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:18,936] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:19,017] [INFO] 本 epoch（预测分支）平均训练损失: 0.564067
+[2025-12-05 16:34:50,950] [INFO] [Eval] F1=0.8889, P=0.9264, R=0.8542, AUC=0.6556, thr=10.232034, point_adjust=True
+[2025-12-05 16:34:51,208] [INFO] 已保存可视化图：./logs/smd_forecast/scores_epoch6.png
+[2025-12-05 16:34:51,209] [INFO] ========== Epoch 7/50 ==========
+[2025-12-05 16:34:51,479] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:51,498] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:51,524] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:51,809] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:51,905] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:52,008] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:52,107] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:52,170] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:52,298] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:52,469] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:52,483] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:52,504] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:52,532] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:52,559] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:52,567] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:52,656] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:52,684] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:52,742] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:52,751] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:52,759] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:52,846] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:52,854] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:52,945] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:52,954] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:52,990] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:53,004] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:53,033] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:53,380] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:53,389] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:54,259] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:54,331] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:54,423] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:54,595] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:54,893] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:54,901] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:54,909] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:54,955] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:54,963] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:54,991] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:55,000] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:55,007] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:55,015] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:55,023] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:55,030] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:55,057] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:55,065] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:55,073] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:55,081] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:55,089] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:55,136] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:55,144] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:55,152] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:55,258] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:55,267] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:55,275] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:55,282] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:55,290] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:55,325] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:55,333] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:55,341] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:55,349] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:55,356] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:55,364] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:55,372] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:55,380] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:55,408] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:55,417] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:55,424] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:55,432] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:55,440] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:55,448] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:55,456] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:55,464] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:55,471] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:55,479] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:55,487] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:55,495] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:55,503] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:55,511] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:55,518] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:55,526] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:55,593] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:55,601] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:55,609] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:55,637] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:55,645] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:55,653] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:55,662] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:55,670] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:55,678] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:55,686] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:55,694] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:55,702] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:55,709] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:55,717] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:55,725] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:55,733] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:55,741] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:55,811] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:55,819] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:55,826] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:55,853] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:55,860] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:55,868] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:55,875] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:55,883] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:55,891] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:55,972] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:55,980] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:56,030] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:56,364] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:56,601] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:56,707] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:56,715] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:57,408] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:57,490] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:57,592] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:57,600] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:57,710] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:57,737] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:57,796] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:57,877] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:57,930] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:58,118] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:58,277] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:58,363] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:58,401] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:58,409] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:58,436] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:58,490] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:58,600] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:58,670] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:58,723] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:59,196] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:59,249] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:59,295] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:59,347] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:59,423] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:59,438] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:59,530] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:59,620] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:59,630] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:59,758] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:59,766] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:59,774] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:59,795] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:59,869] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:59,882] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:59,943] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:59,951] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:34:59,998] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:00,026] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:00,120] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:00,128] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:00,238] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:00,247] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:00,258] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:00,305] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:00,319] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:00,388] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:00,397] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:00,445] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:00,474] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:00,608] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:00,789] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:01,233] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:01,439] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:01,453] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:01,685] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:01,838] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:01,883] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:02,001] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:02,065] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:02,073] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:02,145] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:02,198] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:02,206] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:02,214] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:02,222] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:02,303] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:02,312] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:03,007] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:03,081] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:03,452] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:03,634] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:03,643] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:03,735] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:03,910] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:04,131] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:04,214] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:04,223] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:04,272] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:04,436] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:04,515] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:04,595] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:04,678] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:04,686] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:04,746] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:04,893] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:04,901] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:04,913] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:04,921] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:04,949] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:04,999] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:05,110] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:05,118] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:05,126] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:05,216] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:05,224] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:05,233] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:05,248] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:05,326] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:05,388] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:05,396] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:05,462] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:05,547] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:05,575] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:05,641] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:05,672] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:05,683] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:05,709] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:05,729] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:05,755] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:05,795] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:05,810] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:05,820] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:05,828] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:05,858] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:05,868] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:05,876] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:05,930] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:05,939] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:05,948] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:05,956] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:05,965] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:06,001] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:06,017] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:06,065] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:06,092] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:06,101] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:06,128] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:06,141] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:06,149] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:06,164] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:06,176] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:06,235] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:06,309] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:06,317] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:06,370] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:06,378] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:06,424] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:06,432] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:06,440] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:06,448] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:06,456] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:06,464] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:06,472] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:06,529] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:06,538] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:06,546] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:06,557] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:06,629] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:06,659] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:06,711] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:06,720] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:06,743] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:06,770] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:06,797] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:06,804] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:06,913] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:06,922] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:06,969] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:06,977] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:06,985] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:06,992] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:07,020] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:07,097] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:07,105] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:07,132] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:07,140] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:07,208] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:07,216] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:07,242] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:07,254] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:07,285] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:07,294] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:07,303] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:07,313] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:07,352] [WARNING] 遇到非有限 loss (NaN/Inf)，跳过该 batch
+[2025-12-05 16:35:07,450] [INFO] 本 epoch（预测分支）平均训练损失: 0.548083

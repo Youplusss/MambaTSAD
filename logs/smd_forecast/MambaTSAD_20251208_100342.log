@@ -1,0 +1,56 @@
+[2025-12-08 10:03:42,494] [INFO] 日志已写入：./logs/smd_forecast/MambaTSAD_20251208_100342.log
+[2025-12-08 10:03:42,495] [INFO] 参数配置：Namespace(dataset='smd', processed_root='./dataset/SMD', log_dir='./logs/smd_forecast', win_size=100, task='forecast', pred_len=10, train_stride=1, test_stride=1, batch_size=64, epochs=50, lr=0.001, weight_decay=0.0001, seed=42, no_amp=False, max_grad_norm=1.0, patience=8, no_point_adjust=False)
+[2025-12-08 10:03:42,623] [INFO] SMD 多机数据集 构建完成：entities=['machine-1-1', 'machine-1-2', 'machine-1-3', 'machine-1-4'], input_dim=38, len(train)=99185, len(test)=99187
+[2025-12-08 10:03:43,068] [INFO] 任务类型：预测分支（forecast），context_len=90, pred_len=10
+[2025-12-08 10:03:43,516] [INFO] 模型结构：
+MambaTSADForecast(
+  (enc_embedding): InvertedTimeEmbedding(
+    (proj): Linear(in_features=90, out_features=128, bias=True)
+    (dropout): Dropout(p=0.1, inplace=False)
+  )
+  (encoder_layers): ModuleList(
+    (0-2): 3 x BiMambaBlock1D(
+      (norm): LayerNorm((128,), eps=1e-05, elementwise_affine=True)
+      (mamba_fwd): Mamba(
+        (in_proj): Linear(in_features=128, out_features=512, bias=False)
+        (conv1d): Conv1d(256, 256, kernel_size=(4,), stride=(1,), padding=(3,), groups=256)
+        (act): SiLU()
+        (x_proj): Linear(in_features=256, out_features=40, bias=False)
+        (dt_proj): Linear(in_features=8, out_features=256, bias=True)
+        (out_proj): Linear(in_features=256, out_features=128, bias=False)
+      )
+      (mamba_bwd): Mamba(
+        (in_proj): Linear(in_features=128, out_features=512, bias=False)
+        (conv1d): Conv1d(256, 256, kernel_size=(4,), stride=(1,), padding=(3,), groups=256)
+        (act): SiLU()
+        (x_proj): Linear(in_features=256, out_features=40, bias=False)
+        (dt_proj): Linear(in_features=8, out_features=256, bias=True)
+        (out_proj): Linear(in_features=256, out_features=128, bias=False)
+      )
+      (ffn): Sequential(
+        (0): LayerNorm((128,), eps=1e-05, elementwise_affine=True)
+        (1): Linear(in_features=128, out_features=512, bias=True)
+        (2): GELU(approximate='none')
+        (3): Dropout(p=0.1, inplace=False)
+        (4): Linear(in_features=512, out_features=128, bias=True)
+      )
+      (dropout): Dropout(p=0.1, inplace=False)
+    )
+  )
+  (enc_norm): LayerNorm((128,), eps=1e-05, elementwise_affine=True)
+  (projector): Linear(in_features=128, out_features=10, bias=True)
+)
+[2025-12-08 10:03:43,517] [INFO] ========== Epoch 1/50 ==========
+[2025-12-08 10:04:26,510] [INFO] 本 epoch（预测分支）平均训练损失: 0.427997
+[2025-12-08 10:05:06,780] [INFO] [Eval] F1=0.8872, P=0.8260, R=0.9581, AUC=0.8891, thr=7.238392, point_adjust=True
+[2025-12-08 10:05:06,798] [INFO] 发现更优模型，已保存至 ./logs/smd_forecast/best_model.pt
+[2025-12-08 10:05:07,055] [INFO] 已保存可视化图：./logs/smd_forecast/scores_epoch1.png
+[2025-12-08 10:05:07,055] [INFO] ========== Epoch 2/50 ==========
+[2025-12-08 10:05:57,122] [INFO] 本 epoch（预测分支）平均训练损失: 0.400127
+[2025-12-08 10:06:36,489] [INFO] [Eval] F1=0.8843, P=0.8174, R=0.9631, AUC=0.8852, thr=7.176913, point_adjust=True
+[2025-12-08 10:06:36,735] [INFO] 已保存可视化图：./logs/smd_forecast/scores_epoch2.png
+[2025-12-08 10:06:36,735] [INFO] ========== Epoch 3/50 ==========
+[2025-12-08 10:07:16,594] [INFO] 本 epoch（预测分支）平均训练损失: 0.389567
+[2025-12-08 10:07:56,704] [INFO] [Eval] F1=0.8857, P=0.8199, R=0.9631, AUC=0.8745, thr=7.187364, point_adjust=True
+[2025-12-08 10:07:56,966] [INFO] 已保存可视化图：./logs/smd_forecast/scores_epoch3.png
+[2025-12-08 10:07:56,967] [INFO] ========== Epoch 4/50 ==========
