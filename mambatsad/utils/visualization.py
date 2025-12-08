@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 """
-简单可视化：
-- 绘制一段时间上的 anomaly score + label + 阈值
+简单可视化工具：
+- 绘制一段时间上的 anomaly score + label + 阈值，
+  用于快速观察模型检测效果。
 """
-
 import os
 from typing import Optional
 
@@ -17,16 +17,30 @@ def plot_scores_with_labels(
     threshold: float,
     save_path: str,
     max_points: Optional[int] = 5000,
-):
+) -> None:
     """
-    scores: [T] 异常评分
-    labels: [T] 二值标签
-    threshold: 阈值（水平线）
+    绘制「异常分数 + 标签 + 阈值」曲线。
+
+    参数
+    ----
+    scores:
+        一维异常分数数组 [T]。
+    labels:
+        对应的一维 0/1 标签数组 [T]。
+    threshold:
+        阈值（绘制为一条水平线）。
+    save_path:
+        图片保存路径。
+    max_points:
+        最多绘制多少个时间点，以避免极长序列导致图像过密。
     """
     os.makedirs(os.path.dirname(save_path), exist_ok=True)
+
+    scores = np.asarray(scores)
+    labels = np.asarray(labels)
     T = len(scores)
+
     if max_points is not None and T > max_points:
-        # 只画前 max_points 个点，方便展示
         scores = scores[:max_points]
         labels = labels[:max_points]
         T = max_points
@@ -34,10 +48,9 @@ def plot_scores_with_labels(
     fig, ax1 = plt.subplots(figsize=(12, 4))
 
     ax1.plot(range(T), scores, label="Anomaly Score")
-    ax1.axhline(threshold, color="r", linestyle="--", label=f"Threshold={threshold:.4f}")
+    ax1.axhline(threshold, linestyle="--", label=f"Threshold={threshold:.4f}")
     ax1.set_ylabel("Score")
 
-    # 第二个 y 轴画标签
     ax2 = ax1.twinx()
     ax2.plot(range(T), labels, color="g", alpha=0.3, label="Label (0/1)")
     ax2.set_ylabel("Label")

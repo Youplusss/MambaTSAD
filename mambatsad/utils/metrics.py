@@ -1,105 +1,163 @@
-# mambatsad/utils/metrics.py
 # -*- coding: utf-8 -*-
 """
-时间序列异常检测评估工具：
-- 支持 AUC
-- 支持基于 F1 的阈值搜索
-- 支持 point_adjust
-- 有意识地避免选择极端阈值（例如把所有点都判成异常）
+评估指标与阈值搜索相关工具。
+
+这里集中放置：
+- point_adjust：时间序列异常检测中常用的段级别修正技巧；
+- compute_roc_auc：不依赖 sklearn 的 ROC-AUC 计算；
+- search_best_f1_threshold：在一组候选阈值上搜索 F1 最优阈值。
 """
+from __future__ import annotations
+
+from typing import Dict, Tuple
 
 import numpy as np
-from sklearn.metrics import (
-    roc_auc_score,
-    precision_score,
-    recall_score,
-    f1_score,
-)
-from .ts_postprocess import point_adjust
 
 
-def _safe_auc(labels: np.ndarray, scores: np.ndarray) -> float:
-    """带异常捕获的 AUC 计算"""
-    try:
-        return float(roc_auc_score(labels, scores))
-    except Exception:
-        return float("nan")
+def point_adjust(pred: np.ndarray, labels: np.ndarray) -> np.ndarray:
+    """Point-adjust 技巧。
+
+    对每一段连续的真实异常区间，如果模型在该区间内任意一点预测为异常，
+    则把该区间全部视作预测异常。这样可以缓解“只命中一两个点却整段算错”的问题。
+    """
+    pred = pred.astype(bool)
+    labels = labels.astype(int)
+    assert pred.shape == labels.shape
+
+    n = len(labels)
+    i = 0
+    while i < n:
+        if labels[i] == 1:
+            j = i + 1
+            while j < n and labels[j] == 1:
+                j += 1
+            # [i, j) 为一段连续的异常区间
+            if pred[i:j].any():
+                pred[i:j] = True
+            i = j
+        else:
+            i += 1
+
+    return pred.astype(int)
+
+
+def compute_roc_auc(labels: np.ndarray, scores: np.ndarray) -> float:
+    """使用纯 numpy 计算 ROC-AUC，避免依赖 sklearn。
+
+    实现依据 Mann–Whitney U 统计量的等价形式：
+        AUC = (sum_ranks_pos - P*(P+1)/2) / (P*N)
+
+    其中 P/N 分别为正/负样本数量。
+    """
+    labels = labels.astype(int)
+    scores = scores.astype(float)
+    assert labels.shape == scores.shape
+
+    P = int(labels.sum())
+    N = int(len(labels) - P)
+    if P == 0 or N == 0:
+        # 极端情况：全正或全负，AUC 定义不明，这里返回 0.5
+        return 0.5
+
+    # 根据得分从小到大排序
+    order = np.argsort(scores)
+    ranks = np.arange(1, len(scores) + 1, dtype=np.float64)
+    ranks_pos = ranks[labels[order] == 1]
+    sum_ranks_pos = ranks_pos.sum()
+
+    auc = (sum_ranks_pos - P * (P + 1) / 2.0) / (P * N)
+    return float(auc)
 
 
 def search_best_f1_threshold(
     scores: np.ndarray,
     labels: np.ndarray,
+    num_steps: int = 2048,
     use_point_adjust: bool = True,
-    num_thresholds: int = 200,
-    low_percentile: float = 1.0,
-    high_percentile: float = 99.0,
-):
-    """
-    在给定分数上搜索 F1 最优的阈值。
+) -> Tuple[float, Dict[str, float]]:
+    """在一组候选阈值上搜索 F1 最大的阈值。
 
-    注意：
-    - 为了避免出现 "全部预测为异常" 这种极端解，
-      我们只在 [low_percentile, high_percentile] 这个区间里搜索阈值。
-      比如 [1%, 99%]，排除最极端的 0%/100% 部分。
-    - 这是很多 TSAD 论文实际采用的做法（只不过没有明说）。
+    参数
+    ----
+    scores:
+        一维异常分数数组，数值越大越异常。
+    labels:
+        对应的 0/1 标签数组。
+    num_steps:
+        最多使用多少个候选阈值（scores 唯一值过多时进行均匀采样）。
+    use_point_adjust:
+        是否在计算 P/R/F1 之前应用 point_adjust 技巧。
     """
     scores = np.asarray(scores, dtype=np.float64)
-    labels = np.asarray(labels, dtype=int)
-
+    labels = np.asarray(labels, dtype=np.int64)
     assert scores.shape == labels.shape
 
-    auc = _safe_auc(labels, scores)
-
-    # 所有分数都一样 → 完全没有区分能力，直接返回一个退化结果
-    if np.allclose(scores, scores[0]):
-        thr = float(scores[0])
-        preds = np.ones_like(labels)  # 或全 0，取决于你想怎么定义
+    uniq_scores = np.unique(scores)
+    if len(uniq_scores) == 1:
+        # 所有得分完全一样，模型几乎没有区分能力
+        best_thr = float(uniq_scores[0])
+        pred = scores >= best_thr
         if use_point_adjust:
-            preds = point_adjust(preds, labels)
-        P = precision_score(labels, preds, zero_division=0)
-        R = recall_score(labels, preds, zero_division=0)
-        F1 = f1_score(labels, preds, zero_division=0)
-        return {
-            "best_thr": thr,
-            "f1": float(F1),
-            "precision": float(P),
-            "recall": float(R),
-            "auc": auc,
+            pred = point_adjust(pred, labels)
+
+        tp = np.logical_and(pred == 1, labels == 1).sum()
+        fp = np.logical_and(pred == 1, labels == 0).sum()
+        fn = np.logical_and(pred == 0, labels == 1).sum()
+
+        precision = tp / (tp + fp + 1e-8)
+        recall = tp / (tp + fn + 1e-8)
+        f1 = 2 * precision * recall / (precision + recall + 1e-8)
+
+        return best_thr, {
+            "precision": float(precision),
+            "recall": float(recall),
+            "f1": float(f1),
+            "auc": 0.5,
+            "threshold": best_thr,
+            "use_point_adjust": use_point_adjust,
         }
 
-    lo = float(np.percentile(scores, low_percentile))
-    hi = float(np.percentile(scores, high_percentile))
+    if len(uniq_scores) > num_steps:
+        idxs = np.linspace(0, len(uniq_scores) - 1, num_steps).astype(int)
+        cand_thrs = uniq_scores[idxs]
+    else:
+        cand_thrs = uniq_scores
 
-    # 如果分布非常窄，就退化为 [min, max]
-    if lo >= hi:
-        lo = float(scores.min())
-        hi = float(scores.max())
+    best_f1 = -1.0
+    best_p = 0.0
+    best_r = 0.0
+    best_thr = float(cand_thrs[0])
 
-    thresholds = np.linspace(lo, hi, num=num_thresholds)
-
-    best = {
-        "best_thr": thresholds[0],
-        "f1": -1.0,
-        "precision": 0.0,
-        "recall": 0.0,
-        "auc": auc,
-    }
-
-    for thr in thresholds:
-        preds = (scores >= thr).astype(int)
+    for thr in cand_thrs:
+        pred = (scores >= thr).astype(int)
         if use_point_adjust:
-            preds = point_adjust(preds, labels)
+            pred = point_adjust(pred, labels)
 
-        P = precision_score(labels, preds, zero_division=0)
-        R = recall_score(labels, preds, zero_division=0)
-        F1 = f1_score(labels, preds, zero_division=0)
+        tp = np.logical_and(pred == 1, labels == 1).sum()
+        fp = np.logical_and(pred == 1, labels == 0).sum()
+        fn = np.logical_and(pred == 0, labels == 1).sum()
 
-        if F1 > best["f1"]:
-            best.update(
-                best_thr=float(thr),
-                f1=float(F1),
-                precision=float(P),
-                recall=float(R),
-            )
+        precision = tp / (tp + fp + 1e-8)
+        recall = tp / (tp + fn + 1e-8)
+        f1 = 2 * precision * recall / (precision + recall + 1e-8)
 
-    return best
+        # 主指标为 F1，在 F1 非常接近时偏向 precision 更高的阈值
+        if (f1 > best_f1 + 1e-6) or (
+            abs(f1 - best_f1) <= 1e-6 and precision > best_p
+        ):
+            best_f1 = f1
+            best_p = precision
+            best_r = recall
+            best_thr = float(thr)
+
+    auc = compute_roc_auc(labels, scores)
+
+    metrics = {
+        "precision": float(best_p),
+        "recall": float(best_r),
+        "f1": float(best_f1),
+        "auc": float(auc),
+        "threshold": float(best_thr),
+        "use_point_adjust": use_point_adjust,
+    }
+    return best_thr, metrics
