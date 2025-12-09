@@ -128,6 +128,7 @@ def load_preprocessed_msl_channel(processed_root: str, chan_id: str):
 
 
 # -------- 与 SMD 保持一致的非有限值处理策略 --------
+
 def fill_sequence_with_own_feature_mean(seq: np.ndarray) -> np.ndarray:
     """
     对单个序列 (T, D)：将非有限值替成该序列每列的均值（忽略非有限值计算均值）。
@@ -135,12 +136,59 @@ def fill_sequence_with_own_feature_mean(seq: np.ndarray) -> np.ndarray:
     若某特征列全为非有限，则填 0.0。
     """
     s = seq.astype(np.float32, copy=True)
+    if np.isfinite(s).all():
+        return s
     s_nan = np.where(np.isfinite(s), s, np.nan)
     feat_mean = np.nanmean(s_nan, axis=0)
     feat_mean = np.where(np.isfinite(feat_mean), feat_mean, 0.0).astype(np.float32)
 
     s = np.where(np.isfinite(s), s, feat_mean)
     return s.astype(np.float32)
+
+
+def fill_sequence_with_neighbor_mean(seq: np.ndarray) -> np.ndarray:
+    """
+    使用时间维度上相邻两个有效值的均值来填充非有限值；仅一侧存在则用该侧值；整列无有效值则置 0。
+    """
+    s = seq.astype(np.float32, copy=True)
+    if np.isfinite(s).all():
+        return s
+    T, D = s.shape
+    is_fin = np.isfinite(s)
+    out = s.copy()
+
+    for d in range(D):
+        col = s[:, d]
+        fin_mask = is_fin[:, d]
+        if not fin_mask.any():
+            out[:, d] = 0.0
+            continue
+        left_idx = np.full(T, -1, dtype=np.int32)
+        last = -1
+        for t in range(T):
+            if fin_mask[t]:
+                last = t
+            left_idx[t] = last
+        right_idx = np.full(T, -1, dtype=np.int32)
+        last = -1
+        for t in range(T - 1, -1, -1):
+            if fin_mask[t]:
+                last = t
+            right_idx[t] = last
+        for t in range(T):
+            if fin_mask[t]:
+                continue
+            li = left_idx[t]
+            ri = right_idx[t]
+            if li != -1 and ri != -1:
+                out[t, d] = (col[li] + col[ri]) / 2.0
+            elif li != -1:
+                out[t, d] = col[li]
+            elif ri != -1:
+                out[t, d] = col[ri]
+            else:
+                out[t, d] = 0.0
+    return out.astype(np.float32)
 
 
 def fill_sequence_with_train_mean(train_seq: np.ndarray, seq_to_fill: np.ndarray) -> np.ndarray:
@@ -236,7 +284,8 @@ def build_msl_multi_datasets(
         通道 id 列表。
     """
     channel_ids = load_channel_ids(processed_root)
-    use_train_mean_for_test = True
+    use_train_mean_for_test = False
+    use_neighbor_fill = False  # 新增：是否使用相邻有效值均值进行填充
 
     train_seqs: List[np.ndarray] = []
     test_seqs: List[np.ndarray] = []
@@ -246,11 +295,18 @@ def build_msl_multi_datasets(
         train, test, labels = load_preprocessed_msl_channel(processed_root, cid)
 
         # 与 SMD 对齐的非有限值处理策略
-        train = fill_sequence_with_own_feature_mean(train)
-        if use_train_mean_for_test:
-            test = fill_sequence_with_train_mean(train, test)
+        if use_neighbor_fill:
+            train = fill_sequence_with_neighbor_mean(train)
+            test = fill_sequence_with_neighbor_mean(test)
         else:
-            test = fill_sequence_with_own_feature_mean(test)
+            train = fill_sequence_with_own_feature_mean(train)
+            fill_sequence_with_own_feature_mean(test)
+
+
+        # if use_train_mean_for_test:
+        #     test = fill_sequence_with_train_mean(train, test)
+        # else:
+        #     test = fill_sequence_with_neighbor_mean(test) if use_neighbor_fill else fill_sequence_with_own_feature_mean(test)
 
         labels = np.where(np.isfinite(labels), labels, 0).astype(np.int64)
 

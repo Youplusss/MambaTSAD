@@ -41,6 +41,9 @@ def fill_sequence_with_own_feature_mean(seq: np.ndarray) -> np.ndarray:
     - 最终返回 float32 类型的新数组。
     """
     s = seq.astype(np.float32, copy=True)
+    # 若没有非有限值，直接返回
+    if np.isfinite(s).all():
+        return s
     # 把非有限值视为 nan，便于使用 nanmean
     s_nan = np.where(np.isfinite(s), s, np.nan)
     feat_mean = np.nanmean(s_nan, axis=0)
@@ -49,6 +52,74 @@ def fill_sequence_with_own_feature_mean(seq: np.ndarray) -> np.ndarray:
     # 用列均值替换所有非有限值
     s = np.where(np.isfinite(s), s, feat_mean)
     return s.astype(np.float32)
+
+
+def fill_sequence_with_neighbor_mean(seq: np.ndarray) -> np.ndarray:
+    """
+    使用时间轴上相邻两个有效值的均值来填充非有限值。
+
+    规则（逐特征维度独立处理）:
+    - 对每个特征维度，找到每个时间步的最近左侧有效值和最近右侧有效值；
+    - 若左右两侧都存在，则填充为两者均值；
+    - 若仅存在一侧，则用该侧值填充（等同于最近邻）；
+    - 若整列都无有效值，则填 0.0；
+
+    输入/输出：
+    - 输入 seq: (T, D) 的 ndarray；输出同形状 float32。
+    """
+    s = seq.astype(np.float32, copy=True)
+    # 若没有非有限值，直接返回
+    if np.isfinite(s).all():
+        return s
+    T, D = s.shape
+    is_fin = np.isfinite(s)
+
+    # 结果初始化为原值，后面只改非有限位置
+    out = s.copy()
+
+    # 逐列处理，构造每列的左/右最近有效值索引
+    for d in range(D):
+        col = s[:, d]
+        fin_mask = is_fin[:, d]
+
+        if not fin_mask.any():
+            # 整列无有效值 -> 全列置 0
+            out[:, d] = 0.0
+            continue
+
+        # 左侧最近有效值索引
+        left_idx = np.full(T, -1, dtype=np.int32)
+        last = -1
+        for t in range(T):
+            if fin_mask[t]:
+                last = t
+            left_idx[t] = last
+
+        # 右侧最近有效值索引
+        right_idx = np.full(T, -1, dtype=np.int32)
+        last = -1
+        for t in range(T - 1, -1, -1):
+            if fin_mask[t]:
+                last = t
+            right_idx[t] = last
+
+        # 填充非有限位置
+        for t in range(T):
+            if fin_mask[t]:
+                continue
+            li = left_idx[t]
+            ri = right_idx[t]
+            if li != -1 and ri != -1:
+                out[t, d] = (col[li] + col[ri]) / 2.0
+            elif li != -1:
+                out[t, d] = col[li]
+            elif ri != -1:
+                out[t, d] = col[ri]
+            else:
+                # 理论上不会到这里，因为前面 any() 已经判断过
+                out[t, d] = 0.0
+
+    return out.astype(np.float32)
 
 
 def fill_sequence_with_train_mean(train_seq: np.ndarray, seq_to_fill: np.ndarray) -> np.ndarray:
@@ -61,6 +132,9 @@ def fill_sequence_with_train_mean(train_seq: np.ndarray, seq_to_fill: np.ndarray
     feat_mean = np.where(np.isfinite(feat_mean), feat_mean, 0.0).astype(np.float32)
 
     s = seq_to_fill.astype(np.float32, copy=True)
+    # 若没有非有限值，直接返回
+    if np.isfinite(s).all():
+        return s
     s = np.where(np.isfinite(s), s, feat_mean)
     return s.astype(np.float32)
 
@@ -230,6 +304,7 @@ def build_smd_multi_datasets(
     """
     machine_ids = load_machine_ids(processed_root)
     use_train_mean_for_test = True
+    use_neighbor_fill = False  # 新增：是否使用相邻有效值均值进行填充
 
     train_seqs: List[np.ndarray] = []
     test_seqs: List[np.ndarray] = []
@@ -238,13 +313,18 @@ def build_smd_multi_datasets(
     for mid in machine_ids:
         train, test, labels = load_preprocessed_smd_machine(processed_root, mid)
 
-        # 针对每个子序列单独均值填充 train
-        train = fill_sequence_with_own_feature_mean(train)
-
-        if use_train_mean_for_test:
-            test = fill_sequence_with_train_mean(train, test)
+        # 针对每个子序列的非有限值填充策略
+        if use_neighbor_fill:
+            train = fill_sequence_with_neighbor_mean(train)
+            test = fill_sequence_with_neighbor_mean(test)
         else:
+            train = fill_sequence_with_own_feature_mean(train)
             test = fill_sequence_with_own_feature_mean(test)
+
+        # if use_train_mean_for_test:
+        #     test = fill_sequence_with_train_mean(train, test)
+        # else:
+        #     test = fill_sequence_with_neighbor_mean(test) if use_neighbor_fill else fill_sequence_with_own_feature_mean(test)
 
         # labels 理论上都是 0/1，如出现非有限值则用 0 填充
         labels = np.where(np.isfinite(labels), labels, 0).astype(np.int64)
