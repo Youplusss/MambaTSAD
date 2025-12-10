@@ -1,29 +1,68 @@
 # mambatsad/data/smap.py
 # -*- coding: utf-8 -*-
-"""SMAP 数据集构建工具。
-
-假定你已经在远端服务器上使用 `tools/preprocess_smap.py` 将原始 SMAP
-数据预处理为与 SMD/MSL 相同的格式：
-
-processed_root/
-  train/
-    <chan_id>.npy       # 训练序列 (T_train, D)
-  test/
-    <chan_id>.npy       # 测试序列 (T_test, D)
-  test_label/
-    <chan_id>.npy       # 测试标签 (T_test,)
-  channels.txt          # 所有通道 id 列表
-
-本模块提供统一的滑窗数据集构建函数 `build_smap_dataset`，
-其返回值与其他数据集保持一致，方便主训练入口 main.py 使用。
 """
+SMAP 数据集构建工具。
+
+假定你已通过 tools/preprocess_smap.py 将原始 NASA / telemanom 风格数据
+转成以下结构::
+
+    processed_root/
+        train/      *.npy   # 每个通道一份 [T_train, D]
+        test/       *.npy   # [T_test, D]
+        test_label/ *.npy   # [T_test]
+        channels.txt        # 通道 id 列表
+
+本文件在原有滑窗基础上，增加了**全局 z-score 归一化**，
+以避免各通道尺度差异导致训练困难。
+"""
+
 from __future__ import annotations
 
 import os
-from typing import List, Tuple
+from typing import Dict, List, Tuple
 
 import numpy as np
 from torch.utils.data import Dataset
+
+EPS = 1e-8
+
+
+def compute_global_norm_stats(train_seqs: List[np.ndarray]) -> Dict[str, np.ndarray]:
+    """
+    在所有训练序列上计算统一的均值 / 方差（z-score）。
+
+    - train_seqs: 列表，每个元素形状 [T_train_i, D]
+    """
+    all_list = []
+    for s in train_seqs:
+        s = s.astype(np.float32)
+        s = np.where(np.isfinite(s), s, np.nan)
+        all_list.append(s)
+
+    all_train = np.vstack(all_list).astype(np.float32)
+
+    mean = np.nanmean(all_train, axis=0).astype(np.float32)
+    std = np.nanstd(all_train, axis=0).astype(np.float32)
+
+    mean = np.where(np.isfinite(mean), mean, 0.0).astype(np.float32)
+    std = np.where(np.isfinite(std), std, 1.0).astype(np.float32)
+    std = np.where(std < EPS, 1.0, std).astype(np.float32)
+
+    return {"mean": mean, "std": std}
+
+
+def apply_norm_to_seqs(
+    seqs: List[np.ndarray],
+    stats: Dict[str, np.ndarray],
+) -> List[np.ndarray]:
+    """对每个序列应用统一的 z-score 归一化。"""
+    mean, std = stats["mean"], stats["std"]
+    out: List[np.ndarray] = []
+    for s in seqs:
+        s = s.astype(np.float32, copy=True)
+        s = (s - mean) / std
+        out.append(s.astype(np.float32))
+    return out
 
 
 class SMAPMultiWindowDataset(Dataset):
@@ -38,6 +77,7 @@ class SMAPMultiWindowDataset(Dataset):
         mode: str = "train",
     ) -> None:
         assert mode in ("train", "test"), "mode 仅支持 train/test"
+
         self.sequences = sequences
         self.labels_list = labels_list
         self.win_size = int(win_size)
@@ -58,8 +98,8 @@ class SMAPMultiWindowDataset(Dataset):
     def __getitem__(self, idx: int):  # type: ignore[override]
         seq_idx, start = self.indices[idx]
         seq = self.sequences[seq_idx]
-        win = seq[start : start + self.win_size].astype(np.float32)
 
+        win = seq[start : start + self.win_size].astype(np.float32)
         if not np.isfinite(win).all():
             win = np.nan_to_num(win, nan=0.0, posinf=1e6, neginf=-1e6)
 
@@ -81,7 +121,6 @@ def _load_smap_entities(
     processed_root: str,
 ) -> Tuple[List[str], List[np.ndarray], List[np.ndarray], List[np.ndarray]]:
     """读取 SMAP 预处理目录中的 train/test/label。"""
-
     train_root = os.path.join(processed_root, "train")
     test_root = os.path.join(processed_root, "test")
     label_root = os.path.join(processed_root, "test_label")
@@ -118,11 +157,13 @@ def _load_smap_entities(
 
         if train.ndim != 2 or test.ndim != 2:
             raise ValueError(
-                f"期望 train/test 为二维数组 [T, D]，但 {cid} 得到 train={train.shape}, test={test.shape}"
+                f"期望 train/test 为二维数组 [T, D]，但 {cid} 得到 "
+                f"train={train.shape}, test={test.shape}"
             )
         if labels.ndim != 1 or labels.shape[0] != test.shape[0]:
             raise ValueError(
-                f"标签维度不匹配: {cid} labels.shape={labels.shape}, test.shape[0]={test.shape[0]}"
+                f"标签维度不匹配: {cid} labels.shape={labels.shape}, "
+                f"test.shape[0]={test.shape[0]}"
             )
 
         train_series_list.append(train.astype(np.float32))
@@ -139,7 +180,6 @@ def build_smap_dataset(
     test_stride: int = 1,
 ):
     """构建 SMAP 的训练 / 测试数据集，接口与其他数据集保持一致。"""
-
     entity_ids, train_list, test_list, labels_list = _load_smap_entities(processed_root)
 
     dims = {arr.shape[1] for arr in train_list}
@@ -147,14 +187,23 @@ def build_smap_dataset(
         raise ValueError(f"SMAP 各通道特征维度不一致: {dims}")
     input_dim = dims.pop()
 
+    # 先做有限值清洗
     def _ensure_finite(arr: np.ndarray) -> np.ndarray:
         if np.isfinite(arr).all():
-            return arr
+            return arr.astype(np.float32)
         return np.nan_to_num(arr, nan=0.0, posinf=1e6, neginf=-1e6).astype(np.float32)
 
-    train_seqs = [_ensure_finite(arr) for arr in train_list]
-    test_seqs = [_ensure_finite(arr) for arr in test_list]
-    labels_clean = [np.where(np.isfinite(lab), lab, 0).astype(np.int64) for lab in labels_list]
+    train_seqs_raw = [_ensure_finite(a) for a in train_list]
+    test_seqs_raw = [_ensure_finite(a) for a in test_list]
+
+    # 在所有训练序列上计算全局 z-score，然后同时应用于 train/test
+    norm_stats = compute_global_norm_stats(train_seqs_raw)
+    train_seqs = apply_norm_to_seqs(train_seqs_raw, norm_stats)
+    test_seqs = apply_norm_to_seqs(test_seqs_raw, norm_stats)
+
+    labels_clean = [
+        np.where(np.isfinite(lab), lab, 0).astype(np.int64) for lab in labels_list
+    ]
 
     train_ds = SMAPMultiWindowDataset(
         sequences=train_seqs,
@@ -163,6 +212,7 @@ def build_smap_dataset(
         stride=train_stride,
         mode="train",
     )
+
     test_ds = SMAPMultiWindowDataset(
         sequences=test_seqs,
         labels_list=labels_clean,

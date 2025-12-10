@@ -4,7 +4,7 @@
 DATA_ROOT="./dataset/SMAP"
 LOG_ROOT="./logs/smap_hybrid"
 
-CUDA_VISIBLE_DEVICES=3 python main.py \
+CUDA_VISIBLE_DEVICES=7 python main.py \
   --dataset smap \
   --processed_root "${DATA_ROOT}" \
   --branch hybrid \

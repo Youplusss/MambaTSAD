@@ -6,7 +6,8 @@
 这里集中放置：
 - point_adjust：时间序列异常检测中常用的段级别修正技巧；
 - compute_roc_auc：不依赖 sklearn 的 ROC-AUC 计算；
-- search_best_f1_threshold：在一组候选阈值上搜索 F1 最优阈值（带 P/R 平衡偏好）。
+- search_best_f1_threshold：在一组候选阈值上搜索 F1 最优阈值（带 P/R 平衡偏好）；
+- search_best_f1_threshold_with_auto_flip：在此基础上自动判断分数方向是否需要翻转。
 """
 
 from __future__ import annotations
@@ -44,9 +45,11 @@ def point_adjust(pred: np.ndarray, labels: np.ndarray) -> np.ndarray:
             j = i + 1
             while j < n and labels[j] == 1:
                 j += 1
+
             # 若区间内任意一点被预测为异常，则整段都置为异常
             if pred[i:j].any():
                 pred[i:j] = True
+
             i = j
         else:
             i += 1
@@ -62,7 +65,8 @@ def compute_roc_auc(labels: np.ndarray, scores: np.ndarray) -> float:
         AUC = (sum_ranks_pos - P*(P+1)/2) / (P*N)
     其中 P/N 分别为正/负样本数量。
 
-    约定：scores 数值 **越大越异常**，labels 中 1 表示“异常”，0 表示“正常”。
+    约定：scores 数值 **越大越异常**，
+    labels 中 1 表示“异常”，0 表示“正常”。
     """
     labels = labels.astype(int)
     scores = scores.astype(float)
@@ -82,6 +86,24 @@ def compute_roc_auc(labels: np.ndarray, scores: np.ndarray) -> float:
 
     auc = (sum_ranks_pos - P * (P + 1) / 2.0) / (P * N)
     return float(auc)
+
+
+def _precision_recall_f1(
+    pred: np.ndarray, labels: np.ndarray
+) -> Tuple[float, float, float]:
+    """内部小工具：给定 0/1 预测与标签，计算 P/R/F1。"""
+    pred = pred.astype(int)
+    labels = labels.astype(int)
+
+    tp = np.logical_and(pred == 1, labels == 1).sum()
+    fp = np.logical_and(pred == 1, labels == 0).sum()
+    fn = np.logical_and(pred == 0, labels == 1).sum()
+
+    precision = tp / (tp + fp + 1e-8)
+    recall = tp / (tp + fn + 1e-8)
+    f1 = 2 * precision * recall / (precision + recall + 1e-8)
+
+    return float(precision), float(recall), float(f1)
 
 
 def search_best_f1_threshold(
@@ -118,18 +140,12 @@ def search_best_f1_threshold(
         if use_point_adjust:
             pred = point_adjust(pred, labels)
 
-        tp = np.logical_and(pred == 1, labels == 1).sum()
-        fp = np.logical_and(pred == 1, labels == 0).sum()
-        fn = np.logical_and(pred == 0, labels == 1).sum()
-
-        precision = tp / (tp + fp + 1e-8)
-        recall = tp / (tp + fn + 1e-8)
-        f1 = 2 * precision * recall / (precision + recall + 1e-8)
+        precision, recall, f1 = _precision_recall_f1(pred, labels)
 
         return best_thr, {
-            "precision": float(precision),
-            "recall": float(recall),
-            "f1": float(f1),
+            "precision": precision,
+            "recall": recall,
+            "f1": f1,
             "auc": 0.5,
             "threshold": best_thr,
             "use_point_adjust": use_point_adjust,
@@ -152,13 +168,7 @@ def search_best_f1_threshold(
         if use_point_adjust:
             pred = point_adjust(pred, labels)
 
-        tp = np.logical_and(pred == 1, labels == 1).sum()
-        fp = np.logical_and(pred == 1, labels == 0).sum()
-        fn = np.logical_and(pred == 0, labels == 1).sum()
-
-        precision = tp / (tp + fp + 1e-8)
-        recall = tp / (tp + fn + 1e-8)
-        f1 = 2 * precision * recall / (precision + recall + 1e-8)
+        precision, recall, f1 = _precision_recall_f1(pred, labels)
 
         # ---------- 阈值选择策略 ----------
         # 1) 主指标为 F1；
@@ -169,8 +179,7 @@ def search_best_f1_threshold(
         balance_best = min(best_p, best_r)
 
         if (f1 > best_f1 + 1e-6) or (
-            abs(f1 - best_f1) <= 1e-6
-            and balance_curr > balance_best + 1e-6
+            abs(f1 - best_f1) <= 1e-6 and balance_curr > balance_best + 1e-6
         ):
             best_f1 = f1
             best_p = precision
@@ -188,3 +197,94 @@ def search_best_f1_threshold(
         "use_point_adjust": use_point_adjust,
     }
     return best_thr, metrics
+
+
+def search_best_f1_threshold_with_auto_flip(
+    scores: np.ndarray,
+    labels: np.ndarray,
+    num_steps: int = 2048,
+    use_point_adjust: bool = True,
+    f1_tolerance: float = 0.02,
+) -> Tuple[float, Dict[str, float]]:
+    """
+    扩展版阈值搜索：自动判断“分数方向”是否需要翻转。
+
+    背景
+    ----
+    - 有些模型产生的分数是「越大越异常」；
+    - 但也可能因为取负 / 残差定义等原因，变成「越小越异常」；
+    - 如果方向弄反，就会出现你在 SWAT 上看到的情况：
+      AUC≈0.2 但 F1 / P / R 很高，看起来非常违和。
+
+    做法
+    ----
+    1. 先假设「scores 越大越异常」，调用一次 search_best_f1_threshold；
+    2. 再对 -scores 做同样的搜索，相当于假设「scores 越小越异常」；
+    3. 默认优先选择 **AUC >= 0.5 的方向**（保证 ROC 语义正常），
+       如果另一侧的 F1 高出非常多（超过 f1_tolerance），再让 F1“推翻”AUC 的选择；
+    4. 返回最终方向下的阈值与指标，并在 metrics 中加入：
+       - need_flip: 是否需要在外部对 scores 取负；
+       - direction: "greater"（大于阈值为异常）或 "less"（小于阈值为异常）。
+
+    注意
+    ----
+    外部在真正生成 0/1 预测时要遵循 metrics["direction"] 来做比较，
+    或者在 need_flip 为 True 时先把 scores 取负，再用 >= threshold 判异常。
+    """
+    scores = np.asarray(scores, dtype=np.float64)
+    labels = np.asarray(labels, dtype=np.int64)
+    assert scores.shape == labels.shape
+
+    # 1) 原方向：越大越异常
+    thr_pos, m_pos = search_best_f1_threshold(
+        scores, labels, num_steps=num_steps, use_point_adjust=use_point_adjust
+    )
+    m_pos = dict(m_pos)  # 复制一份避免修改原字典
+    auc_pos = float(m_pos.get("auc", 0.5))
+    f1_pos = float(m_pos.get("f1", 0.0))
+
+    # 2) 取负方向：越小越异常 <=> (-scores) 越大越异常
+    thr_neg_on_neg, m_neg_raw = search_best_f1_threshold(
+        -scores, labels, num_steps=num_steps, use_point_adjust=use_point_adjust
+    )
+    m_neg = dict(m_neg_raw)
+    # 把“在 -scores 空间里的阈值”转换回原 scores 空间的阈值：
+    thr_neg = -float(thr_neg_on_neg)
+    m_neg["threshold"] = thr_neg
+    auc_neg = float(m_neg.get("auc", 0.5))  # 这是“越小越异常”方向下的 AUC
+    f1_neg = float(m_neg.get("f1", 0.0))
+
+    # 默认：谁的 AUC >= 0.5（更远离 0.5），优先谁
+    # 实际上 auc_neg = 1 - auc_pos（无 ties 时严格成立），
+    # 所以通常只有一侧 >= 0.5
+    choose_flip = False  # True 表示使用“越小越异常”的方向
+
+    if (auc_neg >= 0.5 and auc_pos < 0.5) or (
+        abs(auc_neg - 0.5) > abs(auc_pos - 0.5)
+    ):
+        choose_flip = True
+    else:
+        choose_flip = False
+
+    # 如果某一侧 F1 明显更好，则允许 F1 推翻 AUC 的选择
+    if choose_flip and f1_pos > f1_neg + f1_tolerance:
+        choose_flip = False
+    if (not choose_flip) and f1_neg > f1_pos + f1_tolerance:
+        choose_flip = True
+
+    # 补充方向信息
+    m_pos["threshold"] = float(thr_pos)
+    m_pos["need_flip"] = False
+    m_pos["direction"] = "greater"
+
+    m_neg["need_flip"] = True
+    m_neg["direction"] = "less"
+
+    if choose_flip:
+        best_thr = thr_neg
+        metrics = m_neg
+    else:
+        best_thr = thr_pos
+        metrics = m_pos
+
+    return float(best_thr), metrics
