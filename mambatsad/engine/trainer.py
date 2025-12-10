@@ -407,11 +407,16 @@ class TSADTrainer:
                 precision_rec = 1.0 / (sigma_rec ** 2 + 1e-8)
                 precision_fore = 1.0 / (sigma_fore ** 2 + 1e-8)
 
+                # loss = (
+                #     self.lambda_recon * precision_rec * loss_recon
+                #     + self.lambda_forecast * precision_fore * loss_forecast
+                #     + torch.log(sigma_rec + 1e-8)
+                #     + torch.log(sigma_fore + 1e-8)
+                # )
+                # # 简单加权
                 loss = (
-                    self.lambda_recon * precision_rec * loss_recon
-                    + self.lambda_forecast * precision_fore * loss_forecast
-                    + torch.log(sigma_rec + 1e-8)
-                    + torch.log(sigma_fore + 1e-8)
+                        self.lambda_recon * loss_recon
+                        + self.lambda_forecast * loss_forecast
                 )
             else:
                 # 回退到简单加权

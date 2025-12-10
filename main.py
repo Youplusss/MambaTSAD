@@ -47,7 +47,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--dataset",
         type=str,
-        choices=["smd", "msl", "swat", "wadi"],
+        choices=["smd", "msl", "swat", "wadi", "smap"],
         help="数据集名称",
     )
     parser.add_argument(

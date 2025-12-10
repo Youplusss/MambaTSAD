@@ -16,12 +16,13 @@
 
 from __future__ import annotations
 
-from typing import List, Tuple
+from typing import List, Tuple  # noqa: F401
 
 from .smd import build_smd_multi_datasets, SMDMultiWindowDataset
 from .msl import build_msl_multi_datasets, MSLMultiWindowDataset
 from .swat import build_swat_multi_datasets
 from .wadi import build_wadi_multi_datasets
+from .smap import build_smap_dataset
 
 
 def build_multi_entity_dataset(
@@ -77,6 +78,13 @@ def build_multi_entity_dataset(
         )
     elif name == "wadi":
         return build_wadi_multi_datasets(
+            processed_root=processed_root,
+            win_size=win_size,
+            train_stride=train_stride,
+            test_stride=test_stride,
+        )
+    elif name == "smap":
+        return build_smap_dataset(
             processed_root=processed_root,
             win_size=win_size,
             train_stride=train_stride,
