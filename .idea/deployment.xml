@@ -16,6 +16,7 @@
           </mappings>
           <excludedPaths>
             <excludedPath path="/data" />
+            <excludedPath path="/dataset" />
           </excludedPaths>
         </serverdata>
       </paths>
