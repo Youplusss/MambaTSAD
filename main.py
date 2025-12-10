@@ -37,12 +37,18 @@ def parse_args() -> argparse.Namespace:
     )
 
     # ------------------ 数据集相关 ------------------
+    # parser.add_argument(
+    #     "--dataset",
+    #     type=str,
+    #     default="smd",
+    #     choices=["smd", "msl"],
+    #     help="选择数据集名称，目前支持 smd / msl。",
+    # )
     parser.add_argument(
         "--dataset",
         type=str,
-        default="smd",
-        choices=["smd", "msl"],
-        help="选择数据集名称，目前支持 smd / msl。",
+        choices=["smd", "msl", "swat", "wadi"],
+        help="数据集名称",
     )
     parser.add_argument(
         "--processed_root",

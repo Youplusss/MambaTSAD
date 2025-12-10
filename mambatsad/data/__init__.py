@@ -1,21 +1,27 @@
+# mambatsad/data/__init__.py
 # -*- coding: utf-8 -*-
 """
-数据集工厂函数。
+数据集统一构建入口。
 
-目前支持：
-- "smd": Server Machine Dataset，多机版本；
-- "msl": NASA MSL，多通道版本。
+目前支持的数据集：
+- smd   : Server Machine Dataset，多机多变量；
+- msl   : Mars Science Laboratory，多通道多变量；
+- swat  : Secure Water Treatment，工业控制系统多变量；
+- wadi  : Water Distribution，多变量。
 
-后续如需扩展新的数据集，只需要：
-1. 在本包中新建 xxx.py，实现 build_xxx_multi_datasets；
-2. 在 build_multi_entity_dataset 中注册一次即可。
+每个数据集模块提供一个 build_xxx_multi_datasets 函数，
+返回统一的五元组：
+    train_ds, test_ds, input_dim, labels_list, entity_ids
 """
+
 from __future__ import annotations
 
 from typing import List, Tuple
 
-from .smd import build_smd_multi_datasets
-from .msl import build_msl_multi_datasets
+from .smd import build_smd_multi_datasets, SMDMultiWindowDataset
+from .msl import build_msl_multi_datasets, MSLMultiWindowDataset
+from .swat import build_swat_multi_datasets
+from .wadi import build_wadi_multi_datasets
 
 
 def build_multi_entity_dataset(
@@ -25,37 +31,56 @@ def build_multi_entity_dataset(
     train_stride: int = 1,
     test_stride: int = 1,
 ):
-    """统一的数据集构建入口。
+    """
+    根据数据集名称构建统一的「多实体滑窗数据集」。
+
+    参数
+    ----
+    name : 数据集名称，大小写不敏感，可选：
+           "smd" / "msl" / "swat" / "wadi"
+    processed_root : 预处理数据根目录（如 ./dataset/SMD）。
+    win_size       : 滑动窗口长度。
+    train_stride   : 训练集滑窗步长。
+    test_stride    : 测试集滑窗步长。
 
     返回
     ----
-    train_ds, test_ds:
-        训练 / 测试集 Dataset 对象。
-    input_dim:
-        每个时间步的特征维度。
-    labels_list:
-        按实体（机器 / 通道）切分的标签序列列表。
-    entity_ids:
-        实体 id 列表，例如 SMD 的 machine-1-1 等。
+    train_ds, test_ds, input_dim, labels_list, entity_ids
+      其中：
+      - train_ds, test_ds : torch.utils.data.Dataset
+      - input_dim         : int，特征维度 D
+      - labels_list       : List[np.ndarray]，每个实体一条 [T_test] 标签
+      - entity_ids        : List[str]，实体 id 列表（机器 / 通道 / 工厂等）
     """
-    name_lower = name.lower()
-    if name_lower == "smd":
-        train_ds, test_ds, input_dim, labels_list, machine_ids = build_smd_multi_datasets(
-            processed_root=processed_root,
-            win_size=win_size,
-            train_stride=train_stride,
-            test_stride=test_stride,
-        )
-        entity_ids = machine_ids
-    elif name_lower == "msl":
-        train_ds, test_ds, input_dim, labels_list, channel_ids = build_msl_multi_datasets(
-            processed_root=processed_root,
-            win_size=win_size,
-            train_stride=train_stride,
-            test_stride=test_stride,
-        )
-        entity_ids = channel_ids
-    else:
-        raise ValueError(f"不支持的数据集名称：{name}")
+    name = name.lower()
 
-    return train_ds, test_ds, input_dim, labels_list, entity_ids
+    if name == "smd":
+        return build_smd_multi_datasets(
+            processed_root=processed_root,
+            win_size=win_size,
+            train_stride=train_stride,
+            test_stride=test_stride,
+        )
+    elif name == "msl":
+        return build_msl_multi_datasets(
+            processed_root=processed_root,
+            win_size=win_size,
+            train_stride=train_stride,
+            test_stride=test_stride,
+        )
+    elif name == "swat":
+        return build_swat_multi_datasets(
+            processed_root=processed_root,
+            win_size=win_size,
+            train_stride=train_stride,
+            test_stride=test_stride,
+        )
+    elif name == "wadi":
+        return build_wadi_multi_datasets(
+            processed_root=processed_root,
+            win_size=win_size,
+            train_stride=train_stride,
+            test_stride=test_stride,
+        )
+    else:
+        raise ValueError(f"暂不支持的数据集名称：{name}，可选 smd/msl/swat/wadi")

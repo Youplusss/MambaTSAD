@@ -1,0 +1,2 @@
+[2025-12-09 20:35:48,927] [INFO] 日志已写入：./logs/swat_hybrid/MambaTSAD_20251209_203548.log
+[2025-12-09 20:35:48,928] [INFO] 命令行参数：Namespace(dataset='swat', processed_root='./dataset/SWAT', log_dir='./logs/swat_hybrid', branch='hybrid', win_size=100, pred_len=10, train_stride=1, test_stride=1, batch_size=64, epochs=50, lr=0.0001, weight_decay=0.0005, seed=42, no_amp=False, max_grad_norm=1.0, patience=8, lambda_recon=1.0, lambda_forecast=1.0, no_point_adjust=False, num_workers=4)

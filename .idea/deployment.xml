@@ -15,7 +15,7 @@
             <mapping deploy="/" local="$PROJECT_DIR$" />
           </mappings>
           <excludedPaths>
-            <excludedPath local="true" path="$PROJECT_DIR$/data" />
+            <excludedPath path="/data" />
           </excludedPaths>
         </serverdata>
       </paths>
