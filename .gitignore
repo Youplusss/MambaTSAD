@@ -1,5 +1,3 @@
-./data
-./dataset
-dataset
-data
-
+data/
+dataset/
+!mambatsad/data/
