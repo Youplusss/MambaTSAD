@@ -4,7 +4,7 @@
 DATA_ROOT=./dataset/WADI
 LOG_DIR=./logs/wadi_hybrid
 
-CUDA_VISIBLE_DEVICES=7 python -u main.py \
+CUDA_VISIBLE_DEVICES=4 python -u main.py \
   --dataset wadi \
   --branch hybrid \
   --processed_root ${DATA_ROOT} \

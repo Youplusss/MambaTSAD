@@ -231,3 +231,190 @@
 [2025-12-10 17:47:35,481] [INFO] 发现更优模型，已保存至 ./logs/smd_adv_hybrid/best_model_adv_hybrid.pt
 [2025-12-10 17:47:35,481] [INFO] ========== Epoch 20/50 (adv-hybrid) ==========
 [2025-12-10 17:49:22,683] [INFO] [Epoch 20] 阶段2对抗训练损失: total=-1091193.311767, recon_pos=485.181607, recon_neg=2183356.985577
+[2025-12-10 17:50:53,683] [INFO] [Eval-recon(adv-hybrid)] F1=0.6979, P=0.7931, R=0.6231, AUC=0.8697, thr=2.404471, point_adjust=True
+[2025-12-10 17:50:53,683] [INFO] [Eval-forecast(adv-hybrid)] F1=0.7919, P=0.8960, R=0.7094, AUC=0.8658, thr=-0.021080, point_adjust=True
+[2025-12-10 17:51:30,345] [INFO] [Eval-hybrid(adv)] F1=0.7005, P=0.7988, R=0.6237, AUC=0.8702, thr=1.194370, point_adjust=True; recon_F1=0.6979, forecast_F1=0.7919
+[2025-12-10 17:51:30,923] [INFO] 已保存可视化图：./logs/smd_adv_hybrid/scores_epoch20_adv_hybrid.png
+[2025-12-10 17:51:30,924] [INFO] ========== Epoch 21/50 (adv-hybrid) ==========
+[2025-12-10 17:53:16,984] [INFO] [Epoch 21] 阶段2对抗训练损失: total=-1384397.928537, recon_pos=711.792136, recon_neg=2770219.439863
+[2025-12-10 17:54:41,131] [INFO] [Eval-recon(adv-hybrid)] F1=0.7017, P=0.8031, R=0.6231, AUC=0.8786, thr=2.950748, point_adjust=True
+[2025-12-10 17:54:41,131] [INFO] [Eval-forecast(adv-hybrid)] F1=0.7919, P=0.8960, R=0.7094, AUC=0.8658, thr=-0.021080, point_adjust=True
+[2025-12-10 17:55:17,718] [INFO] [Eval-hybrid(adv)] F1=0.7129, P=0.8331, R=0.6231, AUC=0.8793, thr=1.466363, point_adjust=True; recon_F1=0.7017, forecast_F1=0.7919
+[2025-12-10 17:55:17,956] [INFO] 已保存可视化图：./logs/smd_adv_hybrid/scores_epoch21_adv_hybrid.png
+[2025-12-10 17:55:17,956] [INFO] ========== Epoch 22/50 (adv-hybrid) ==========
+[2025-12-10 17:57:03,975] [INFO] [Epoch 22] 阶段2对抗训练损失: total=-1734110.229954, recon_pos=900.553339, recon_neg=3470021.566330
+[2025-12-10 17:58:28,810] [INFO] [Eval-recon(adv-hybrid)] F1=0.6650, P=0.7128, R=0.6231, AUC=0.8852, thr=3.063178, point_adjust=True
+[2025-12-10 17:58:28,811] [INFO] [Eval-forecast(adv-hybrid)] F1=0.7919, P=0.8960, R=0.7094, AUC=0.8661, thr=-0.021080, point_adjust=True
+[2025-12-10 17:59:06,029] [INFO] [Eval-hybrid(adv)] F1=0.6657, P=0.7146, R=0.6231, AUC=0.8857, thr=1.521080, point_adjust=True; recon_F1=0.6650, forecast_F1=0.7919
+[2025-12-10 17:59:06,261] [INFO] 已保存可视化图：./logs/smd_adv_hybrid/scores_epoch22_adv_hybrid.png
+[2025-12-10 17:59:06,261] [INFO] ========== Epoch 23/50 (adv-hybrid) ==========
+[2025-12-10 18:00:50,193] [INFO] [Epoch 23] 阶段2对抗训练损失: total=-2146257.255623, recon_pos=1120.131009, recon_neg=4294754.773631
+[2025-12-10 18:02:14,277] [INFO] [Eval-recon(adv-hybrid)] F1=0.6899, P=0.7727, R=0.6231, AUC=0.8806, thr=3.275266, point_adjust=True
+[2025-12-10 18:02:14,278] [INFO] [Eval-forecast(adv-hybrid)] F1=0.7919, P=0.8960, R=0.7094, AUC=0.8660, thr=-0.021079, point_adjust=True
+[2025-12-10 18:02:50,572] [INFO] [Eval-hybrid(adv)] F1=0.6980, P=0.7935, R=0.6231, AUC=0.8811, thr=1.631565, point_adjust=True; recon_F1=0.6899, forecast_F1=0.7919
+[2025-12-10 18:02:50,803] [INFO] 已保存可视化图：./logs/smd_adv_hybrid/scores_epoch23_adv_hybrid.png
+[2025-12-10 18:02:50,803] [INFO] ========== Epoch 24/50 (adv-hybrid) ==========
+[2025-12-10 18:04:35,483] [INFO] [Epoch 24] 阶段2对抗训练损失: total=-2627335.091917, recon_pos=1005.033965, recon_neg=5256680.251304
+[2025-12-10 18:06:00,392] [INFO] [Eval-recon(adv-hybrid)] F1=0.7137, P=0.8352, R=0.6231, AUC=0.8607, thr=3.635589, point_adjust=True
+[2025-12-10 18:06:00,392] [INFO] [Eval-forecast(adv-hybrid)] F1=0.7917, P=0.9031, R=0.7048, AUC=0.8656, thr=-0.021066, point_adjust=True
+[2025-12-10 18:06:37,224] [INFO] [Eval-hybrid(adv)] F1=0.7165, P=0.8430, R=0.6231, AUC=0.8614, thr=1.808023, point_adjust=True; recon_F1=0.7137, forecast_F1=0.7917
+[2025-12-10 18:06:37,458] [INFO] 已保存可视化图：./logs/smd_adv_hybrid/scores_epoch24_adv_hybrid.png
+[2025-12-10 18:06:37,459] [INFO] ========== Epoch 25/50 (adv-hybrid) ==========
+[2025-12-10 18:07:58,932] [INFO] [Epoch 25] 阶段2对抗训练损失: total=-3180547.968872, recon_pos=1696.221666, recon_neg=6364488.382986
+[2025-12-10 18:09:24,453] [INFO] [Eval-recon(adv-hybrid)] F1=0.7227, P=0.8603, R=0.6231, AUC=0.8873, thr=4.201518, point_adjust=True
+[2025-12-10 18:09:24,454] [INFO] [Eval-forecast(adv-hybrid)] F1=0.7917, P=0.9031, R=0.7048, AUC=0.8660, thr=-0.021066, point_adjust=True
+[2025-12-10 18:10:01,214] [INFO] [Eval-hybrid(adv)] F1=0.7227, P=0.8603, R=0.6231, AUC=0.8879, thr=2.090685, point_adjust=True; recon_F1=0.7227, forecast_F1=0.7917
+[2025-12-10 18:10:01,436] [INFO] 已保存可视化图：./logs/smd_adv_hybrid/scores_epoch25_adv_hybrid.png
+[2025-12-10 18:10:01,437] [INFO] ========== Epoch 26/50 (adv-hybrid) ==========
+[2025-12-10 18:11:44,533] [INFO] [Epoch 26] 阶段2对抗训练损失: total=-3819611.219198, recon_pos=1886.145005, recon_neg=7642994.731421
+[2025-12-10 18:13:15,360] [INFO] [Eval-recon(adv-hybrid)] F1=0.7320, P=0.8870, R=0.6231, AUC=0.8778, thr=4.911943, point_adjust=True
+[2025-12-10 18:13:15,361] [INFO] [Eval-forecast(adv-hybrid)] F1=0.7919, P=0.8960, R=0.7094, AUC=0.8658, thr=-0.021079, point_adjust=True
+[2025-12-10 18:13:51,294] [INFO] [Eval-hybrid(adv)] F1=0.7350, P=0.8961, R=0.6231, AUC=0.8786, thr=2.450924, point_adjust=True; recon_F1=0.7320, forecast_F1=0.7919
+[2025-12-10 18:13:51,523] [INFO] 已保存可视化图：./logs/smd_adv_hybrid/scores_epoch26_adv_hybrid.png
+[2025-12-10 18:13:51,523] [INFO] ========== Epoch 27/50 (adv-hybrid) ==========
+[2025-12-10 18:15:32,343] [INFO] [Epoch 27] 阶段2对抗训练损失: total=-4547222.468709, recon_pos=2162.031463, recon_neg=9098769.000652
+[2025-12-10 18:17:05,144] [INFO] [Eval-recon(adv-hybrid)] F1=0.7350, P=0.8958, R=0.6231, AUC=0.8798, thr=5.502023, point_adjust=True
+[2025-12-10 18:17:05,144] [INFO] [Eval-forecast(adv-hybrid)] F1=0.7915, P=0.9026, R=0.7048, AUC=0.8658, thr=-0.021067, point_adjust=True
+[2025-12-10 18:17:41,729] [INFO] [Eval-hybrid(adv)] F1=0.7350, P=0.8958, R=0.6231, AUC=0.8806, thr=2.735126, point_adjust=True; recon_F1=0.7350, forecast_F1=0.7915
+[2025-12-10 18:17:41,955] [INFO] 已保存可视化图：./logs/smd_adv_hybrid/scores_epoch27_adv_hybrid.png
+[2025-12-10 18:17:41,956] [INFO] ========== Epoch 28/50 (adv-hybrid) ==========
+[2025-12-10 18:19:17,321] [INFO] [Epoch 28] 阶段2对抗训练损失: total=-5363695.873533, recon_pos=2343.152328, recon_neg=10732078.051499
+[2025-12-10 18:20:49,476] [INFO] [Eval-recon(adv-hybrid)] F1=0.7267, P=0.8716, R=0.6231, AUC=0.8742, thr=5.251255, point_adjust=True
+[2025-12-10 18:20:49,477] [INFO] [Eval-forecast(adv-hybrid)] F1=0.7919, P=0.8960, R=0.7094, AUC=0.8662, thr=-0.021079, point_adjust=True
+[2025-12-10 18:21:26,310] [INFO] [Eval-hybrid(adv)] F1=0.7268, P=0.8719, R=0.6231, AUC=0.8749, thr=2.638341, point_adjust=True; recon_F1=0.7267, forecast_F1=0.7919
+[2025-12-10 18:21:26,538] [INFO] 已保存可视化图：./logs/smd_adv_hybrid/scores_epoch28_adv_hybrid.png
+[2025-12-10 18:21:26,538] [INFO] ========== Epoch 29/50 (adv-hybrid) ==========
+[2025-12-10 18:23:12,363] [INFO] [Epoch 29] 阶段2对抗训练损失: total=-6293260.625163, recon_pos=3390.022315, recon_neg=12593301.283572
+[2025-12-10 18:24:44,690] [INFO] [Eval-recon(adv-hybrid)] F1=0.7123, P=0.8312, R=0.6231, AUC=0.8757, thr=5.474488, point_adjust=True
+[2025-12-10 18:24:44,691] [INFO] [Eval-forecast(adv-hybrid)] F1=0.7919, P=0.8960, R=0.7094, AUC=0.8660, thr=-0.021079, point_adjust=True
+[2025-12-10 18:25:21,914] [INFO] [Eval-hybrid(adv)] F1=0.7123, P=0.8314, R=0.6231, AUC=0.8766, thr=2.727008, point_adjust=True; recon_F1=0.7123, forecast_F1=0.7919
+[2025-12-10 18:25:22,142] [INFO] 已保存可视化图：./logs/smd_adv_hybrid/scores_epoch29_adv_hybrid.png
+[2025-12-10 18:25:22,142] [INFO] ========== Epoch 30/50 (adv-hybrid) ==========
+[2025-12-10 18:26:59,303] [INFO] [Epoch 30] 阶段2对抗训练损失: total=-7330887.358540, recon_pos=3655.767691, recon_neg=14669086.250326
+[2025-12-10 18:28:29,649] [INFO] [Eval-recon(adv-hybrid)] F1=0.7292, P=0.8788, R=0.6231, AUC=0.8544, thr=5.973728, point_adjust=True
+[2025-12-10 18:28:29,650] [INFO] [Eval-forecast(adv-hybrid)] F1=0.7919, P=0.8960, R=0.7094, AUC=0.8662, thr=-0.021079, point_adjust=True
+[2025-12-10 18:29:05,846] [INFO] [Eval-hybrid(adv)] F1=0.7292, P=0.8788, R=0.6231, AUC=0.8557, thr=2.978876, point_adjust=True; recon_F1=0.7292, forecast_F1=0.7919
+[2025-12-10 18:29:06,075] [INFO] 已保存可视化图：./logs/smd_adv_hybrid/scores_epoch30_adv_hybrid.png
+[2025-12-10 18:29:06,076] [INFO] ========== Epoch 31/50 (adv-hybrid) ==========
+[2025-12-10 18:30:43,175] [INFO] [Epoch 31] 阶段2对抗训练损失: total=-8475780.312256, recon_pos=3987.937752, recon_neg=16959536.513690
+[2025-12-10 18:32:14,421] [INFO] [Eval-recon(adv-hybrid)] F1=0.7376, P=0.9037, R=0.6231, AUC=0.8758, thr=5.649608, point_adjust=True
+[2025-12-10 18:32:14,422] [INFO] [Eval-forecast(adv-hybrid)] F1=0.7919, P=0.8960, R=0.7094, AUC=0.8660, thr=-0.021079, point_adjust=True
+[2025-12-10 18:32:51,692] [INFO] [Eval-hybrid(adv)] F1=0.7376, P=0.9037, R=0.6231, AUC=0.8764, thr=2.814244, point_adjust=True; recon_F1=0.7376, forecast_F1=0.7919
+[2025-12-10 18:32:51,918] [INFO] 已保存可视化图：./logs/smd_adv_hybrid/scores_epoch31_adv_hybrid.png
+[2025-12-10 18:32:51,918] [INFO] ========== Epoch 32/50 (adv-hybrid) ==========
+[2025-12-10 18:34:35,883] [INFO] [Epoch 32] 阶段2对抗训练损失: total=-9755897.730769, recon_pos=5199.520102, recon_neg=19522194.482399
+[2025-12-10 18:36:08,462] [INFO] [Eval-recon(adv-hybrid)] F1=0.7379, P=0.9045, R=0.6231, AUC=0.8712, thr=6.164375, point_adjust=True
+[2025-12-10 18:36:08,462] [INFO] [Eval-forecast(adv-hybrid)] F1=0.7916, P=0.9028, R=0.7048, AUC=0.8661, thr=-0.021066, point_adjust=True
+[2025-12-10 18:36:45,510] [INFO] [Eval-hybrid(adv)] F1=0.7379, P=0.9045, R=0.6231, AUC=0.8725, thr=3.071632, point_adjust=True; recon_F1=0.7379, forecast_F1=0.7916
+[2025-12-10 18:36:45,742] [INFO] 已保存可视化图：./logs/smd_adv_hybrid/scores_epoch32_adv_hybrid.png
+[2025-12-10 18:36:45,742] [INFO] ========== Epoch 33/50 (adv-hybrid) ==========
+[2025-12-10 18:38:23,074] [INFO] [Epoch 33] 阶段2对抗训练损失: total=-11154210.643416, recon_pos=5043.564427, recon_neg=22318508.417210
+[2025-12-10 18:39:55,486] [INFO] [Eval-recon(adv-hybrid)] F1=0.7412, P=0.9145, R=0.6231, AUC=0.8814, thr=7.408916, point_adjust=True
+[2025-12-10 18:39:55,487] [INFO] [Eval-forecast(adv-hybrid)] F1=0.7917, P=0.9031, R=0.7048, AUC=0.8661, thr=-0.021066, point_adjust=True
+[2025-12-10 18:40:31,901] [INFO] [Eval-hybrid(adv)] F1=0.7413, P=0.9148, R=0.6231, AUC=0.8824, thr=3.738280, point_adjust=True; recon_F1=0.7412, forecast_F1=0.7917
+[2025-12-10 18:40:32,134] [INFO] 已保存可视化图：./logs/smd_adv_hybrid/scores_epoch33_adv_hybrid.png
+[2025-12-10 18:40:32,135] [INFO] ========== Epoch 34/50 (adv-hybrid) ==========
+[2025-12-10 18:42:07,169] [INFO] [Epoch 34] 阶段2对抗训练损失: total=-12687442.406780, recon_pos=6149.162349, recon_neg=25387183.136897
+[2025-12-10 18:43:38,203] [INFO] [Eval-recon(adv-hybrid)] F1=0.7224, P=0.8593, R=0.6231, AUC=0.8621, thr=5.818753, point_adjust=True
+[2025-12-10 18:43:38,204] [INFO] [Eval-forecast(adv-hybrid)] F1=0.7919, P=0.8960, R=0.7094, AUC=0.8660, thr=-0.021079, point_adjust=True
+[2025-12-10 18:44:14,574] [INFO] [Eval-hybrid(adv)] F1=0.7222, P=0.8588, R=0.6231, AUC=0.8650, thr=2.899701, point_adjust=True; recon_F1=0.7224, forecast_F1=0.7919
+[2025-12-10 18:44:14,803] [INFO] 已保存可视化图：./logs/smd_adv_hybrid/scores_epoch34_adv_hybrid.png
+[2025-12-10 18:44:14,803] [INFO] ========== Epoch 35/50 (adv-hybrid) ==========
+[2025-12-10 18:45:59,181] [INFO] [Epoch 35] 阶段2对抗训练损失: total=-14341565.359844, recon_pos=7386.926004, recon_neg=28697904.538462
+[2025-12-10 18:47:29,742] [INFO] [Eval-recon(adv-hybrid)] F1=0.7416, P=0.9159, R=0.6231, AUC=0.8955, thr=5.856323, point_adjust=True
+[2025-12-10 18:47:29,743] [INFO] [Eval-forecast(adv-hybrid)] F1=0.7919, P=0.8960, R=0.7094, AUC=0.8661, thr=-0.021079, point_adjust=True
+[2025-12-10 18:48:05,745] [INFO] [Eval-hybrid(adv)] F1=0.7417, P=0.9162, R=0.6231, AUC=0.8999, thr=2.918673, point_adjust=True; recon_F1=0.7416, forecast_F1=0.7919
+[2025-12-10 18:48:05,972] [INFO] 已保存可视化图：./logs/smd_adv_hybrid/scores_epoch35_adv_hybrid.png
+[2025-12-10 18:48:05,973] [INFO] ========== Epoch 36/50 (adv-hybrid) ==========
+[2025-12-10 18:49:28,162] [INFO] [Epoch 36] 阶段2对抗训练损失: total=-16164118.692308, recon_pos=7904.413076, recon_neg=32344046.189048
+[2025-12-10 18:51:01,080] [INFO] [Eval-recon(adv-hybrid)] F1=0.7311, P=0.8843, R=0.6231, AUC=0.8550, thr=6.424216, point_adjust=True
+[2025-12-10 18:51:01,081] [INFO] [Eval-forecast(adv-hybrid)] F1=0.7919, P=0.8960, R=0.7094, AUC=0.8663, thr=-0.021079, point_adjust=True
+[2025-12-10 18:51:38,245] [INFO] [Eval-hybrid(adv)] F1=0.7312, P=0.8846, R=0.6231, AUC=0.8655, thr=3.203916, point_adjust=True; recon_F1=0.7311, forecast_F1=0.7919
+[2025-12-10 18:51:38,475] [INFO] 已保存可视化图：./logs/smd_adv_hybrid/scores_epoch36_adv_hybrid.png
+[2025-12-10 18:51:38,476] [INFO] ========== Epoch 37/50 (adv-hybrid) ==========
+[2025-12-10 18:53:21,226] [INFO] [Epoch 37] 阶段2对抗训练损失: total=-18149913.960887, recon_pos=9568.499334, recon_neg=36318964.902216
+[2025-12-10 18:54:52,894] [INFO] [Eval-recon(adv-hybrid)] F1=0.7406, P=0.9128, R=0.6231, AUC=0.8718, thr=7.673318, point_adjust=True
+[2025-12-10 18:54:52,894] [INFO] [Eval-forecast(adv-hybrid)] F1=0.7919, P=0.8960, R=0.7094, AUC=0.8662, thr=-0.021079, point_adjust=True
+[2025-12-10 18:55:29,697] [INFO] [Eval-hybrid(adv)] F1=0.7406, P=0.9128, R=0.6231, AUC=0.8827, thr=3.826098, point_adjust=True; recon_F1=0.7406, forecast_F1=0.7919
+[2025-12-10 18:55:29,939] [INFO] 已保存可视化图：./logs/smd_adv_hybrid/scores_epoch37_adv_hybrid.png
+[2025-12-10 18:55:29,939] [INFO] ========== Epoch 38/50 (adv-hybrid) ==========
+[2025-12-10 18:57:14,749] [INFO] [Epoch 38] 阶段2对抗训练损失: total=-20270873.980443, recon_pos=8109.135218, recon_neg=40557966.284224
+[2025-12-10 18:58:47,478] [INFO] [Eval-recon(adv-hybrid)] F1=0.6977, P=0.7915, R=0.6237, AUC=0.7971, thr=0.912205, point_adjust=True
+[2025-12-10 18:58:47,478] [INFO] [Eval-forecast(adv-hybrid)] F1=0.7915, P=0.9026, R=0.7048, AUC=0.8661, thr=-0.021067, point_adjust=True
+[2025-12-10 18:59:23,991] [INFO] [Eval-hybrid(adv)] F1=0.6975, P=0.7911, R=0.6237, AUC=0.8112, thr=0.445542, point_adjust=True; recon_F1=0.6977, forecast_F1=0.7915
+[2025-12-10 18:59:24,216] [INFO] 已保存可视化图：./logs/smd_adv_hybrid/scores_epoch38_adv_hybrid.png
+[2025-12-10 18:59:24,217] [INFO] ========== Epoch 39/50 (adv-hybrid) ==========
+[2025-12-10 19:01:07,675] [INFO] [Epoch 39] 阶段2对抗训练损失: total=-22527775.338983, recon_pos=10428.237015, recon_neg=45076407.144720
+[2025-12-10 19:02:40,152] [INFO] [Eval-recon(adv-hybrid)] F1=0.7405, P=0.9125, R=0.6231, AUC=0.8428, thr=7.636297, point_adjust=True
+[2025-12-10 19:02:40,152] [INFO] [Eval-forecast(adv-hybrid)] F1=0.7919, P=0.8960, R=0.7094, AUC=0.8662, thr=-0.021079, point_adjust=True
+[2025-12-10 19:03:16,401] [INFO] [Eval-hybrid(adv)] F1=0.7405, P=0.9125, R=0.6231, AUC=0.8694, thr=3.807588, point_adjust=True; recon_F1=0.7405, forecast_F1=0.7919
+[2025-12-10 19:03:16,880] [INFO] 已保存可视化图：./logs/smd_adv_hybrid/scores_epoch39_adv_hybrid.png
+[2025-12-10 19:03:16,880] [INFO] ========== Epoch 40/50 (adv-hybrid) ==========
+[2025-12-10 19:04:48,221] [INFO] [Epoch 40] 阶段2对抗训练损失: total=-25000267.161669, recon_pos=12472.525376, recon_neg=50025479.441982
+[2025-12-10 19:06:18,722] [INFO] [Eval-recon(adv-hybrid)] F1=0.7392, P=0.9084, R=0.6231, AUC=0.8106, thr=8.044793, point_adjust=True
+[2025-12-10 19:06:18,722] [INFO] [Eval-forecast(adv-hybrid)] F1=0.7919, P=0.8960, R=0.7094, AUC=0.8661, thr=-0.021079, point_adjust=True
+[2025-12-10 19:06:55,122] [INFO] [Eval-hybrid(adv)] F1=0.7407, P=0.9131, R=0.6231, AUC=0.8376, thr=4.036582, point_adjust=True; recon_F1=0.7392, forecast_F1=0.7919
+[2025-12-10 19:06:55,343] [INFO] 已保存可视化图：./logs/smd_adv_hybrid/scores_epoch40_adv_hybrid.png
+[2025-12-10 19:06:55,343] [INFO] ========== Epoch 41/50 (adv-hybrid) ==========
+[2025-12-10 19:08:44,035] [INFO] [Epoch 41] 阶段2对抗训练损失: total=-27704813.109518, recon_pos=12758.045047, recon_neg=55435142.331160
+[2025-12-10 19:10:16,543] [INFO] [Eval-recon(adv-hybrid)] F1=0.7407, P=0.9131, R=0.6231, AUC=0.8358, thr=7.256159, point_adjust=True
+[2025-12-10 19:10:16,543] [INFO] [Eval-forecast(adv-hybrid)] F1=0.7916, P=0.9028, R=0.7048, AUC=0.8661, thr=-0.021066, point_adjust=True
+[2025-12-10 19:10:53,415] [INFO] [Eval-hybrid(adv)] F1=0.7409, P=0.9137, R=0.6231, AUC=0.8672, thr=3.619755, point_adjust=True; recon_F1=0.7407, forecast_F1=0.7916
+[2025-12-10 19:10:53,649] [INFO] 已保存可视化图：./logs/smd_adv_hybrid/scores_epoch41_adv_hybrid.png
+[2025-12-10 19:10:53,649] [INFO] ========== Epoch 42/50 (adv-hybrid) ==========
+[2025-12-10 19:12:30,425] [INFO] [Epoch 42] 阶段2对抗训练损失: total=-30572189.495437, recon_pos=15951.126920, recon_neg=61176281.181226
+[2025-12-10 19:14:03,091] [INFO] [Eval-recon(adv-hybrid)] F1=0.7404, P=0.9123, R=0.6231, AUC=0.8129, thr=6.530755, point_adjust=True
+[2025-12-10 19:14:03,091] [INFO] [Eval-forecast(adv-hybrid)] F1=0.7917, P=0.9031, R=0.7048, AUC=0.8661, thr=-0.021066, point_adjust=True
+[2025-12-10 19:14:39,467] [INFO] [Eval-hybrid(adv)] F1=0.7404, P=0.9123, R=0.6231, AUC=0.8248, thr=3.276825, point_adjust=True; recon_F1=0.7404, forecast_F1=0.7917
+[2025-12-10 19:14:39,697] [INFO] 已保存可视化图：./logs/smd_adv_hybrid/scores_epoch42_adv_hybrid.png
+[2025-12-10 19:14:39,698] [INFO] ========== Epoch 43/50 (adv-hybrid) ==========
+[2025-12-10 19:16:20,454] [INFO] [Epoch 43] 阶段2对抗训练损失: total=-33574923.478488, recon_pos=20635.410340, recon_neg=67191117.804433
+[2025-12-10 19:17:53,453] [INFO] [Eval-recon(adv-hybrid)] F1=0.6422, P=0.6167, R=0.6700, AUC=0.8591, thr=-0.114270, point_adjust=True
+[2025-12-10 19:17:53,454] [INFO] [Eval-forecast(adv-hybrid)] F1=0.7919, P=0.8960, R=0.7094, AUC=0.8661, thr=-0.021079, point_adjust=True
+[2025-12-10 19:18:30,282] [INFO] [Eval-hybrid(adv)] F1=0.6454, P=0.6225, R=0.6700, AUC=0.8629, thr=-0.064712, point_adjust=True; recon_F1=0.6422, forecast_F1=0.7919
+[2025-12-10 19:18:30,519] [INFO] 已保存可视化图：./logs/smd_adv_hybrid/scores_epoch43_adv_hybrid.png
+[2025-12-10 19:18:30,519] [INFO] ========== Epoch 44/50 (adv-hybrid) ==========
+[2025-12-10 19:20:12,465] [INFO] [Epoch 44] 阶段2对抗训练损失: total=-36755038.631030, recon_pos=19754.753125, recon_neg=73549586.659713
+[2025-12-10 19:21:45,950] [INFO] [Eval-recon(adv-hybrid)] F1=0.7310, P=0.9529, R=0.5929, AUC=0.8469, thr=8.201994, point_adjust=True
+[2025-12-10 19:21:45,950] [INFO] [Eval-forecast(adv-hybrid)] F1=0.7919, P=0.8960, R=0.7094, AUC=0.8662, thr=-0.021079, point_adjust=True
+[2025-12-10 19:22:23,179] [INFO] [Eval-hybrid(adv)] F1=0.7314, P=0.9541, R=0.5929, AUC=0.8643, thr=4.092168, point_adjust=True; recon_F1=0.7310, forecast_F1=0.7919
+[2025-12-10 19:22:23,400] [INFO] 已保存可视化图：./logs/smd_adv_hybrid/scores_epoch44_adv_hybrid.png
+[2025-12-10 19:22:23,401] [INFO] ========== Epoch 45/50 (adv-hybrid) ==========
+[2025-12-10 19:24:03,175] [INFO] [Epoch 45] 阶段2对抗训练损失: total=-40084214.119948, recon_pos=21319.871574, recon_neg=80211067.973924
+[2025-12-10 19:25:34,042] [INFO] [Eval-recon(adv-hybrid)] F1=0.6641, P=0.7537, R=0.5935, AUC=0.7525, thr=6.328956, point_adjust=True
+[2025-12-10 19:25:34,042] [INFO] [Eval-forecast(adv-hybrid)] F1=0.7919, P=0.8960, R=0.7094, AUC=0.8660, thr=-0.021079, point_adjust=True
+[2025-12-10 19:26:10,591] [INFO] [Eval-hybrid(adv)] F1=0.6642, P=0.7539, R=0.5935, AUC=0.8021, thr=3.407952, point_adjust=True; recon_F1=0.6641, forecast_F1=0.7919
+[2025-12-10 19:26:10,826] [INFO] 已保存可视化图：./logs/smd_adv_hybrid/scores_epoch45_adv_hybrid.png
+[2025-12-10 19:26:10,827] [INFO] ========== Epoch 46/50 (adv-hybrid) ==========
+[2025-12-10 19:27:52,650] [INFO] [Epoch 46] 阶段2对抗训练损失: total=-43655678.563233, recon_pos=26931.276916, recon_neg=87365219.671447
+[2025-12-10 19:29:23,905] [INFO] [Eval-recon(adv-hybrid)] F1=0.6955, P=0.7230, R=0.6700, AUC=0.8394, thr=-0.099614, point_adjust=True
+[2025-12-10 19:29:23,905] [INFO] [Eval-forecast(adv-hybrid)] F1=0.7919, P=0.8960, R=0.7094, AUC=0.8662, thr=-0.021079, point_adjust=True
+[2025-12-10 19:30:00,394] [INFO] [Eval-hybrid(adv)] F1=0.6998, P=0.7323, R=0.6700, AUC=0.8469, thr=-0.058366, point_adjust=True; recon_F1=0.6955, forecast_F1=0.7919
+[2025-12-10 19:30:00,638] [INFO] 已保存可视化图：./logs/smd_adv_hybrid/scores_epoch46_adv_hybrid.png
+[2025-12-10 19:30:00,638] [INFO] ========== Epoch 47/50 (adv-hybrid) ==========
+[2025-12-10 19:31:42,356] [INFO] [Epoch 47] 阶段2对抗训练损失: total=-47374200.065189, recon_pos=26446.511764, recon_neg=94801293.199478
+[2025-12-10 19:33:14,854] [INFO] [Eval-recon(adv-hybrid)] F1=0.7255, P=0.9343, R=0.5929, AUC=0.8560, thr=6.751772, point_adjust=True
+[2025-12-10 19:33:14,855] [INFO] [Eval-forecast(adv-hybrid)] F1=0.7927, P=0.9058, R=0.7048, AUC=0.8663, thr=-0.021066, point_adjust=True
+[2025-12-10 19:33:50,994] [INFO] [Eval-hybrid(adv)] F1=0.7255, P=0.9343, R=0.5929, AUC=0.8596, thr=3.365327, point_adjust=True; recon_F1=0.7255, forecast_F1=0.7927
+[2025-12-10 19:33:51,228] [INFO] 已保存可视化图：./logs/smd_adv_hybrid/scores_epoch47_adv_hybrid.png
+[2025-12-10 19:33:51,228] [INFO] ========== Epoch 48/50 (adv-hybrid) ==========
+[2025-12-10 19:35:12,920] [INFO] [Epoch 48] 阶段2对抗训练损失: total=-51221215.162973, recon_pos=32489.216015, recon_neg=102507408.719687
+[2025-12-10 19:36:39,157] [INFO] [Eval-recon(adv-hybrid)] F1=0.7351, P=0.8963, R=0.6231, AUC=0.8713, thr=6.857717, point_adjust=True
+[2025-12-10 19:36:39,157] [INFO] [Eval-forecast(adv-hybrid)] F1=0.7919, P=0.8960, R=0.7094, AUC=0.8660, thr=-0.021079, point_adjust=True
+[2025-12-10 19:37:16,410] [INFO] [Eval-hybrid(adv)] F1=0.7427, P=0.9190, R=0.6231, AUC=0.8782, thr=3.418304, point_adjust=True; recon_F1=0.7351, forecast_F1=0.7919
+[2025-12-10 19:37:16,648] [INFO] 已保存可视化图：./logs/smd_adv_hybrid/scores_epoch48_adv_hybrid.png
+[2025-12-10 19:37:16,674] [INFO] 发现更优模型，已保存至 ./logs/smd_adv_hybrid/best_model_adv_hybrid.pt
+[2025-12-10 19:37:16,674] [INFO] ========== Epoch 49/50 (adv-hybrid) ==========
+[2025-12-10 19:39:00,299] [INFO] [Epoch 49] 阶段2对抗训练损失: total=-55271247.308996, recon_pos=41853.971146, recon_neg=110626202.644068
+[2025-12-10 19:40:32,575] [INFO] [Eval-recon(adv-hybrid)] F1=0.6189, P=0.5983, R=0.6409, AUC=0.7730, thr=-0.105916, point_adjust=True
+[2025-12-10 19:40:32,575] [INFO] [Eval-forecast(adv-hybrid)] F1=0.7917, P=0.9031, R=0.7048, AUC=0.8663, thr=-0.021066, point_adjust=True
+[2025-12-10 19:41:09,906] [INFO] [Eval-hybrid(adv)] F1=0.6742, P=0.6906, R=0.6585, AUC=0.7918, thr=-0.063332, point_adjust=True; recon_F1=0.6189, forecast_F1=0.7917
+[2025-12-10 19:41:10,145] [INFO] 已保存可视化图：./logs/smd_adv_hybrid/scores_epoch49_adv_hybrid.png
+[2025-12-10 19:41:10,145] [INFO] ========== Epoch 50/50 (adv-hybrid) ==========
+[2025-12-10 19:42:52,849] [INFO] [Epoch 50] 阶段2对抗训练损失: total=-59436031.963494, recon_pos=36809.155405, recon_neg=118945682.232073
+[2025-12-10 19:44:24,915] [INFO] [Eval-recon(adv-hybrid)] F1=0.6483, P=0.8155, R=0.5380, AUC=0.8540, thr=0.703734, point_adjust=True
+[2025-12-10 19:44:24,915] [INFO] [Eval-forecast(adv-hybrid)] F1=0.7919, P=0.8960, R=0.7094, AUC=0.8661, thr=-0.021079, point_adjust=True
+[2025-12-10 19:45:01,372] [INFO] [Eval-hybrid(adv)] F1=0.6525, P=0.6354, R=0.6706, AUC=0.8650, thr=-0.062345, point_adjust=True; recon_F1=0.6483, forecast_F1=0.7919
+[2025-12-10 19:45:01,598] [INFO] 已保存可视化图：./logs/smd_adv_hybrid/scores_epoch50_adv_hybrid.png
+[2025-12-10 19:45:01,599] [INFO] 训练结束，最佳混合 F1=0.7427, 最佳指标={'precision': 0.9190358467215111, 'recall': 0.6230882044822479, 'f1': 0.742664497617052, 'auc': 0.8781752197371686, 'threshold': 3.4183037281036377, 'use_point_adjust': True}
+[2025-12-10 19:45:01,599] [INFO] 实验版训练流程已结束。

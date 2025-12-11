@@ -1,0 +1,337 @@
+nohup: ignoring input
+[2025-12-11 09:38:55,399] [INFO] 日志已写入：./logs/msl_adv_hybrid/MambaTSAD-ADV_20251211_093855.log
+[2025-12-11 09:38:55,399] [INFO] 命令行参数：Namespace(dataset='msl', processed_root='./dataset/MSL', log_dir='./logs/msl_adv_hybrid', win_size=100, pred_len=10, batch_size=64, epochs=50, lr=0.0001, weight_decay=0.0005, train_stride=1, test_stride=1, num_workers=4, seed=42, no_amp=False, max_grad_norm=1.0, use_adv_training=True, adv_warmup_epochs=5, lambda_rec=1.0, lambda_pred=1.0, lambda_adv1=0.5, lambda_adv2=0.5, use_pseudo_label=True, pseudo_contamination=0.01, no_point_adjust=False)
+[2025-12-11 09:38:56,201] [INFO] 当前使用的设备：cuda
+[2025-12-11 09:38:56,280] [INFO] 数据集 [msl] 构建完成，实体数量=27，input_dim=55，训练样本数=55644，测试样本数=71056
+[2025-12-11 09:38:56,280] [INFO] 开始使用 IsolationForest 生成伪标签，contamination=0.01
+[2025-12-11 09:45:14,073] [INFO] 伪标签过滤结果：原训练窗口数=55644，保留窗口数=55087 (比例=0.990)
+[2025-12-11 09:45:14,210] [INFO] 模型结构：
+[2025-12-11 09:45:14,210] [INFO] MambaTSADHybridSharedAdv(
+  (shared_encoder): SharedEncoder(
+    (encoder_in): Linear(in_features=55, out_features=128, bias=True)
+    (layers): ModuleList(
+      (0-1): 2 x BiMambaBlock(
+        (norm): LayerNorm((128,), eps=1e-05, elementwise_affine=True)
+        (mamba_fwd): Mamba(
+          (in_proj): Linear(in_features=128, out_features=512, bias=False)
+          (conv1d): Conv1d(256, 256, kernel_size=(4,), stride=(1,), padding=(3,), groups=256)
+          (act): SiLU()
+          (x_proj): Linear(in_features=256, out_features=40, bias=False)
+          (dt_proj): Linear(in_features=8, out_features=256, bias=True)
+          (out_proj): Linear(in_features=256, out_features=128, bias=False)
+        )
+        (mamba_bwd): Mamba(
+          (in_proj): Linear(in_features=128, out_features=512, bias=False)
+          (conv1d): Conv1d(256, 256, kernel_size=(4,), stride=(1,), padding=(3,), groups=256)
+          (act): SiLU()
+          (x_proj): Linear(in_features=256, out_features=40, bias=False)
+          (dt_proj): Linear(in_features=8, out_features=256, bias=True)
+          (out_proj): Linear(in_features=256, out_features=128, bias=False)
+        )
+        (ffn): Sequential(
+          (0): LayerNorm((128,), eps=1e-05, elementwise_affine=True)
+          (1): Linear(in_features=128, out_features=512, bias=True)
+          (2): GELU(approximate='none')
+          (3): Dropout(p=0.1, inplace=False)
+          (4): Linear(in_features=512, out_features=128, bias=True)
+        )
+        (dropout): Dropout(p=0.1, inplace=False)
+      )
+    )
+    (norm): LayerNorm((128,), eps=1e-05, elementwise_affine=True)
+  )
+  (recon_head): ReconHead(
+    (layers): ModuleList(
+      (0): BiMambaBlock(
+        (norm): LayerNorm((128,), eps=1e-05, elementwise_affine=True)
+        (mamba_fwd): Mamba(
+          (in_proj): Linear(in_features=128, out_features=512, bias=False)
+          (conv1d): Conv1d(256, 256, kernel_size=(4,), stride=(1,), padding=(3,), groups=256)
+          (act): SiLU()
+          (x_proj): Linear(in_features=256, out_features=40, bias=False)
+          (dt_proj): Linear(in_features=8, out_features=256, bias=True)
+          (out_proj): Linear(in_features=256, out_features=128, bias=False)
+        )
+        (mamba_bwd): Mamba(
+          (in_proj): Linear(in_features=128, out_features=512, bias=False)
+          (conv1d): Conv1d(256, 256, kernel_size=(4,), stride=(1,), padding=(3,), groups=256)
+          (act): SiLU()
+          (x_proj): Linear(in_features=256, out_features=40, bias=False)
+          (dt_proj): Linear(in_features=8, out_features=256, bias=True)
+          (out_proj): Linear(in_features=256, out_features=128, bias=False)
+        )
+        (ffn): Sequential(
+          (0): LayerNorm((128,), eps=1e-05, elementwise_affine=True)
+          (1): Linear(in_features=128, out_features=512, bias=True)
+          (2): GELU(approximate='none')
+          (3): Dropout(p=0.1, inplace=False)
+          (4): Linear(in_features=512, out_features=128, bias=True)
+        )
+        (dropout): Dropout(p=0.1, inplace=False)
+      )
+    )
+    (norm): LayerNorm((128,), eps=1e-05, elementwise_affine=True)
+    (proj_out): Linear(in_features=128, out_features=55, bias=True)
+  )
+  (forecast_head): ForecastHead(
+    (layers): ModuleList(
+      (0): BiMambaBlock(
+        (norm): LayerNorm((128,), eps=1e-05, elementwise_affine=True)
+        (mamba_fwd): Mamba(
+          (in_proj): Linear(in_features=128, out_features=512, bias=False)
+          (conv1d): Conv1d(256, 256, kernel_size=(4,), stride=(1,), padding=(3,), groups=256)
+          (act): SiLU()
+          (x_proj): Linear(in_features=256, out_features=40, bias=False)
+          (dt_proj): Linear(in_features=8, out_features=256, bias=True)
+          (out_proj): Linear(in_features=256, out_features=128, bias=False)
+        )
+        (mamba_bwd): Mamba(
+          (in_proj): Linear(in_features=128, out_features=512, bias=False)
+          (conv1d): Conv1d(256, 256, kernel_size=(4,), stride=(1,), padding=(3,), groups=256)
+          (act): SiLU()
+          (x_proj): Linear(in_features=256, out_features=40, bias=False)
+          (dt_proj): Linear(in_features=8, out_features=256, bias=True)
+          (out_proj): Linear(in_features=256, out_features=128, bias=False)
+        )
+        (ffn): Sequential(
+          (0): LayerNorm((128,), eps=1e-05, elementwise_affine=True)
+          (1): Linear(in_features=128, out_features=512, bias=True)
+          (2): GELU(approximate='none')
+          (3): Dropout(p=0.1, inplace=False)
+          (4): Linear(in_features=512, out_features=128, bias=True)
+        )
+        (dropout): Dropout(p=0.1, inplace=False)
+      )
+    )
+    (norm): LayerNorm((128,), eps=1e-05, elementwise_affine=True)
+    (proj_out): Linear(in_features=128, out_features=550, bias=True)
+  )
+)
+/home/youwenlong/code/MambaTSAD/mambatsad/engine/trainer_adv.py:96: FutureWarning: `torch.cuda.amp.GradScaler(args...)` is deprecated. Please use `torch.amp.GradScaler('cuda', args...)` instead.
+  self.scaler = GradScaler(enabled=use_amp)
+[2025-12-11 09:45:15,647] [INFO] ========== Epoch 1/50 (adv-hybrid) ==========
+/home/youwenlong/code/MambaTSAD/mambatsad/engine/trainer_adv.py:238: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  with autocast(enabled=self.scaler.is_enabled()):
+[2025-12-11 09:46:06,816] [INFO] [Epoch 1] 阶段1对抗训练损失: total=1.520048, recon_pos=0.330878, pred=1.008131, recon_neg=0.362077
+[2025-12-11 09:47:03,276] [INFO] [Eval-recon(adv-hybrid)] F1=0.3966, P=0.2658, R=0.7806, AUC=0.5430, thr=-0.126575, point_adjust=True
+[2025-12-11 09:47:03,277] [INFO] [Eval-forecast(adv-hybrid)] F1=0.7024, P=0.6009, R=0.8454, AUC=0.5967, thr=0.024662, point_adjust=True
+[2025-12-11 09:47:26,138] [INFO] [Eval-hybrid(adv)] F1=0.6211, P=0.5466, R=0.7190, AUC=0.5680, thr=0.032010, point_adjust=True; recon_F1=0.3966, forecast_F1=0.7024
+[2025-12-11 09:47:26,386] [INFO] 已保存可视化图：./logs/msl_adv_hybrid/scores_epoch1_adv_hybrid.png
+[2025-12-11 09:47:26,404] [INFO] 发现更优模型，已保存至 ./logs/msl_adv_hybrid/best_model_adv_hybrid.pt
+[2025-12-11 09:47:26,404] [INFO] ========== Epoch 2/50 (adv-hybrid) ==========
+[2025-12-11 09:48:17,743] [INFO] [Epoch 2] 阶段1对抗训练损失: total=1.287468, recon_pos=0.239219, pred=0.909947, recon_neg=0.276603
+[2025-12-11 09:49:16,528] [INFO] [Eval-recon(adv-hybrid)] F1=0.3707, P=0.2518, R=0.7025, AUC=0.5451, thr=-0.126424, point_adjust=True
+[2025-12-11 09:49:16,528] [INFO] [Eval-forecast(adv-hybrid)] F1=0.7006, P=0.6831, R=0.7190, AUC=0.6104, thr=0.168489, point_adjust=True
+[2025-12-11 09:49:39,208] [INFO] [Eval-hybrid(adv)] F1=0.6188, P=0.5431, R=0.7190, AUC=0.5831, thr=0.020439, point_adjust=True; recon_F1=0.3707, forecast_F1=0.7006
+[2025-12-11 09:49:39,443] [INFO] 已保存可视化图：./logs/msl_adv_hybrid/scores_epoch2_adv_hybrid.png
+[2025-12-11 09:49:39,443] [INFO] ========== Epoch 3/50 (adv-hybrid) ==========
+[2025-12-11 09:50:29,522] [INFO] [Epoch 3] 阶段1对抗训练损失: total=1.199906, recon_pos=0.202684, pred=0.875444, recon_neg=0.243557
+[2025-12-11 09:51:26,904] [INFO] [Eval-recon(adv-hybrid)] F1=0.3569, P=0.2361, R=0.7309, AUC=0.5594, thr=-0.126554, point_adjust=True
+[2025-12-11 09:51:26,904] [INFO] [Eval-forecast(adv-hybrid)] F1=0.6987, P=0.6796, R=0.7190, AUC=0.6115, thr=0.148247, point_adjust=True
+[2025-12-11 09:51:50,117] [INFO] [Eval-hybrid(adv)] F1=0.6139, P=0.5356, R=0.7190, AUC=0.5918, thr=0.010621, point_adjust=True; recon_F1=0.3569, forecast_F1=0.6987
+[2025-12-11 09:51:50,350] [INFO] 已保存可视化图：./logs/msl_adv_hybrid/scores_epoch3_adv_hybrid.png
+[2025-12-11 09:51:50,350] [INFO] ========== Epoch 4/50 (adv-hybrid) ==========
+[2025-12-11 09:52:42,539] [INFO] [Epoch 4] 阶段1对抗训练损失: total=1.143762, recon_pos=0.178894, pred=0.853922, recon_neg=0.221891
+[2025-12-11 09:53:38,471] [INFO] [Eval-recon(adv-hybrid)] F1=0.3583, P=0.2308, R=0.8000, AUC=0.5674, thr=-0.124896, point_adjust=True
+[2025-12-11 09:53:38,471] [INFO] [Eval-forecast(adv-hybrid)] F1=0.7005, P=0.6829, R=0.7190, AUC=0.6110, thr=0.130058, point_adjust=True
+[2025-12-11 09:54:01,326] [INFO] [Eval-hybrid(adv)] F1=0.6096, P=0.5290, R=0.7190, AUC=0.5956, thr=0.002687, point_adjust=True; recon_F1=0.3583, forecast_F1=0.7005
+[2025-12-11 09:54:01,560] [INFO] 已保存可视化图：./logs/msl_adv_hybrid/scores_epoch4_adv_hybrid.png
+[2025-12-11 09:54:01,560] [INFO] ========== Epoch 5/50 (adv-hybrid) ==========
+[2025-12-11 09:54:53,525] [INFO] [Epoch 5] 阶段1对抗训练损失: total=1.105137, recon_pos=0.161468, pred=0.840254, recon_neg=0.206831
+[2025-12-11 09:55:50,233] [INFO] [Eval-recon(adv-hybrid)] F1=0.3841, P=0.2503, R=0.8260, AUC=0.5657, thr=-0.121876, point_adjust=True
+[2025-12-11 09:55:50,233] [INFO] [Eval-forecast(adv-hybrid)] F1=0.6957, P=0.6738, R=0.7190, AUC=0.6101, thr=0.111935, point_adjust=True
+[2025-12-11 09:56:12,955] [INFO] [Eval-hybrid(adv)] F1=0.6071, P=0.5254, R=0.7190, AUC=0.5976, thr=-0.005109, point_adjust=True; recon_F1=0.3841, forecast_F1=0.6957
+[2025-12-11 09:56:13,188] [INFO] 已保存可视化图：./logs/msl_adv_hybrid/scores_epoch5_adv_hybrid.png
+[2025-12-11 09:56:13,189] [INFO] ========== Epoch 6/50 (adv-hybrid) ==========
+/home/youwenlong/code/MambaTSAD/mambatsad/engine/trainer_adv.py:322: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.
+  with autocast(enabled=self.scaler.is_enabled()):
+[2025-12-11 09:56:56,994] [INFO] [Epoch 6] 阶段2对抗训练损失: total=0.042785, recon_pos=0.148695, recon_neg=0.211821
+[2025-12-11 09:58:01,646] [INFO] [Eval-recon(adv-hybrid)] F1=0.3636, P=0.2353, R=0.8000, AUC=0.5688, thr=-0.118563, point_adjust=True
+[2025-12-11 09:58:01,646] [INFO] [Eval-forecast(adv-hybrid)] F1=0.7032, P=0.6880, R=0.7190, AUC=0.6019, thr=0.127518, point_adjust=True
+[2025-12-11 09:58:24,822] [INFO] [Eval-hybrid(adv)] F1=0.6241, P=0.5513, R=0.7190, AUC=0.6004, thr=0.003813, point_adjust=True; recon_F1=0.3636, forecast_F1=0.7032
+[2025-12-11 09:58:25,056] [INFO] 已保存可视化图：./logs/msl_adv_hybrid/scores_epoch6_adv_hybrid.png
+[2025-12-11 09:58:25,074] [INFO] 发现更优模型，已保存至 ./logs/msl_adv_hybrid/best_model_adv_hybrid.pt
+[2025-12-11 09:58:25,074] [INFO] ========== Epoch 7/50 (adv-hybrid) ==========
+[2025-12-11 09:59:08,995] [INFO] [Epoch 7] 阶段2对抗训练损失: total=0.005980, recon_pos=0.138548, recon_neg=0.265135
+[2025-12-11 10:00:15,590] [INFO] [Eval-recon(adv-hybrid)] F1=0.3664, P=0.2376, R=0.8000, AUC=0.5434, thr=-0.115562, point_adjust=True
+[2025-12-11 10:00:15,590] [INFO] [Eval-forecast(adv-hybrid)] F1=0.6987, P=0.6796, R=0.7190, AUC=0.5920, thr=0.132078, point_adjust=True
+[2025-12-11 10:00:38,435] [INFO] [Eval-hybrid(adv)] F1=0.6232, P=0.5499, R=0.7190, AUC=0.5948, thr=0.008396, point_adjust=True; recon_F1=0.3664, forecast_F1=0.6987
+[2025-12-11 10:00:38,670] [INFO] 已保存可视化图：./logs/msl_adv_hybrid/scores_epoch7_adv_hybrid.png
+[2025-12-11 10:00:38,671] [INFO] ========== Epoch 8/50 (adv-hybrid) ==========
+[2025-12-11 10:01:23,592] [INFO] [Epoch 8] 阶段2对抗训练损失: total=-0.013621, recon_pos=0.130713, recon_neg=0.288669
+[2025-12-11 10:02:33,177] [INFO] [Eval-recon(adv-hybrid)] F1=0.3668, P=0.2379, R=0.8000, AUC=0.5362, thr=-0.113459, point_adjust=True
+[2025-12-11 10:02:33,178] [INFO] [Eval-forecast(adv-hybrid)] F1=0.7014, P=0.6846, R=0.7190, AUC=0.5855, thr=0.135326, point_adjust=True
+[2025-12-11 10:02:56,266] [INFO] [Eval-hybrid(adv)] F1=0.6261, P=0.5544, R=0.7190, AUC=0.5909, thr=0.011820, point_adjust=True; recon_F1=0.3668, forecast_F1=0.7014
+[2025-12-11 10:02:56,503] [INFO] 已保存可视化图：./logs/msl_adv_hybrid/scores_epoch8_adv_hybrid.png
+[2025-12-11 10:02:56,526] [INFO] 发现更优模型，已保存至 ./logs/msl_adv_hybrid/best_model_adv_hybrid.pt
+[2025-12-11 10:02:56,526] [INFO] ========== Epoch 9/50 (adv-hybrid) ==========
+[2025-12-11 10:03:38,382] [INFO] [Epoch 9] 阶段2对抗训练损失: total=-0.010573, recon_pos=0.124356, recon_neg=0.269857
+[2025-12-11 10:04:46,849] [INFO] [Eval-recon(adv-hybrid)] F1=0.3657, P=0.2370, R=0.8000, AUC=0.5369, thr=-0.111639, point_adjust=True
+[2025-12-11 10:04:46,849] [INFO] [Eval-forecast(adv-hybrid)] F1=0.7036, P=0.6888, R=0.7190, AUC=0.5810, thr=0.138144, point_adjust=True
+[2025-12-11 10:05:09,747] [INFO] [Eval-hybrid(adv)] F1=0.6255, P=0.5535, R=0.7190, AUC=0.5876, thr=0.012074, point_adjust=True; recon_F1=0.3657, forecast_F1=0.7036
+[2025-12-11 10:05:09,982] [INFO] 已保存可视化图：./logs/msl_adv_hybrid/scores_epoch9_adv_hybrid.png
+[2025-12-11 10:05:09,982] [INFO] ========== Epoch 10/50 (adv-hybrid) ==========
+[2025-12-11 10:05:44,200] [INFO] [Epoch 10] 阶段2对抗训练损失: total=-0.011254, recon_pos=0.118650, recon_neg=0.259807
+[2025-12-11 10:06:42,337] [INFO] [Eval-recon(adv-hybrid)] F1=0.3624, P=0.2342, R=0.8000, AUC=0.5359, thr=-0.109968, point_adjust=True
+[2025-12-11 10:06:42,337] [INFO] [Eval-forecast(adv-hybrid)] F1=0.6992, P=0.6804, R=0.7190, AUC=0.5780, thr=0.137740, point_adjust=True
+[2025-12-11 10:07:05,758] [INFO] [Eval-hybrid(adv)] F1=0.6248, P=0.5524, R=0.7190, AUC=0.5857, thr=0.013871, point_adjust=True; recon_F1=0.3624, forecast_F1=0.6992
+[2025-12-11 10:07:05,992] [INFO] 已保存可视化图：./logs/msl_adv_hybrid/scores_epoch10_adv_hybrid.png
+[2025-12-11 10:07:05,993] [INFO] ========== Epoch 11/50 (adv-hybrid) ==========
+[2025-12-11 10:07:43,575] [INFO] [Epoch 11] 阶段2对抗训练损失: total=-0.017636, recon_pos=0.114059, recon_neg=0.263390
+[2025-12-11 10:08:41,021] [INFO] [Eval-recon(adv-hybrid)] F1=0.3657, P=0.2370, R=0.8000, AUC=0.5342, thr=-0.108390, point_adjust=True
+[2025-12-11 10:08:41,022] [INFO] [Eval-forecast(adv-hybrid)] F1=0.6979, P=0.6779, R=0.7190, AUC=0.5771, thr=0.139402, point_adjust=True
+[2025-12-11 10:09:03,885] [INFO] [Eval-hybrid(adv)] F1=0.6234, P=0.5501, R=0.7190, AUC=0.5859, thr=0.014976, point_adjust=True; recon_F1=0.3657, forecast_F1=0.6979
+[2025-12-11 10:09:04,120] [INFO] 已保存可视化图：./logs/msl_adv_hybrid/scores_epoch11_adv_hybrid.png
+[2025-12-11 10:09:04,120] [INFO] ========== Epoch 12/50 (adv-hybrid) ==========
+[2025-12-11 10:09:38,996] [INFO] [Epoch 12] 阶段2对抗训练损失: total=-0.025370, recon_pos=0.109981, recon_neg=0.270701
+[2025-12-11 10:10:40,257] [INFO] [Eval-recon(adv-hybrid)] F1=0.3624, P=0.2343, R=0.8000, AUC=0.5295, thr=-0.106775, point_adjust=True
+[2025-12-11 10:10:40,257] [INFO] [Eval-forecast(adv-hybrid)] F1=0.6992, P=0.6804, R=0.7190, AUC=0.5787, thr=0.143272, point_adjust=True
+[2025-12-11 10:11:03,128] [INFO] [Eval-hybrid(adv)] F1=0.6302, P=0.5609, R=0.7190, AUC=0.5881, thr=0.018362, point_adjust=True; recon_F1=0.3624, forecast_F1=0.6992
+[2025-12-11 10:11:03,363] [INFO] 已保存可视化图：./logs/msl_adv_hybrid/scores_epoch12_adv_hybrid.png
+[2025-12-11 10:11:03,381] [INFO] 发现更优模型，已保存至 ./logs/msl_adv_hybrid/best_model_adv_hybrid.pt
+[2025-12-11 10:11:03,381] [INFO] ========== Epoch 13/50 (adv-hybrid) ==========
+[2025-12-11 10:11:36,312] [INFO] [Epoch 13] 阶段2对抗训练损失: total=-0.035881, recon_pos=0.106254, recon_neg=0.284271
+[2025-12-11 10:12:36,370] [INFO] [Eval-recon(adv-hybrid)] F1=0.3551, P=0.2282, R=0.8000, AUC=0.5308, thr=-0.105293, point_adjust=True
+[2025-12-11 10:12:36,370] [INFO] [Eval-forecast(adv-hybrid)] F1=0.7023, P=0.6862, R=0.7190, AUC=0.5807, thr=0.147512, point_adjust=True
+[2025-12-11 10:12:59,307] [INFO] [Eval-hybrid(adv)] F1=0.6315, P=0.5630, R=0.7190, AUC=0.5901, thr=0.020244, point_adjust=True; recon_F1=0.3551, forecast_F1=0.7023
+[2025-12-11 10:12:59,542] [INFO] 已保存可视化图：./logs/msl_adv_hybrid/scores_epoch13_adv_hybrid.png
+[2025-12-11 10:12:59,561] [INFO] 发现更优模型，已保存至 ./logs/msl_adv_hybrid/best_model_adv_hybrid.pt
+[2025-12-11 10:12:59,561] [INFO] ========== Epoch 14/50 (adv-hybrid) ==========
+[2025-12-11 10:13:41,780] [INFO] [Epoch 14] 阶段2对抗训练损失: total=-0.046598, recon_pos=0.102785, recon_neg=0.298765
+[2025-12-11 10:14:47,484] [INFO] [Eval-recon(adv-hybrid)] F1=0.3640, P=0.2356, R=0.8000, AUC=0.5326, thr=-0.103864, point_adjust=True
+[2025-12-11 10:14:47,485] [INFO] [Eval-forecast(adv-hybrid)] F1=0.6996, P=0.6812, R=0.7190, AUC=0.5834, thr=0.148933, point_adjust=True
+[2025-12-11 10:15:10,419] [INFO] [Eval-hybrid(adv)] F1=0.6339, P=0.5668, R=0.7190, AUC=0.5927, thr=0.023537, point_adjust=True; recon_F1=0.3640, forecast_F1=0.6996
+[2025-12-11 10:15:10,654] [INFO] 已保存可视化图：./logs/msl_adv_hybrid/scores_epoch14_adv_hybrid.png
+[2025-12-11 10:15:10,676] [INFO] 发现更优模型，已保存至 ./logs/msl_adv_hybrid/best_model_adv_hybrid.pt
+[2025-12-11 10:15:10,676] [INFO] ========== Epoch 15/50 (adv-hybrid) ==========
+[2025-12-11 10:15:52,032] [INFO] [Epoch 15] 阶段2对抗训练损失: total=-0.057200, recon_pos=0.099365, recon_neg=0.313129
+[2025-12-11 10:16:59,761] [INFO] [Eval-recon(adv-hybrid)] F1=0.3668, P=0.2379, R=0.8000, AUC=0.5380, thr=-0.102473, point_adjust=True
+[2025-12-11 10:16:59,761] [INFO] [Eval-forecast(adv-hybrid)] F1=0.7036, P=0.6888, R=0.7190, AUC=0.5864, thr=0.155886, point_adjust=True
+[2025-12-11 10:17:22,596] [INFO] [Eval-hybrid(adv)] F1=0.6386, P=0.5743, R=0.7190, AUC=0.5958, thr=0.025732, point_adjust=True; recon_F1=0.3668, forecast_F1=0.7036
+[2025-12-11 10:17:22,830] [INFO] 已保存可视化图：./logs/msl_adv_hybrid/scores_epoch15_adv_hybrid.png
+[2025-12-11 10:17:22,849] [INFO] 发现更优模型，已保存至 ./logs/msl_adv_hybrid/best_model_adv_hybrid.pt
+[2025-12-11 10:17:22,849] [INFO] ========== Epoch 16/50 (adv-hybrid) ==========
+[2025-12-11 10:18:07,220] [INFO] [Epoch 16] 阶段2对抗训练损失: total=-0.065562, recon_pos=0.096309, recon_neg=0.323743
+[2025-12-11 10:19:17,670] [INFO] [Eval-recon(adv-hybrid)] F1=0.3616, P=0.2336, R=0.8000, AUC=0.5207, thr=-0.101150, point_adjust=True
+[2025-12-11 10:19:17,671] [INFO] [Eval-forecast(adv-hybrid)] F1=0.7014, P=0.6846, R=0.7190, AUC=0.5869, thr=0.157623, point_adjust=True
+[2025-12-11 10:19:40,492] [INFO] [Eval-hybrid(adv)] F1=0.6408, P=0.5780, R=0.7190, AUC=0.5965, thr=0.029146, point_adjust=True; recon_F1=0.3616, forecast_F1=0.7014
+[2025-12-11 10:19:40,727] [INFO] 已保存可视化图：./logs/msl_adv_hybrid/scores_epoch16_adv_hybrid.png
+[2025-12-11 10:19:40,748] [INFO] 发现更优模型，已保存至 ./logs/msl_adv_hybrid/best_model_adv_hybrid.pt
+[2025-12-11 10:19:40,748] [INFO] ========== Epoch 17/50 (adv-hybrid) ==========
+[2025-12-11 10:20:22,281] [INFO] [Epoch 17] 阶段2对抗训练损失: total=-0.069651, recon_pos=0.093472, recon_neg=0.326245
+[2025-12-11 10:21:31,960] [INFO] [Eval-recon(adv-hybrid)] F1=0.3625, P=0.2343, R=0.8000, AUC=0.5334, thr=-0.099825, point_adjust=True
+[2025-12-11 10:21:31,961] [INFO] [Eval-forecast(adv-hybrid)] F1=0.6996, P=0.6812, R=0.7190, AUC=0.5857, thr=0.160690, point_adjust=True
+[2025-12-11 10:21:55,081] [INFO] [Eval-hybrid(adv)] F1=0.6378, P=0.5730, R=0.7190, AUC=0.5953, thr=0.029816, point_adjust=True; recon_F1=0.3625, forecast_F1=0.6996
+[2025-12-11 10:21:55,316] [INFO] 已保存可视化图：./logs/msl_adv_hybrid/scores_epoch17_adv_hybrid.png
+[2025-12-11 10:21:55,316] [INFO] ========== Epoch 18/50 (adv-hybrid) ==========
+[2025-12-11 10:22:31,663] [INFO] [Epoch 18] 阶段2对抗训练损失: total=-0.070173, recon_pos=0.090549, recon_neg=0.321443
+[2025-12-11 10:23:33,891] [INFO] [Eval-recon(adv-hybrid)] F1=0.3623, P=0.2342, R=0.8000, AUC=0.5413, thr=-0.098553, point_adjust=True
+[2025-12-11 10:23:33,891] [INFO] [Eval-forecast(adv-hybrid)] F1=0.7005, P=0.6829, R=0.7190, AUC=0.5840, thr=0.163853, point_adjust=True
+[2025-12-11 10:23:56,988] [INFO] [Eval-hybrid(adv)] F1=0.6411, P=0.5784, R=0.7190, AUC=0.5939, thr=0.033141, point_adjust=True; recon_F1=0.3623, forecast_F1=0.7005
+[2025-12-11 10:23:57,222] [INFO] 已保存可视化图：./logs/msl_adv_hybrid/scores_epoch18_adv_hybrid.png
+[2025-12-11 10:23:57,240] [INFO] 发现更优模型，已保存至 ./logs/msl_adv_hybrid/best_model_adv_hybrid.pt
+[2025-12-11 10:23:57,240] [INFO] ========== Epoch 19/50 (adv-hybrid) ==========
+[2025-12-11 10:24:36,665] [INFO] [Epoch 19] 阶段2对抗训练损失: total=-0.069440, recon_pos=0.087881, recon_neg=0.314642
+[2025-12-11 10:25:36,976] [INFO] [Eval-recon(adv-hybrid)] F1=0.3651, P=0.2365, R=0.8000, AUC=0.5349, thr=-0.097317, point_adjust=True
+[2025-12-11 10:25:36,976] [INFO] [Eval-forecast(adv-hybrid)] F1=0.7015, P=0.6847, R=0.7190, AUC=0.5821, thr=0.166341, point_adjust=True
+[2025-12-11 10:26:00,189] [INFO] [Eval-hybrid(adv)] F1=0.6415, P=0.5790, R=0.7190, AUC=0.5923, thr=0.035751, point_adjust=True; recon_F1=0.3651, forecast_F1=0.7015
+[2025-12-11 10:26:00,425] [INFO] 已保存可视化图：./logs/msl_adv_hybrid/scores_epoch19_adv_hybrid.png
+[2025-12-11 10:26:00,443] [INFO] 发现更优模型，已保存至 ./logs/msl_adv_hybrid/best_model_adv_hybrid.pt
+[2025-12-11 10:26:00,443] [INFO] ========== Epoch 20/50 (adv-hybrid) ==========
+[2025-12-11 10:26:35,072] [INFO] [Epoch 20] 阶段2对抗训练损失: total=-0.072541, recon_pos=0.085396, recon_neg=0.315875
+[2025-12-11 10:27:34,057] [INFO] [Eval-recon(adv-hybrid)] F1=0.3617, P=0.2337, R=0.8000, AUC=0.5420, thr=-0.096063, point_adjust=True
+[2025-12-11 10:27:34,058] [INFO] [Eval-forecast(adv-hybrid)] F1=0.7002, P=0.6823, R=0.7190, AUC=0.5808, thr=0.168301, point_adjust=True
+[2025-12-11 10:27:57,045] [INFO] [Eval-hybrid(adv)] F1=0.6396, P=0.5760, R=0.7190, AUC=0.5907, thr=0.036142, point_adjust=True; recon_F1=0.3617, forecast_F1=0.7002
+[2025-12-11 10:27:57,280] [INFO] 已保存可视化图：./logs/msl_adv_hybrid/scores_epoch20_adv_hybrid.png
+[2025-12-11 10:27:57,281] [INFO] ========== Epoch 21/50 (adv-hybrid) ==========
+[2025-12-11 10:28:31,025] [INFO] [Epoch 21] 阶段2对抗训练损失: total=-0.074102, recon_pos=0.082850, recon_neg=0.313905
+[2025-12-11 10:29:26,889] [INFO] [Eval-recon(adv-hybrid)] F1=0.3625, P=0.2344, R=0.8000, AUC=0.5334, thr=-0.094874, point_adjust=True
+[2025-12-11 10:29:26,889] [INFO] [Eval-forecast(adv-hybrid)] F1=0.7015, P=0.6848, R=0.7190, AUC=0.5801, thr=0.169779, point_adjust=True
+[2025-12-11 10:29:49,733] [INFO] [Eval-hybrid(adv)] F1=0.6413, P=0.5788, R=0.7190, AUC=0.5896, thr=0.037546, point_adjust=True; recon_F1=0.3625, forecast_F1=0.7015
+[2025-12-11 10:29:49,969] [INFO] 已保存可视化图：./logs/msl_adv_hybrid/scores_epoch21_adv_hybrid.png
+[2025-12-11 10:29:49,970] [INFO] ========== Epoch 22/50 (adv-hybrid) ==========
+[2025-12-11 10:30:33,896] [INFO] [Epoch 22] 阶段2对抗训练损失: total=-0.077715, recon_pos=0.080278, recon_neg=0.315986
+[2025-12-11 10:31:41,966] [INFO] [Eval-recon(adv-hybrid)] F1=0.3819, P=0.2508, R=0.8000, AUC=0.5458, thr=-0.093720, point_adjust=True
+[2025-12-11 10:31:41,966] [INFO] [Eval-forecast(adv-hybrid)] F1=0.7011, P=0.6840, R=0.7190, AUC=0.5798, thr=0.171084, point_adjust=True
+[2025-12-11 10:32:05,021] [INFO] [Eval-hybrid(adv)] F1=0.6434, P=0.5822, R=0.7190, AUC=0.5892, thr=0.038597, point_adjust=True; recon_F1=0.3819, forecast_F1=0.7011
+[2025-12-11 10:32:05,256] [INFO] 已保存可视化图：./logs/msl_adv_hybrid/scores_epoch22_adv_hybrid.png
+[2025-12-11 10:32:05,278] [INFO] 发现更优模型，已保存至 ./logs/msl_adv_hybrid/best_model_adv_hybrid.pt
+[2025-12-11 10:32:05,278] [INFO] ========== Epoch 23/50 (adv-hybrid) ==========
+[2025-12-11 10:32:47,419] [INFO] [Epoch 23] 阶段2对抗训练损失: total=-0.083998, recon_pos=0.077962, recon_neg=0.323919
+[2025-12-11 10:33:50,856] [INFO] [Eval-recon(adv-hybrid)] F1=0.3659, P=0.2468, R=0.7073, AUC=0.5471, thr=-0.092537, point_adjust=True
+[2025-12-11 10:33:50,857] [INFO] [Eval-forecast(adv-hybrid)] F1=0.7037, P=0.6890, R=0.7190, AUC=0.5792, thr=0.174103, point_adjust=True
+[2025-12-11 10:34:13,861] [INFO] [Eval-hybrid(adv)] F1=0.6444, P=0.5837, R=0.7190, AUC=0.5882, thr=0.039816, point_adjust=True; recon_F1=0.3659, forecast_F1=0.7037
+[2025-12-11 10:34:14,307] [INFO] 已保存可视化图：./logs/msl_adv_hybrid/scores_epoch23_adv_hybrid.png
+[2025-12-11 10:34:14,326] [INFO] 发现更优模型，已保存至 ./logs/msl_adv_hybrid/best_model_adv_hybrid.pt
+[2025-12-11 10:34:14,326] [INFO] ========== Epoch 24/50 (adv-hybrid) ==========
+[2025-12-11 10:34:53,296] [INFO] [Epoch 24] 阶段2对抗训练损失: total=-0.090005, recon_pos=0.075921, recon_neg=0.331851
+[2025-12-11 10:35:58,825] [INFO] [Eval-recon(adv-hybrid)] F1=0.3790, P=0.2483, R=0.8000, AUC=0.5404, thr=-0.091429, point_adjust=True
+[2025-12-11 10:35:58,826] [INFO] [Eval-forecast(adv-hybrid)] F1=0.7037, P=0.6890, R=0.7190, AUC=0.5783, thr=0.175183, point_adjust=True
+[2025-12-11 10:36:22,120] [INFO] [Eval-hybrid(adv)] F1=0.6434, P=0.5822, R=0.7190, AUC=0.5869, thr=0.040656, point_adjust=True; recon_F1=0.3790, forecast_F1=0.7037
+[2025-12-11 10:36:22,362] [INFO] 已保存可视化图：./logs/msl_adv_hybrid/scores_epoch24_adv_hybrid.png
+[2025-12-11 10:36:22,362] [INFO] ========== Epoch 25/50 (adv-hybrid) ==========
+[2025-12-11 10:37:07,815] [INFO] [Epoch 25] 阶段2对抗训练损失: total=-0.097899, recon_pos=0.073623, recon_neg=0.343043
+[2025-12-11 10:38:13,828] [INFO] [Eval-recon(adv-hybrid)] F1=0.3597, P=0.2320, R=0.8000, AUC=0.5404, thr=-0.090354, point_adjust=True
+[2025-12-11 10:38:13,828] [INFO] [Eval-forecast(adv-hybrid)] F1=0.7015, P=0.6848, R=0.7190, AUC=0.5774, thr=0.174526, point_adjust=True
+[2025-12-11 10:38:36,770] [INFO] [Eval-hybrid(adv)] F1=0.6457, P=0.5860, R=0.7190, AUC=0.5858, thr=0.042114, point_adjust=True; recon_F1=0.3597, forecast_F1=0.7015
+[2025-12-11 10:38:37,006] [INFO] 已保存可视化图：./logs/msl_adv_hybrid/scores_epoch25_adv_hybrid.png
+[2025-12-11 10:38:37,026] [INFO] 发现更优模型，已保存至 ./logs/msl_adv_hybrid/best_model_adv_hybrid.pt
+[2025-12-11 10:38:37,026] [INFO] ========== Epoch 26/50 (adv-hybrid) ==========
+[2025-12-11 10:39:11,116] [INFO] [Epoch 26] 阶段2对抗训练损失: total=-0.103514, recon_pos=0.071655, recon_neg=0.350337
+[2025-12-11 10:40:13,045] [INFO] [Eval-recon(adv-hybrid)] F1=0.3604, P=0.2326, R=0.8000, AUC=0.5485, thr=-0.089268, point_adjust=True
+[2025-12-11 10:40:13,045] [INFO] [Eval-forecast(adv-hybrid)] F1=0.7006, P=0.6831, R=0.7190, AUC=0.5764, thr=0.175375, point_adjust=True
+[2025-12-11 10:40:36,114] [INFO] [Eval-hybrid(adv)] F1=0.6465, P=0.5873, R=0.7190, AUC=0.5849, thr=0.043802, point_adjust=True; recon_F1=0.3604, forecast_F1=0.7006
+[2025-12-11 10:40:36,349] [INFO] 已保存可视化图：./logs/msl_adv_hybrid/scores_epoch26_adv_hybrid.png
+[2025-12-11 10:40:36,368] [INFO] 发现更优模型，已保存至 ./logs/msl_adv_hybrid/best_model_adv_hybrid.pt
+[2025-12-11 10:40:36,368] [INFO] ========== Epoch 27/50 (adv-hybrid) ==========
+[2025-12-11 10:41:08,551] [INFO] [Epoch 27] 阶段2对抗训练损失: total=-0.109319, recon_pos=0.069557, recon_neg=0.357753
+[2025-12-11 10:42:16,149] [INFO] [Eval-recon(adv-hybrid)] F1=0.3603, P=0.2325, R=0.8000, AUC=0.5529, thr=-0.088271, point_adjust=True
+[2025-12-11 10:42:16,149] [INFO] [Eval-forecast(adv-hybrid)] F1=0.7006, P=0.6831, R=0.7190, AUC=0.5749, thr=0.176649, point_adjust=True
+[2025-12-11 10:42:43,982] [INFO] [Eval-hybrid(adv)] F1=0.6447, P=0.5842, R=0.7190, AUC=0.5835, thr=0.044331, point_adjust=True; recon_F1=0.3603, forecast_F1=0.7006
+[2025-12-11 10:42:44,235] [INFO] 已保存可视化图：./logs/msl_adv_hybrid/scores_epoch27_adv_hybrid.png
+[2025-12-11 10:42:44,236] [INFO] ========== Epoch 28/50 (adv-hybrid) ==========
+[2025-12-11 10:43:28,300] [INFO] [Epoch 28] 阶段2对抗训练损失: total=-0.116069, recon_pos=0.067515, recon_neg=0.367168
+[2025-12-11 10:44:39,978] [INFO] [Eval-recon(adv-hybrid)] F1=0.3772, P=0.2476, R=0.7911, AUC=0.5427, thr=-0.087228, point_adjust=True
+[2025-12-11 10:44:39,981] [INFO] [Eval-forecast(adv-hybrid)] F1=0.7011, P=0.6840, R=0.7190, AUC=0.5735, thr=0.178168, point_adjust=True
+[2025-12-11 10:45:04,392] [INFO] [Eval-hybrid(adv)] F1=0.6482, P=0.5901, R=0.7190, AUC=0.5823, thr=0.046210, point_adjust=True; recon_F1=0.3772, forecast_F1=0.7011
+[2025-12-11 10:45:04,674] [INFO] 已保存可视化图：./logs/msl_adv_hybrid/scores_epoch28_adv_hybrid.png
+[2025-12-11 10:45:04,693] [INFO] 发现更优模型，已保存至 ./logs/msl_adv_hybrid/best_model_adv_hybrid.pt
+[2025-12-11 10:45:04,693] [INFO] ========== Epoch 29/50 (adv-hybrid) ==========
+[2025-12-11 10:45:41,066] [INFO] [Epoch 29] 阶段2对抗训练损失: total=-0.123546, recon_pos=0.065688, recon_neg=0.378467
+[2025-12-11 10:46:43,554] [INFO] [Eval-recon(adv-hybrid)] F1=0.3601, P=0.2323, R=0.8000, AUC=0.5450, thr=-0.086240, point_adjust=True
+[2025-12-11 10:46:43,555] [INFO] [Eval-forecast(adv-hybrid)] F1=0.6993, P=0.6806, R=0.7190, AUC=0.5720, thr=0.178917, point_adjust=True
+[2025-12-11 10:47:06,518] [INFO] [Eval-hybrid(adv)] F1=0.6490, P=0.5914, R=0.7190, AUC=0.5812, thr=0.047426, point_adjust=True; recon_F1=0.3601, forecast_F1=0.6993
+[2025-12-11 10:47:06,758] [INFO] 已保存可视化图：./logs/msl_adv_hybrid/scores_epoch29_adv_hybrid.png
+[2025-12-11 10:47:06,777] [INFO] 发现更优模型，已保存至 ./logs/msl_adv_hybrid/best_model_adv_hybrid.pt
+[2025-12-11 10:47:06,777] [INFO] ========== Epoch 30/50 (adv-hybrid) ==========
+[2025-12-11 10:47:49,783] [INFO] [Epoch 30] 阶段2对抗训练损失: total=-0.130955, recon_pos=0.063862, recon_neg=0.389635
+[2025-12-11 10:48:57,723] [INFO] [Eval-recon(adv-hybrid)] F1=0.3610, P=0.2331, R=0.8000, AUC=0.5415, thr=-0.085307, point_adjust=True
+[2025-12-11 10:48:57,723] [INFO] [Eval-forecast(adv-hybrid)] F1=0.7015, P=0.6848, R=0.7190, AUC=0.5711, thr=0.180644, point_adjust=True
+[2025-12-11 10:49:20,942] [INFO] [Eval-hybrid(adv)] F1=0.6475, P=0.5889, R=0.7190, AUC=0.5805, thr=0.047663, point_adjust=True; recon_F1=0.3610, forecast_F1=0.7015
+[2025-12-11 10:49:21,180] [INFO] 已保存可视化图：./logs/msl_adv_hybrid/scores_epoch30_adv_hybrid.png
+[2025-12-11 10:49:21,180] [INFO] ========== Epoch 31/50 (adv-hybrid) ==========
+[2025-12-11 10:50:13,735] [INFO] [Epoch 31] 阶段2对抗训练损失: total=-0.139998, recon_pos=0.062183, recon_neg=0.404361
+[2025-12-11 10:51:32,046] [INFO] [Eval-recon(adv-hybrid)] F1=0.3600, P=0.2322, R=0.8000, AUC=0.5539, thr=-0.084422, point_adjust=True
+[2025-12-11 10:51:32,048] [INFO] [Eval-forecast(adv-hybrid)] F1=0.7015, P=0.6848, R=0.7190, AUC=0.5700, thr=0.181838, point_adjust=True
+[2025-12-11 10:51:59,824] [INFO] [Eval-hybrid(adv)] F1=0.6460, P=0.5227, R=0.8454, AUC=0.5797, thr=-0.032956, point_adjust=True; recon_F1=0.3600, forecast_F1=0.7015
+[2025-12-11 10:52:00,099] [INFO] 已保存可视化图：./logs/msl_adv_hybrid/scores_epoch31_adv_hybrid.png
+[2025-12-11 10:52:00,100] [INFO] ========== Epoch 32/50 (adv-hybrid) ==========
+[2025-12-11 10:52:49,001] [INFO] [Epoch 32] 阶段2对抗训练损失: total=-0.148710, recon_pos=0.060506, recon_neg=0.418432
+[2025-12-11 10:54:00,861] [INFO] [Eval-recon(adv-hybrid)] F1=0.3765, P=0.2462, R=0.8000, AUC=0.5337, thr=-0.083576, point_adjust=True
+[2025-12-11 10:54:00,862] [INFO] [Eval-forecast(adv-hybrid)] F1=0.7011, P=0.6840, R=0.7190, AUC=0.5695, thr=0.182755, point_adjust=True
+[2025-12-11 10:54:24,199] [INFO] [Eval-hybrid(adv)] F1=0.6495, P=0.5922, R=0.7190, AUC=0.5792, thr=0.050352, point_adjust=True; recon_F1=0.3765, forecast_F1=0.7011
+[2025-12-11 10:54:24,460] [INFO] 已保存可视化图：./logs/msl_adv_hybrid/scores_epoch32_adv_hybrid.png
+[2025-12-11 10:54:24,481] [INFO] 发现更优模型，已保存至 ./logs/msl_adv_hybrid/best_model_adv_hybrid.pt
+[2025-12-11 10:54:24,482] [INFO] ========== Epoch 33/50 (adv-hybrid) ==========
+[2025-12-11 10:55:11,270] [INFO] [Epoch 33] 阶段2对抗训练损失: total=-0.156463, recon_pos=0.058892, recon_neg=0.430710
+[2025-12-11 10:56:23,134] [INFO] [Eval-recon(adv-hybrid)] F1=0.3597, P=0.2320, R=0.8000, AUC=0.5424, thr=-0.082750, point_adjust=True
+[2025-12-11 10:56:23,135] [INFO] [Eval-forecast(adv-hybrid)] F1=0.7033, P=0.6882, R=0.7190, AUC=0.5692, thr=0.185001, point_adjust=True
+[2025-12-11 10:56:46,223] [INFO] [Eval-hybrid(adv)] F1=0.6484, P=0.5904, R=0.7190, AUC=0.5788, thr=0.050560, point_adjust=True; recon_F1=0.3597, forecast_F1=0.7033
+[2025-12-11 10:56:46,464] [INFO] 已保存可视化图：./logs/msl_adv_hybrid/scores_epoch33_adv_hybrid.png
+[2025-12-11 10:56:46,465] [INFO] ========== Epoch 34/50 (adv-hybrid) ==========
+[2025-12-11 10:57:22,176] [INFO] [Epoch 34] 阶段2对抗训练损失: total=-0.163498, recon_pos=0.057338, recon_neg=0.441672
+[2025-12-11 10:58:25,126] [INFO] [Eval-recon(adv-hybrid)] F1=0.3802, P=0.2494, R=0.8000, AUC=0.5560, thr=-0.081925, point_adjust=True
+[2025-12-11 10:58:25,126] [INFO] [Eval-forecast(adv-hybrid)] F1=0.7006, P=0.6831, R=0.7190, AUC=0.5689, thr=0.184397, point_adjust=True
+[2025-12-11 10:58:47,911] [INFO] [Eval-hybrid(adv)] F1=0.6480, P=0.5898, R=0.7190, AUC=0.5788, thr=0.051407, point_adjust=True; recon_F1=0.3802, forecast_F1=0.7006
+[2025-12-11 10:58:48,152] [INFO] 已保存可视化图：./logs/msl_adv_hybrid/scores_epoch34_adv_hybrid.png
+[2025-12-11 10:58:48,153] [INFO] ========== Epoch 35/50 (adv-hybrid) ==========

@@ -4,7 +4,7 @@
 DATA_ROOT=./dataset/MSL
 LOG_DIR=./logs/msl_hybrid
 
-CUDA_VISIBLE_DEVICES=2 python -u main.py \
+CUDA_VISIBLE_DEVICES=6 python -u main.py \
   --dataset msl \
   --branch hybrid \
   --processed_root ${DATA_ROOT} \

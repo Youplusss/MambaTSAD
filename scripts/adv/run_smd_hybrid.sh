@@ -4,7 +4,7 @@
 DATA_ROOT=./dataset/SMD
 LOG_DIR=./logs/smd_adv_hybrid
 
-CUDA_VISIBLE_DEVICES=6 python -u main_adv.py \
+CUDA_VISIBLE_DEVICES=7 python -u main_adv.py \
   --dataset smd \
   --processed_root ${DATA_ROOT} \
   --log_dir ${LOG_DIR} \
@@ -22,6 +22,7 @@ CUDA_VISIBLE_DEVICES=6 python -u main_adv.py \
   --lambda_pred 1.0 \
   --lambda_adv1 0.5 \
   --lambda_adv2 0.5 \
-  --use_pseudo_label \
-  --pseudo_contamination 0.01 \
   --seed 42
+#  --use_pseudo_label \
+#  --pseudo_contamination 0.01 \
+

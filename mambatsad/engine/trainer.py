@@ -4,9 +4,9 @@
 统一的训练 / 评估逻辑。
 
 TSADTrainer 支持三种训练模式：
-- branch="recon"   : 只训练重构分支；
-- branch="forecast": 只训练预测分支；
-- branch="hybrid"  : 同时训练重构 + 预测分支，并在评估时融合两种分数。
+- branch="recon"    : 只训练重构分支；
+- branch="forecast" : 只训练预测分支；
+- branch="hybrid"   : 同时训练重构 + 预测分支，并在评估时融合两种分数。
 
 这样既可以单独验证各分支的效果，也可以验证混合模型是否带来收益。
 """
@@ -21,6 +21,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.utils.data import DataLoader
+from torch.cuda.amp import autocast, GradScaler
 from tqdm import tqdm
 
 from mambatsad.models.recon import build_recon_model
@@ -66,7 +67,7 @@ class TSADTrainer:
         pred_len : 预测步数 T_pred（仅 forecast/hybrid 使用）
         train_loader/test_loader : 训练/测试 DataLoader
         labels_list : 每个实体对应的完整测试标签序列列表（按时间展开）
-        entity_ids : 实体 ID 列表（如 machine-1-1）
+        entity_ids : 实体 ID 列表（如 "machine-1-1"）
         logger : 日志记录器
         writer : TensorBoard SummaryWriter
         log_dir : 日志及模型权重保存目录
@@ -88,7 +89,8 @@ class TSADTrainer:
 
         self.train_loader = train_loader
         self.test_loader = test_loader
-        self.labels_list = list(labels_list)
+
+        self.labels_list = [np.asarray(x, dtype=int) for x in labels_list]
         self.entity_ids = list(entity_ids)
 
         self.logger = logger
@@ -98,7 +100,6 @@ class TSADTrainer:
         self.max_grad_norm = max_grad_norm
         self.patience = patience
         self.use_point_adjust = use_point_adjust
-        self.use_amp = use_amp
 
         self.lambda_recon = float(lambda_recon)
         self.lambda_forecast = float(lambda_forecast)
@@ -124,19 +125,23 @@ class TSADTrainer:
             self.logger.info("训练模式：仅重构分支 (recon)。")
         elif self.branch == "forecast":
             model = build_forecast_model(
-                input_dim=input_dim, seq_len=self.context_len, pred_len=pred_len
+                input_dim=input_dim,
+                seq_len=self.context_len,
+                pred_len=pred_len,
             )
             self.logger.info(
-                f"训练模式：仅预测分支 (forecast)，context_len={self.context_len}, "
-                f"pred_len={pred_len}。"
+                f"训练模式：仅预测分支 (forecast)，"
+                f"context_len={self.context_len}, pred_len={pred_len}。"
             )
         else:  # hybrid
             model = build_hybrid_model(
-                input_dim=input_dim, win_size=win_size, pred_len=pred_len
+                input_dim=input_dim,
+                win_size=win_size,
+                pred_len=pred_len,
             )
             self.logger.info(
-                f"训练模式：混合模型 (hybrid)，context_len={win_size - pred_len}, "
-                f"pred_len={pred_len}。"
+                f"训练模式：混合模型 (hybrid)，"
+                f"context_len={win_size - pred_len}, pred_len={pred_len}。"
             )
 
         self.model: nn.Module = model.to(device)
@@ -144,20 +149,24 @@ class TSADTrainer:
 
         # ------------------ 优化器与 AMP ------------------
         self.optimizer = torch.optim.AdamW(
-            self.model.parameters(), lr=lr, weight_decay=weight_decay
+            self.model.parameters(),
+            lr=lr,
+            weight_decay=weight_decay,
         )
 
         if use_amp and device.type == "cuda":
-            # PyTorch 2.0+ 推荐使用 torch.amp.GradScaler
-            self.scaler: torch.amp.GradScaler | None = torch.amp.GradScaler("cuda")
+            self.scaler: GradScaler | None = GradScaler(enabled=True)
         else:
             self.scaler = None
 
     # ==================================================================
     # 内部工具函数
     # ==================================================================
-
-    def _safe_mse_loss(self, pred: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
+    def _safe_mse_loss(
+        self,
+        pred: torch.Tensor,
+        target: torch.Tensor,
+    ) -> torch.Tensor:
         """
         在 float32 精度下安全地计算 MSE 损失，避免 AMP 下的数值溢出问题。
 
@@ -168,17 +177,14 @@ class TSADTrainer:
         """
         pred = torch.nan_to_num(pred, nan=0.0, posinf=1e4, neginf=-1e4)
         target = torch.nan_to_num(target, nan=0.0, posinf=1e4, neginf=-1e4)
-
         pred = torch.clamp(pred, -1e4, 1e4).float()
         target = torch.clamp(target, -1e4, 1e4).float()
-
         loss = F.mse_loss(pred, target, reduction="mean")
         return loss
 
     def _backward(self, loss: torch.Tensor) -> bool:
         """
         统一的反向传播 + 梯度裁剪逻辑。
-
         若 loss 非有限（NaN/Inf），则返回 False 并跳过该 batch。
         """
         if (
@@ -194,7 +200,8 @@ class TSADTrainer:
             self.scaler.scale(loss).backward()
             self.scaler.unscale_(self.optimizer)
             torch.nn.utils.clip_grad_norm_(
-                self.model.parameters(), self.max_grad_norm
+                self.model.parameters(),
+                self.max_grad_norm,
             )
             self.scaler.step(self.optimizer)
             self.scaler.update()
@@ -202,7 +209,8 @@ class TSADTrainer:
             # 普通 FP32 模式
             loss.backward()
             torch.nn.utils.clip_grad_norm_(
-                self.model.parameters(), self.max_grad_norm
+                self.model.parameters(),
+                self.max_grad_norm,
             )
             self.optimizer.step()
 
@@ -211,7 +219,6 @@ class TSADTrainer:
     # ==================================================================
     # 训练单个 epoch：重构分支
     # ==================================================================
-
     def _train_epoch_recon(self, epoch: int) -> float:
         self.model.train()
         total_loss = 0.0
@@ -220,7 +227,9 @@ class TSADTrainer:
         torch.autograd.set_detect_anomaly(False)
 
         for batch in tqdm(
-            self.train_loader, desc=f"Train-Epoch{epoch}(recon)", leave=False
+            self.train_loader,
+            desc=f"Train-Epoch{epoch}(recon)",
+            leave=False,
         ):
             x = batch["window"]
             if isinstance(x, np.ndarray):
@@ -234,23 +243,26 @@ class TSADTrainer:
             self.optimizer.zero_grad(set_to_none=True)
 
             # 前向：在 AMP 下进行，但 MSE 在 float32 下算
-            with torch.amp.autocast(
-                device_type="cuda", enabled=(self.scaler is not None)
-            ):
+            with autocast(enabled=(self.scaler is not None)):
                 out = self.model(x)
-                rec_list = out.get("recon_multi")
-                recon = out.get("recon")
 
-            # 在 float32 下计算安全的 MSE 损失
-            if rec_list is None:
-                if recon is None:
-                    raise ValueError("重构模型未返回 'recon'。")
-                loss = self._safe_mse_loss(recon, x)
-            else:
-                loss_val = 0.0
-                for rec in rec_list:
-                    loss_val = loss_val + self._safe_mse_loss(rec, x)
-                loss = loss_val
+                # 支持多尺度重构
+                if isinstance(out, dict):
+                    rec_list = out.get("recon_multi")
+                    recon = out.get("recon")
+                else:
+                    rec_list = None
+                    recon = out
+
+                if rec_list is None:
+                    if recon is None:
+                        raise ValueError("重构模型未返回 'recon'。")
+                    loss = self._safe_mse_loss(recon, x)
+                else:
+                    loss_val = 0.0
+                    for rec in rec_list:
+                        loss_val = loss_val + self._safe_mse_loss(rec, x)
+                    loss = loss_val
 
             if not self._backward(loss):
                 continue
@@ -265,7 +277,6 @@ class TSADTrainer:
     # ==================================================================
     # 训练单个 epoch：预测分支
     # ==================================================================
-
     def _train_epoch_forecast(self, epoch: int) -> float:
         assert self.context_len is not None
 
@@ -276,7 +287,9 @@ class TSADTrainer:
         torch.autograd.set_detect_anomaly(False)
 
         for batch in tqdm(
-            self.train_loader, desc=f"Train-Epoch{epoch}(forecast)", leave=False
+            self.train_loader,
+            desc=f"Train-Epoch{epoch}(forecast)",
+            leave=False,
         ):
             x = batch["window"]
             if isinstance(x, np.ndarray):
@@ -295,13 +308,13 @@ class TSADTrainer:
                 )
 
             x_enc = x[:, : self.context_len, :]  # [B, L_c, D]
-            y_true = x[:, self.context_len : self.context_len + self.pred_len, :]
+            y_true = x[
+                :, self.context_len : self.context_len + self.pred_len, :
+            ]  # [B, T_pred, D]
 
             self.optimizer.zero_grad(set_to_none=True)
 
-            with torch.amp.autocast(
-                device_type="cuda", enabled=(self.scaler is not None)
-            ):
+            with autocast(enabled=(self.scaler is not None)):
                 y_pred = self.model(x_enc)
                 if isinstance(y_pred, dict):
                     if "pred" not in y_pred:
@@ -310,13 +323,13 @@ class TSADTrainer:
                         )
                     y_pred = y_pred["pred"]
 
-            if y_pred.shape != y_true.shape:
-                raise ValueError(
-                    f"预测输出形状 {y_pred.shape} 与目标形状 {y_true.shape} 不一致，"
-                    "请检查 seq_len 与 pred_len 配置。"
-                )
+                if y_pred.shape != y_true.shape:
+                    raise ValueError(
+                        f"预测输出形状 {y_pred.shape} 与目标形状 {y_true.shape} 不一致，"
+                        "请检查 seq_len 与 pred_len 配置。"
+                    )
 
-            loss = self._safe_mse_loss(y_pred, y_true)
+                loss = self._safe_mse_loss(y_pred, y_true)
 
             if not self._backward(loss):
                 continue
@@ -331,7 +344,6 @@ class TSADTrainer:
     # ==================================================================
     # 训练单个 epoch：混合模型
     # ==================================================================
-
     def _train_epoch_hybrid(self, epoch: int) -> float:
         assert self.context_len is not None
         hybrid_model = self.model
@@ -345,7 +357,9 @@ class TSADTrainer:
         torch.autograd.set_detect_anomaly(False)
 
         for batch in tqdm(
-            self.train_loader, desc=f"Train-Epoch{epoch}(hybrid)", leave=False
+            self.train_loader,
+            desc=f"Train-Epoch{epoch}(hybrid)",
+            leave=False,
         ):
             x = batch["window"]
             if isinstance(x, np.ndarray):
@@ -365,61 +379,42 @@ class TSADTrainer:
 
             self.optimizer.zero_grad(set_to_none=True)
 
-            with torch.amp.autocast(
-                device_type="cuda", enabled=(self.scaler is not None)
-            ):
+            with autocast(enabled=(self.scaler is not None)):
                 out = hybrid_model(x)
 
-            # -------- 重构分支 loss --------
-            rec_list = out.get("recon_multi")
-            recon = out.get("recon")
-            if rec_list is None and recon is None:
-                raise ValueError("混合模型未返回重构结果。")
+                # -------- 重构分支 loss --------
+                if not isinstance(out, dict):
+                    raise ValueError("混合模型 forward 必须返回 dict。")
 
-            if rec_list is None:
-                loss_recon = self._safe_mse_loss(recon, x)
-            else:
-                loss_val = 0.0
-                for rec in rec_list:
-                    loss_val = loss_val + self._safe_mse_loss(rec, x)
-                loss_recon = loss_val
+                rec_list = out.get("recon_multi")
+                recon = out.get("recon")
+                if rec_list is None and recon is None:
+                    raise ValueError("混合模型未返回重构结果。")
 
-            # -------- 预测分支 loss --------
-            y_pred = out.get("pred")
-            if y_pred is None:
-                raise ValueError("混合模型未返回预测结果 'pred'。")
-            y_true = x[:, self.context_len : self.context_len + self.pred_len, :]
+                if rec_list is None:
+                    loss_recon = self._safe_mse_loss(recon, x)
+                else:
+                    loss_val = 0.0
+                    for rec in rec_list:
+                        loss_val = loss_val + self._safe_mse_loss(rec, x)
+                    loss_recon = loss_val
 
-            if y_pred.shape != y_true.shape:
-                raise ValueError(
-                    f"混合模型预测输出形状 {y_pred.shape} 与目标形状 {y_true.shape} 不一致。"
-                )
+                # -------- 预测分支 loss --------
+                y_pred = out.get("pred")
+                if y_pred is None:
+                    raise ValueError("混合模型未返回预测结果 'pred'。")
 
-            loss_forecast = self._safe_mse_loss(y_pred, y_true)
+                y_true = x[
+                    :, self.context_len : self.context_len + self.pred_len, :
+                ]
+                if y_pred.shape != y_true.shape:
+                    raise ValueError(
+                        f"混合模型预测输出形状 {y_pred.shape} 与目标形状 {y_true.shape} 不一致。"
+                    )
 
-            # -------- 多任务 loss 融合：不确定性加权 + λ 系数 --------
-            if hasattr(hybrid_model, "log_sigma_recon") and hasattr(
-                hybrid_model, "log_sigma_forecast"
-            ):
-                sigma_rec = torch.exp(hybrid_model.log_sigma_recon)
-                sigma_fore = torch.exp(hybrid_model.log_sigma_forecast)
+                loss_forecast = self._safe_mse_loss(y_pred, y_true)
 
-                precision_rec = 1.0 / (sigma_rec ** 2 + 1e-8)
-                precision_fore = 1.0 / (sigma_fore ** 2 + 1e-8)
-
-                # loss = (
-                #     self.lambda_recon * precision_rec * loss_recon
-                #     + self.lambda_forecast * precision_fore * loss_forecast
-                #     + torch.log(sigma_rec + 1e-8)
-                #     + torch.log(sigma_fore + 1e-8)
-                # )
-                # # 简单加权
-                loss = (
-                        self.lambda_recon * loss_recon
-                        + self.lambda_forecast * loss_forecast
-                )
-            else:
-                # 回退到简单加权
+                # -------- 多任务 loss 融合（简单加权） --------
                 loss = (
                     self.lambda_recon * loss_recon
                     + self.lambda_forecast * loss_forecast
@@ -436,23 +431,24 @@ class TSADTrainer:
         avg_loss = total_loss / max(num_batches, 1)
         avg_rec = total_loss_recon / max(num_batches, 1)
         avg_fore = total_loss_forecast / max(num_batches, 1)
-
         self.logger.info(
-            f"[Epoch {epoch}] 混合模型训练损失: total={avg_loss:.6f}, "
-            f"recon={avg_rec:.6f}, forecast={avg_fore:.6f}"
+            f"[Epoch {epoch}] 混合模型训练损失: "
+            f"total={avg_loss:.6f}, recon={avg_rec:.6f}, forecast={avg_fore:.6f}"
         )
         return avg_loss
 
     # ==================================================================
     # 评估：重构分支
     # ==================================================================
-
     def _evaluate_recon(
-        self, model: nn.Module, tag_prefix: str = "recon"
+        self,
+        model: nn.Module,
+        tag_prefix: str = "recon",
     ) -> Tuple[np.ndarray, np.ndarray, float, Dict[str, float]]:
         model.eval()
 
         num_seqs = len(self.labels_list)
+
         # 为每条原始序列分配累积得分数组
         sum_scores = [
             np.zeros(len(self.labels_list[i]), dtype=np.float64)
@@ -464,7 +460,9 @@ class TSADTrainer:
         ]
 
         for batch in tqdm(
-            self.test_loader, desc=f"Eval({tag_prefix})", leave=False
+            self.test_loader,
+            desc=f"Eval({tag_prefix})",
+            leave=False,
         ):
             x = batch["window"]
             if isinstance(x, np.ndarray):
@@ -492,19 +490,27 @@ class TSADTrainer:
 
             with torch.no_grad():
                 out = model(x_t)
-                rec = out["recon"]  # [B, L, D]
-                rec = torch.nan_to_num(rec, nan=0.0, posinf=1e4, neginf=-1e4)
+                if isinstance(out, dict):
+                    rec = out["recon"]
+                else:
+                    rec = out
+
+                rec = torch.nan_to_num(
+                    rec, nan=0.0, posinf=1e4, neginf=-1e4
+                )
                 rec = torch.clamp(rec, -1e4, 1e4)
 
                 mse = ((rec - x_t) ** 2).mean(dim=-1)  # [B, L]
-                mse_np = mse.detach().cpu().numpy()
 
+            mse_np = mse.detach().cpu().numpy()
             B, L = mse_np.shape
+
             for i in range(B):
                 k = int(seq_idx[i])
                 s = int(starts[i])
                 e = s + self.win_size
-                sum_scores[k][s:e] += mse_np[i]
+                e = min(e, len(sum_scores[k]))
+                sum_scores[k][s:e] += mse_np[i, : e - s]
                 cnt_scores[k][s:e] += 1.0
 
         scores_list = []
@@ -527,9 +533,12 @@ class TSADTrainer:
         )
 
         self.logger.info(
-            f"[Eval-{tag_prefix}] F1={metrics['f1']:.4f}, "
-            f"P={metrics['precision']:.4f}, R={metrics['recall']:.4f}, "
-            f"AUC={metrics['auc']:.4f}, thr={metrics['threshold']:.6f}, "
+            f"[Eval-{tag_prefix}] "
+            f"F1={metrics['f1']:.4f}, "
+            f"P={metrics['precision']:.4f}, "
+            f"R={metrics['recall']:.4f}, "
+            f"AUC={metrics['auc']:.4f}, "
+            f"thr={metrics['threshold']:.6f}, "
             f"point_adjust={metrics['use_point_adjust']}"
         )
 
@@ -538,14 +547,16 @@ class TSADTrainer:
     # ==================================================================
     # 评估：预测分支
     # ==================================================================
-
     def _evaluate_forecast(
-        self, model: nn.Module, tag_prefix: str = "forecast"
+        self,
+        model: nn.Module,
+        tag_prefix: str = "forecast",
     ) -> Tuple[np.ndarray, np.ndarray, float, Dict[str, float]]:
         assert self.context_len is not None
-        model.eval()
 
+        model.eval()
         num_seqs = len(self.labels_list)
+
         sum_scores = [
             np.zeros(len(self.labels_list[i]), dtype=np.float64)
             for i in range(num_seqs)
@@ -556,7 +567,9 @@ class TSADTrainer:
         ]
 
         for batch in tqdm(
-            self.test_loader, desc=f"Eval({tag_prefix})", leave=False
+            self.test_loader,
+            desc=f"Eval({tag_prefix})",
+            leave=False,
         ):
             x = batch["window"]
             if isinstance(x, np.ndarray):
@@ -606,7 +619,6 @@ class TSADTrainer:
                     y_pred, nan=0.0, posinf=1e4, neginf=-1e4
                 )
                 y_pred = torch.clamp(y_pred, -1e4, 1e4)
-
                 y_true = torch.nan_to_num(
                     y_true, nan=0.0, posinf=1e4, neginf=-1e4
                 )
@@ -618,16 +630,19 @@ class TSADTrainer:
                     )
 
                 mse = ((y_pred - y_true) ** 2).mean(dim=-1)  # [B, pred_len]
-                mse_np = mse.detach().cpu().numpy()
+
+            mse_np = mse.detach().cpu().numpy()
 
             for i in range(B):
                 k = int(seq_idx[i])
                 s = int(starts[i])
+
                 s_pred = s + self.context_len
                 e_pred = s_pred + self.pred_len
 
                 if s_pred >= len(sum_scores[k]):
                     continue
+
                 if e_pred > len(sum_scores[k]):
                     valid_len = len(sum_scores[k]) - s_pred
                     if valid_len <= 0:
@@ -658,9 +673,12 @@ class TSADTrainer:
         )
 
         self.logger.info(
-            f"[Eval-{tag_prefix}] F1={metrics['f1']:.4f}, "
-            f"P={metrics['precision']:.4f}, R={metrics['recall']:.4f}, "
-            f"AUC={metrics['auc']:.4f}, thr={metrics['threshold']:.6f}, "
+            f"[Eval-{tag_prefix}] "
+            f"F1={metrics['f1']:.4f}, "
+            f"P={metrics['precision']:.4f}, "
+            f"R={metrics['recall']:.4f}, "
+            f"AUC={metrics['auc']:.4f}, "
+            f"thr={metrics['threshold']:.6f}, "
             f"point_adjust={metrics['use_point_adjust']}"
         )
 
@@ -669,8 +687,10 @@ class TSADTrainer:
     # ==================================================================
     # 评估：混合模型（融合重构 + 预测得分）
     # ==================================================================
-
-    def _evaluate_hybrid(self, epoch: int):
+    def _evaluate_hybrid(
+        self,
+        epoch: int,
+    ) -> Tuple[np.ndarray, np.ndarray, float, Dict[str, float]]:
         hybrid_model = self.model
 
         # 分别评估两条分支
@@ -710,23 +730,21 @@ class TSADTrainer:
         ):
             with torch.no_grad():
                 sigma_rec = float(
-                    torch.exp(
-                        hybrid_model.log_sigma_recon
-                    ).detach()
+                    torch.exp(hybrid_model.log_sigma_recon)
+                    .detach()
                     .cpu()
                     .item()
                 )
                 sigma_pred = float(
-                    torch.exp(
-                        hybrid_model.log_sigma_forecast
-                    ).detach()
+                    torch.exp(hybrid_model.log_sigma_forecast)
+                    .detach()
                     .cpu()
                     .item()
                 )
 
-                # 1/σ² 作为任务“可信度”，再乘上 λ 系数
-                w_rec = self.lambda_recon / (sigma_rec**2 + 1e-8)
-                w_pred = self.lambda_forecast / (sigma_pred**2 + 1e-8)
+            # 1/σ² 作为任务“可信度”，再乘上 λ 系数
+            w_rec = self.lambda_recon / (sigma_rec**2 + 1e-8)
+            w_pred = self.lambda_forecast / (sigma_pred**2 + 1e-8)
         else:
             w_rec = self.lambda_recon
             w_pred = self.lambda_forecast
@@ -740,7 +758,7 @@ class TSADTrainer:
 
         # ---------------- 线性融合（稳定版） ----------------
         # 与 MTAD-GAT / USAD 等工作类似，采用线性加权的形式：
-        #   score = α * score_rec + β * score_pred
+        # score = α * score_rec + β * score_pred
         # 相比 L2 融合，这种方式更稳健，不容易在排序上“翻车”。
         scores_hybrid = alpha * scores_rec_norm + beta * scores_pred_norm
 
@@ -753,7 +771,7 @@ class TSADTrainer:
         )
 
         # 若出现 AUC < 0.5，则说明整体排序近似被反转，
-        # 这种情况在 SMD 上曾出现（AUC≈0.17），此时自动取反再计算一次。
+        # 这种情况在 SMD/SWAT 上曾出现，此时自动取反再计算一次。
         if metrics["auc"] < 0.5:
             self.logger.warning(
                 f"融合后 AUC={metrics['auc']:.4f} < 0.5，"
@@ -768,11 +786,15 @@ class TSADTrainer:
             )
 
         self.logger.info(
-            f"[Eval-hybrid] F1={metrics['f1']:.4f}, "
-            f"P={metrics['precision']:.4f}, R={metrics['recall']:.4f}, "
-            f"AUC={metrics['auc']:.4f}, thr={metrics['threshold']:.6f}, "
+            f"[Eval-hybrid] "
+            f"F1={metrics['f1']:.4f}, "
+            f"P={metrics['precision']:.4f}, "
+            f"R={metrics['recall']:.4f}, "
+            f"AUC={metrics['auc']:.4f}, "
+            f"thr={metrics['threshold']:.6f}, "
             f"point_adjust={metrics['use_point_adjust']}; "
-            f"recon_F1={metrics_rec['f1']:.4f}, forecast_F1={metrics_pred['f1']:.4f}"
+            f"recon_F1={metrics_rec['f1']:.4f}, "
+            f"forecast_F1={metrics_pred['f1']:.4f}"
         )
 
         # 额外记录到 TensorBoard，方便分析
@@ -785,7 +807,6 @@ class TSADTrainer:
     # ==================================================================
     # 对外暴露的训练主循环
     # ==================================================================
-
     def train(self, num_epochs: int) -> None:
         best_f1 = -1.0
         best_metrics: Dict[str, float] | None = None
@@ -796,44 +817,41 @@ class TSADTrainer:
 
         for epoch in range(1, num_epochs + 1):
             self.logger.info(
-                f"========== Epoch {epoch}/{num_epochs} ({self.branch}) =========="
+                "========== Epoch %d/%d (%s) ==========",
+                epoch,
+                num_epochs,
+                self.branch,
             )
 
             # ---------------- 训练 + 评估 ----------------
             if self.branch == "recon":
                 train_loss = self._train_epoch_recon(epoch)
                 if self.writer is not None:
-                    self.writer.add_scalar(
-                        "train/loss_recon", train_loss, epoch
-                    )
+                    self.writer.add_scalar("train/loss_recon", train_loss, epoch)
                 scores, labels_full, thr, metrics = self._evaluate_recon(
-                    self.model, tag_prefix="recon"
+                    self.model,
+                    tag_prefix="recon",
                 )
+
             elif self.branch == "forecast":
                 train_loss = self._train_epoch_forecast(epoch)
                 if self.writer is not None:
-                    self.writer.add_scalar(
-                        "train/loss_forecast", train_loss, epoch
-                    )
+                    self.writer.add_scalar("train/loss_forecast", train_loss, epoch)
                 scores, labels_full, thr, metrics = self._evaluate_forecast(
-                    self.model, tag_prefix="forecast"
+                    self.model,
+                    tag_prefix="forecast",
                 )
+
             else:  # hybrid
                 train_loss = self._train_epoch_hybrid(epoch)
                 if self.writer is not None:
-                    self.writer.add_scalar(
-                        "train/loss_hybrid", train_loss, epoch
-                    )
-                scores, labels_full, thr, metrics = self._evaluate_hybrid(
-                    epoch
-                )
+                    self.writer.add_scalar("train/loss_hybrid", train_loss, epoch)
+                scores, labels_full, thr, metrics = self._evaluate_hybrid(epoch)
 
             # 统一记录评估指标
             if self.writer is not None:
                 self.writer.add_scalar("eval/f1", metrics["f1"], epoch)
-                self.writer.add_scalar(
-                    "eval/precision", metrics["precision"], epoch
-                )
+                self.writer.add_scalar("eval/precision", metrics["precision"], epoch)
                 self.writer.add_scalar("eval/recall", metrics["recall"], epoch)
                 self.writer.add_scalar("eval/auc", metrics["auc"], epoch)
 
@@ -844,18 +862,20 @@ class TSADTrainer:
                 epochs_no_improve = 0
 
                 torch.save(self.model.state_dict(), ckpt_path)
-                self.logger.info(f"发现更优模型，已保存至 {ckpt_path}")
+                self.logger.info("发现更优模型，已保存至 %s", ckpt_path)
             else:
                 epochs_no_improve += 1
                 if epochs_no_improve >= self.patience:
                     self.logger.info(
-                        f"早停触发：连续 {epochs_no_improve} 个 epoch F1 未提升，停止训练。"
+                        "早停触发：连续 %d 个 epoch F1 未提升，停止训练。",
+                        epochs_no_improve,
                     )
                     break
 
             # ---------------- 可视化当前 epoch 的得分分布 ----------------
             vis_path = os.path.join(
-                self.log_dir, f"scores_epoch{epoch}_{self.branch}.png"
+                self.log_dir,
+                f"scores_epoch{epoch}_{self.branch}.png",
             )
             plot_scores_with_labels(
                 scores=scores,
@@ -864,8 +884,10 @@ class TSADTrainer:
                 save_path=vis_path,
                 max_points=2000,
             )
-            self.logger.info(f"已保存可视化图：{vis_path}")
+            self.logger.info("已保存可视化图：%s", vis_path)
 
         self.logger.info(
-            f"训练结束，最佳 F1={best_f1:.4f}, 最佳指标={best_metrics}"
+            "训练结束，最佳 F1=%.4f, 最佳指标=%s",
+            best_f1,
+            best_metrics,
         )
