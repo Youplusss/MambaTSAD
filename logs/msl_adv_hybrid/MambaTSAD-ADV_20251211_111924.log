@@ -1,0 +1,162 @@
+[2025-12-11 11:19:24,434] [INFO] 日志已写入：./logs/msl_adv_hybrid/MambaTSAD-ADV_20251211_111924.log
+[2025-12-11 11:19:24,434] [INFO] 命令行参数：Namespace(dataset='msl', processed_root='./dataset/MSL', log_dir='./logs/msl_adv_hybrid', win_size=100, pred_len=10, batch_size=64, epochs=50, lr=0.0001, weight_decay=0.0005, train_stride=1, test_stride=1, num_workers=4, seed=42, no_amp=False, max_grad_norm=1.0, use_adv_training=True, adv_warmup_epochs=5, lambda_rec=1.0, lambda_pred=1.0, lambda_adv1=0.5, lambda_adv2=0.5, use_pseudo_label=True, pseudo_contamination=0.01, no_point_adjust=False)
+[2025-12-11 11:19:24,739] [INFO] 当前使用的设备：cuda
+[2025-12-11 11:19:24,821] [INFO] 数据集 [msl] 构建完成，实体数量=27，input_dim=55，训练样本数=55644，测试样本数=71056
+[2025-12-11 11:19:24,821] [INFO] 开始使用 IsolationForest 生成伪标签，contamination=0.01
+[2025-12-11 11:25:57,056] [INFO] 伪标签过滤结果：原训练窗口数=55644，保留窗口数=55087 (比例=0.990)
+[2025-12-11 11:25:57,191] [INFO] 模型结构：
+[2025-12-11 11:25:57,192] [INFO] MambaTSADHybridSharedAdv(
+  (shared_encoder): SharedEncoder(
+    (encoder_in): Linear(in_features=55, out_features=128, bias=True)
+    (layers): ModuleList(
+      (0-1): 2 x BiMambaBlock(
+        (norm): LayerNorm((128,), eps=1e-05, elementwise_affine=True)
+        (mamba_fwd): Mamba(
+          (in_proj): Linear(in_features=128, out_features=512, bias=False)
+          (conv1d): Conv1d(256, 256, kernel_size=(4,), stride=(1,), padding=(3,), groups=256)
+          (act): SiLU()
+          (x_proj): Linear(in_features=256, out_features=40, bias=False)
+          (dt_proj): Linear(in_features=8, out_features=256, bias=True)
+          (out_proj): Linear(in_features=256, out_features=128, bias=False)
+        )
+        (mamba_bwd): Mamba(
+          (in_proj): Linear(in_features=128, out_features=512, bias=False)
+          (conv1d): Conv1d(256, 256, kernel_size=(4,), stride=(1,), padding=(3,), groups=256)
+          (act): SiLU()
+          (x_proj): Linear(in_features=256, out_features=40, bias=False)
+          (dt_proj): Linear(in_features=8, out_features=256, bias=True)
+          (out_proj): Linear(in_features=256, out_features=128, bias=False)
+        )
+        (ffn): Sequential(
+          (0): LayerNorm((128,), eps=1e-05, elementwise_affine=True)
+          (1): Linear(in_features=128, out_features=512, bias=True)
+          (2): GELU(approximate='none')
+          (3): Dropout(p=0.1, inplace=False)
+          (4): Linear(in_features=512, out_features=128, bias=True)
+        )
+        (dropout): Dropout(p=0.1, inplace=False)
+      )
+    )
+    (norm): LayerNorm((128,), eps=1e-05, elementwise_affine=True)
+  )
+  (recon_head): ReconHead(
+    (layers): ModuleList(
+      (0): BiMambaBlock(
+        (norm): LayerNorm((128,), eps=1e-05, elementwise_affine=True)
+        (mamba_fwd): Mamba(
+          (in_proj): Linear(in_features=128, out_features=512, bias=False)
+          (conv1d): Conv1d(256, 256, kernel_size=(4,), stride=(1,), padding=(3,), groups=256)
+          (act): SiLU()
+          (x_proj): Linear(in_features=256, out_features=40, bias=False)
+          (dt_proj): Linear(in_features=8, out_features=256, bias=True)
+          (out_proj): Linear(in_features=256, out_features=128, bias=False)
+        )
+        (mamba_bwd): Mamba(
+          (in_proj): Linear(in_features=128, out_features=512, bias=False)
+          (conv1d): Conv1d(256, 256, kernel_size=(4,), stride=(1,), padding=(3,), groups=256)
+          (act): SiLU()
+          (x_proj): Linear(in_features=256, out_features=40, bias=False)
+          (dt_proj): Linear(in_features=8, out_features=256, bias=True)
+          (out_proj): Linear(in_features=256, out_features=128, bias=False)
+        )
+        (ffn): Sequential(
+          (0): LayerNorm((128,), eps=1e-05, elementwise_affine=True)
+          (1): Linear(in_features=128, out_features=512, bias=True)
+          (2): GELU(approximate='none')
+          (3): Dropout(p=0.1, inplace=False)
+          (4): Linear(in_features=512, out_features=128, bias=True)
+        )
+        (dropout): Dropout(p=0.1, inplace=False)
+      )
+    )
+    (norm): LayerNorm((128,), eps=1e-05, elementwise_affine=True)
+    (proj_out): Linear(in_features=128, out_features=55, bias=True)
+  )
+  (forecast_head): ForecastHead(
+    (layers): ModuleList(
+      (0): BiMambaBlock(
+        (norm): LayerNorm((128,), eps=1e-05, elementwise_affine=True)
+        (mamba_fwd): Mamba(
+          (in_proj): Linear(in_features=128, out_features=512, bias=False)
+          (conv1d): Conv1d(256, 256, kernel_size=(4,), stride=(1,), padding=(3,), groups=256)
+          (act): SiLU()
+          (x_proj): Linear(in_features=256, out_features=40, bias=False)
+          (dt_proj): Linear(in_features=8, out_features=256, bias=True)
+          (out_proj): Linear(in_features=256, out_features=128, bias=False)
+        )
+        (mamba_bwd): Mamba(
+          (in_proj): Linear(in_features=128, out_features=512, bias=False)
+          (conv1d): Conv1d(256, 256, kernel_size=(4,), stride=(1,), padding=(3,), groups=256)
+          (act): SiLU()
+          (x_proj): Linear(in_features=256, out_features=40, bias=False)
+          (dt_proj): Linear(in_features=8, out_features=256, bias=True)
+          (out_proj): Linear(in_features=256, out_features=128, bias=False)
+        )
+        (ffn): Sequential(
+          (0): LayerNorm((128,), eps=1e-05, elementwise_affine=True)
+          (1): Linear(in_features=128, out_features=512, bias=True)
+          (2): GELU(approximate='none')
+          (3): Dropout(p=0.1, inplace=False)
+          (4): Linear(in_features=512, out_features=128, bias=True)
+        )
+        (dropout): Dropout(p=0.1, inplace=False)
+      )
+    )
+    (norm): LayerNorm((128,), eps=1e-05, elementwise_affine=True)
+    (proj_out): Linear(in_features=128, out_features=550, bias=True)
+  )
+)
+[2025-12-11 11:25:58,714] [INFO] ========== Epoch 1/50 (adv-hybrid) ==========
+[2025-12-11 11:27:00,538] [INFO] [Epoch 1] 阶段1对抗训练损失: total=1.520048, recon_pos=0.330879, pred=1.008131, recon_neg=0.362077
+[2025-12-11 11:28:07,290] [INFO] [Eval-recon(adv-hybrid)] F1=0.3979, P=0.2670, R=0.7806, AUC=0.5430, thr=-0.126575, point_adjust=True
+[2025-12-11 11:28:07,290] [INFO] [Eval-forecast(adv-hybrid)] F1=0.7017, P=0.5998, R=0.8454, AUC=0.5967, thr=0.024653, point_adjust=True
+[2025-12-11 11:28:30,050] [INFO] [Eval-hybrid(adv)] F1=0.6221, P=0.5482, R=0.7190, AUC=0.5680, thr=0.032936, point_adjust=True; recon_F1=0.3979, forecast_F1=0.7017
+[2025-12-11 11:28:30,300] [INFO] 已保存可视化图：./logs/msl_adv_hybrid/scores_epoch1_adv_hybrid.png
+[2025-12-11 11:28:30,323] [INFO] 发现更优模型，已保存至 ./logs/msl_adv_hybrid/best_model_adv_hybrid.pt
+[2025-12-11 11:28:30,323] [INFO] ========== Epoch 2/50 (adv-hybrid) ==========
+[2025-12-11 11:29:27,989] [INFO] [Epoch 2] 阶段1对抗训练损失: total=1.287443, recon_pos=0.239203, pred=0.909947, recon_neg=0.276587
+[2025-12-11 11:30:28,836] [INFO] [Eval-recon(adv-hybrid)] F1=0.3707, P=0.2518, R=0.7025, AUC=0.5451, thr=-0.126419, point_adjust=True
+[2025-12-11 11:30:28,836] [INFO] [Eval-forecast(adv-hybrid)] F1=0.7006, P=0.6831, R=0.7190, AUC=0.6104, thr=0.168488, point_adjust=True
+[2025-12-11 11:30:52,001] [INFO] [Eval-hybrid(adv)] F1=0.6192, P=0.5437, R=0.7190, AUC=0.5831, thr=0.020474, point_adjust=True; recon_F1=0.3707, forecast_F1=0.7006
+[2025-12-11 11:30:52,239] [INFO] 已保存可视化图：./logs/msl_adv_hybrid/scores_epoch2_adv_hybrid.png
+[2025-12-11 11:30:52,239] [INFO] ========== Epoch 3/50 (adv-hybrid) ==========
+[2025-12-11 11:31:47,834] [INFO] [Epoch 3] 阶段1对抗训练损失: total=1.199883, recon_pos=0.202671, pred=0.875442, recon_neg=0.243540
+[2025-12-11 11:32:51,434] [INFO] [Eval-recon(adv-hybrid)] F1=0.3555, P=0.2348, R=0.7309, AUC=0.5592, thr=-0.126557, point_adjust=True
+[2025-12-11 11:32:51,434] [INFO] [Eval-forecast(adv-hybrid)] F1=0.7018, P=0.6854, R=0.7190, AUC=0.6115, thr=0.149229, point_adjust=True
+[2025-12-11 11:33:15,014] [INFO] [Eval-hybrid(adv)] F1=0.6097, P=0.5292, R=0.7190, AUC=0.5918, thr=0.009615, point_adjust=True; recon_F1=0.3555, forecast_F1=0.7018
+[2025-12-11 11:33:15,251] [INFO] 已保存可视化图：./logs/msl_adv_hybrid/scores_epoch3_adv_hybrid.png
+[2025-12-11 11:33:15,252] [INFO] ========== Epoch 4/50 (adv-hybrid) ==========
+[2025-12-11 11:34:08,351] [INFO] [Epoch 4] 阶段1对抗训练损失: total=1.143749, recon_pos=0.178892, pred=0.853917, recon_neg=0.221880
+[2025-12-11 11:35:06,988] [INFO] [Eval-recon(adv-hybrid)] F1=0.3583, P=0.2308, R=0.8000, AUC=0.5673, thr=-0.124893, point_adjust=True
+[2025-12-11 11:35:06,989] [INFO] [Eval-forecast(adv-hybrid)] F1=0.7018, P=0.6854, R=0.7190, AUC=0.6110, thr=0.130428, point_adjust=True
+[2025-12-11 11:35:30,190] [INFO] [Eval-hybrid(adv)] F1=0.6092, P=0.5285, R=0.7190, AUC=0.5956, thr=0.002666, point_adjust=True; recon_F1=0.3583, forecast_F1=0.7018
+[2025-12-11 11:35:30,425] [INFO] 已保存可视化图：./logs/msl_adv_hybrid/scores_epoch4_adv_hybrid.png
+[2025-12-11 11:35:30,426] [INFO] ========== Epoch 5/50 (adv-hybrid) ==========
+[2025-12-11 11:36:22,042] [INFO] [Epoch 5] 阶段1对抗训练损失: total=1.105133, recon_pos=0.161470, pred=0.840250, recon_neg=0.206827
+[2025-12-11 11:37:19,577] [INFO] [Eval-recon(adv-hybrid)] F1=0.3841, P=0.2503, R=0.8260, AUC=0.5657, thr=-0.121876, point_adjust=True
+[2025-12-11 11:37:19,577] [INFO] [Eval-forecast(adv-hybrid)] F1=0.6938, P=0.6703, R=0.7190, AUC=0.6101, thr=0.104274, point_adjust=True
+[2025-12-11 11:37:42,588] [INFO] [Eval-hybrid(adv)] F1=0.6094, P=0.5288, R=0.7190, AUC=0.5976, thr=-0.004749, point_adjust=True; recon_F1=0.3841, forecast_F1=0.6938
+[2025-12-11 11:37:42,823] [INFO] 已保存可视化图：./logs/msl_adv_hybrid/scores_epoch5_adv_hybrid.png
+[2025-12-11 11:37:42,824] [INFO] ========== Epoch 6/50 (adv-hybrid) ==========
+[2025-12-11 11:38:28,004] [INFO] [Epoch 6] 阶段2对抗训练损失: total=0.042830, recon_pos=0.148664, recon_neg=0.211669
+[2025-12-11 11:39:34,257] [INFO] [Eval-recon(adv-hybrid)] F1=0.3636, P=0.2353, R=0.8000, AUC=0.5691, thr=-0.118553, point_adjust=True
+[2025-12-11 11:39:34,257] [INFO] [Eval-forecast(adv-hybrid)] F1=0.7031, P=0.6879, R=0.7190, AUC=0.6022, thr=0.127489, point_adjust=True
+[2025-12-11 11:39:57,659] [INFO] [Eval-hybrid(adv)] F1=0.6241, P=0.5513, R=0.7190, AUC=0.6005, thr=0.003854, point_adjust=True; recon_F1=0.3636, forecast_F1=0.7031
+[2025-12-11 11:39:57,895] [INFO] 已保存可视化图：./logs/msl_adv_hybrid/scores_epoch6_adv_hybrid.png
+[2025-12-11 11:39:57,913] [INFO] 发现更优模型，已保存至 ./logs/msl_adv_hybrid/best_model_adv_hybrid.pt
+[2025-12-11 11:39:57,913] [INFO] ========== Epoch 7/50 (adv-hybrid) ==========
+[2025-12-11 11:40:41,688] [INFO] [Epoch 7] 阶段2对抗训练损失: total=0.006242, recon_pos=0.138531, recon_neg=0.264578
+[2025-12-11 11:41:51,164] [INFO] [Eval-recon(adv-hybrid)] F1=0.3665, P=0.2377, R=0.8000, AUC=0.5436, thr=-0.115545, point_adjust=True
+[2025-12-11 11:41:51,164] [INFO] [Eval-forecast(adv-hybrid)] F1=0.7049, P=0.6913, R=0.7190, AUC=0.5921, thr=0.139604, point_adjust=True
+[2025-12-11 11:42:14,357] [INFO] [Eval-hybrid(adv)] F1=0.6247, P=0.5522, R=0.7190, AUC=0.5948, thr=0.009659, point_adjust=True; recon_F1=0.3665, forecast_F1=0.7049
+[2025-12-11 11:42:14,596] [INFO] 已保存可视化图：./logs/msl_adv_hybrid/scores_epoch7_adv_hybrid.png
+[2025-12-11 11:42:14,616] [INFO] 发现更优模型，已保存至 ./logs/msl_adv_hybrid/best_model_adv_hybrid.pt
+[2025-12-11 11:42:14,616] [INFO] ========== Epoch 8/50 (adv-hybrid) ==========
+[2025-12-11 11:42:53,915] [INFO] [Epoch 8] 阶段2对抗训练损失: total=-0.013232, recon_pos=0.130680, recon_neg=0.287824
+[2025-12-11 11:44:01,775] [INFO] [Eval-recon(adv-hybrid)] F1=0.3668, P=0.2379, R=0.8000, AUC=0.5360, thr=-0.113440, point_adjust=True
+[2025-12-11 11:44:01,775] [INFO] [Eval-forecast(adv-hybrid)] F1=0.7023, P=0.6862, R=0.7190, AUC=0.5857, thr=0.136850, point_adjust=True
+[2025-12-11 11:44:25,074] [INFO] [Eval-hybrid(adv)] F1=0.6274, P=0.5565, R=0.7190, AUC=0.5910, thr=0.012609, point_adjust=True; recon_F1=0.3668, forecast_F1=0.7023
+[2025-12-11 11:44:25,312] [INFO] 已保存可视化图：./logs/msl_adv_hybrid/scores_epoch8_adv_hybrid.png
+[2025-12-11 11:44:25,332] [INFO] 发现更优模型，已保存至 ./logs/msl_adv_hybrid/best_model_adv_hybrid.pt
+[2025-12-11 11:44:25,332] [INFO] ========== Epoch 9/50 (adv-hybrid) ==========
+[2025-12-11 11:45:04,523] [INFO] [Epoch 9] 阶段2对抗训练损失: total=-0.009806, recon_pos=0.124313, recon_neg=0.268238

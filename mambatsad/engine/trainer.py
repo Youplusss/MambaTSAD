@@ -1,33 +1,55 @@
 # mambatsad/engine/trainer.py
 # -*- coding: utf-8 -*-
 """
-统一的训练 / 评估逻辑。
+统一的训练 / 评估逻辑（非对抗版）。
 
 TSADTrainer 支持三种训练模式：
-- branch="recon"    : 只训练重构分支；
-- branch="forecast" : 只训练预测分支；
-- branch="hybrid"   : 同时训练重构 + 预测分支，并在评估时融合两种分数。
+- branch="recon"   : 只训练重构分支；
+- branch="forecast": 只训练预测分支；
+- branch="hybrid"  : 同时训练重构 + 预测分支，并在评估时融合两种分数。
 
-这样既可以单独验证各分支的效果，也可以验证混合模型是否带来收益。
+核心设计要点
+-----------
+1. 与原项目保持接口兼容：
+   - main.py 仍然只需要构建 TSADTrainer 并调用 train()；
+   - 模型工厂函数沿用 build_recon_model / build_forecast_model / build_hybrid_model。
+
+2. 数值稳定性：
+   - _safe_mse_loss 中对 pred/target 做 nan_to_num + clamp；
+   - 训练时做梯度裁剪，避免梯度爆炸；
+   - 若出现 NaN/Inf loss，则跳过该 batch。
+
+3. 阈值搜索与“分数方向自动翻转”：
+   - 使用 search_best_f1_threshold_with_auto_flip 而不是最原始的 search_best_f1_threshold；
+   - auto_flip 会同时在 scores 与 -scores 上搜索 F1/AUC，
+     自动判断「越大越异常」还是「越小越异常」更合理；
+   - metrics 中会带上 need_flip / direction 字段，方便后续可视化。
+
+4. 分数组合：
+   - 混合模型中，先对两路分数做 z-score，再使用
+     mambatsad.utils.score_fusion.fuse_scores_by_zscore 做线性加权融合；
+   - 默认权重为 λ_rec : λ_forecast，与你在 loss 中的加权保持一致。
 """
 
 from __future__ import annotations
 
 import os
-from typing import Dict, Sequence, Tuple
+from typing import Dict, List, Sequence, Tuple
 
 import numpy as np
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
+from torch.cuda.amp import autocast
 from torch.utils.data import DataLoader
-from torch.cuda.amp import autocast, GradScaler
 from tqdm import tqdm
 
 from mambatsad.models.recon import build_recon_model
 from mambatsad.models.forecast import build_forecast_model
 from mambatsad.models.hybrid import build_hybrid_model
-from mambatsad.utils.metrics import search_best_f1_threshold
+from mambatsad.utils.metrics import (
+    search_best_f1_threshold_with_auto_flip,
+)
+from mambatsad.utils.score_fusion import fuse_scores_by_zscore
 from mambatsad.utils.visualization import plot_scores_with_labels
 
 
@@ -60,24 +82,42 @@ class TSADTrainer:
         """
         参数
         ----
-        branch : "recon" / "forecast" / "hybrid"
-        device : torch.device("cuda" or "cpu")
-        input_dim : 输入特征维度 D
-        win_size : 滑动窗口长度 L
-        pred_len : 预测步数 T_pred（仅 forecast/hybrid 使用）
-        train_loader/test_loader : 训练/测试 DataLoader
-        labels_list : 每个实体对应的完整测试标签序列列表（按时间展开）
-        entity_ids : 实体 ID 列表（如 "machine-1-1"）
-        logger : 日志记录器
-        writer : TensorBoard SummaryWriter
-        log_dir : 日志及模型权重保存目录
-        lr : 学习率
-        weight_decay : 权重衰减
-        max_grad_norm : 梯度裁剪阈值
-        patience : 早停轮数
-        use_point_adjust : 评估时是否使用 point-adjust 技巧
-        use_amp : 是否启用混合精度训练
-        lambda_recon / lambda_forecast : 混合模型中两任务的 loss 权重
+        branch
+            "recon" / "forecast" / "hybrid"
+        device
+            torch.device("cuda" or "cpu")
+        input_dim
+            输入特征维度 D
+        win_size
+            滑动窗口长度 L
+        pred_len
+            预测步数 T_pred（仅 forecast/hybrid 使用）
+        train_loader / test_loader
+            训练 / 测试 DataLoader
+        labels_list
+            每个实体的完整测试标签序列列表，按时间展开
+        entity_ids
+            实体 ID 列表（如 "machine-1-1"）
+        logger
+            日志记录器
+        writer
+            TensorBoard SummaryWriter
+        log_dir
+            日志及模型权重保存目录
+        lr
+            学习率
+        weight_decay
+            权重衰减
+        max_grad_norm
+            梯度裁剪阈值
+        patience
+            早停耐心轮数（基于 F1）
+        use_point_adjust
+            评估阶段是否使用 point-adjust 技巧
+        use_amp
+            是否启用混合精度训练
+        lambda_recon / lambda_forecast
+            混合模型中两路 loss 的加权系数
         """
         self.branch = branch.lower()
         assert self.branch in {"recon", "forecast", "hybrid"}
@@ -86,13 +126,10 @@ class TSADTrainer:
         self.input_dim = input_dim
         self.win_size = win_size
         self.pred_len = pred_len
-
         self.train_loader = train_loader
         self.test_loader = test_loader
-
-        self.labels_list = [np.asarray(x, dtype=int) for x in labels_list]
+        self.labels_list = list(labels_list)
         self.entity_ids = list(entity_ids)
-
         self.logger = logger
         self.writer = writer
         self.log_dir = log_dir
@@ -100,6 +137,7 @@ class TSADTrainer:
         self.max_grad_norm = max_grad_norm
         self.patience = patience
         self.use_point_adjust = use_point_adjust
+        self.use_amp = use_amp and (device.type == "cuda")
 
         self.lambda_recon = float(lambda_recon)
         self.lambda_forecast = float(lambda_forecast)
@@ -122,15 +160,16 @@ class TSADTrainer:
         # ------------------ 构建模型 ------------------
         if self.branch == "recon":
             model = build_recon_model(input_dim=input_dim)
-            self.logger.info("训练模式：仅重构分支 (recon)。")
+            logger.info("训练模式：仅重构分支 (recon)。")
         elif self.branch == "forecast":
+            assert self.context_len is not None
             model = build_forecast_model(
                 input_dim=input_dim,
                 seq_len=self.context_len,
                 pred_len=pred_len,
             )
-            self.logger.info(
-                f"训练模式：仅预测分支 (forecast)，"
+            logger.info(
+                "训练模式：仅预测分支 (forecast)，"
                 f"context_len={self.context_len}, pred_len={pred_len}。"
             )
         else:  # hybrid
@@ -139,755 +178,424 @@ class TSADTrainer:
                 win_size=win_size,
                 pred_len=pred_len,
             )
-            self.logger.info(
-                f"训练模式：混合模型 (hybrid)，"
+            logger.info(
+                "训练模式：混合模型 (hybrid)，"
                 f"context_len={win_size - pred_len}, pred_len={pred_len}。"
             )
 
         self.model: nn.Module = model.to(device)
-        self.logger.info(f"模型结构：\n{self.model}")
+        logger.info(f"模型结构：\n{self.model}")
 
-        # ------------------ 优化器与 AMP ------------------
+        # ------------------ 优化器 ------------------
         self.optimizer = torch.optim.AdamW(
-            self.model.parameters(),
-            lr=lr,
-            weight_decay=weight_decay,
+            self.model.parameters(), lr=lr, weight_decay=weight_decay
         )
 
-        if use_amp and device.type == "cuda":
-            self.scaler: GradScaler | None = GradScaler(enabled=True)
-        else:
-            self.scaler = None
+        # 记录最佳指标
+        self.best_f1: float = -1.0
+        self.best_metrics: Dict[str, float] = {}
+        self.best_epoch: int = -1
 
     # ==================================================================
     # 内部工具函数
     # ==================================================================
-    def _safe_mse_loss(
-        self,
-        pred: torch.Tensor,
-        target: torch.Tensor,
-    ) -> torch.Tensor:
+
+    def _safe_mse_loss(self, pred: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
         """
-        在 float32 精度下安全地计算 MSE 损失，避免 AMP 下的数值溢出问题。
+        在 float32 精度下安全地计算 MSE 损失，避免 AMP / 数值溢出问题。
 
         处理步骤：
         1. 对 pred/target 做 nan_to_num，防止 NaN/Inf；
         2. clamp 到 [-1e4, 1e4]，限制数值范围；
-        3. 转为 float32 再计算 MSE。
+        3. 使用 float32 计算均方误差。
         """
-        pred = torch.nan_to_num(pred, nan=0.0, posinf=1e4, neginf=-1e4)
-        target = torch.nan_to_num(target, nan=0.0, posinf=1e4, neginf=-1e4)
-        pred = torch.clamp(pred, -1e4, 1e4).float()
-        target = torch.clamp(target, -1e4, 1e4).float()
-        loss = F.mse_loss(pred, target, reduction="mean")
+        pred = torch.nan_to_num(pred, nan=0.0, posinf=1e6, neginf=-1e6)
+        target = torch.nan_to_num(target, nan=0.0, posinf=1e6, neginf=-1e6)
+        pred = torch.clamp(pred, -1e4, 1e4)
+        target = torch.clamp(target, -1e4, 1e4)
+        diff = pred - target
+        loss = (diff ** 2).mean()
         return loss
 
-    def _backward(self, loss: torch.Tensor) -> bool:
-        """
-        统一的反向传播 + 梯度裁剪逻辑。
-        若 loss 非有限（NaN/Inf），则返回 False 并跳过该 batch。
-        """
-        if (
-            not isinstance(loss, torch.Tensor)
-            or not loss.requires_grad
-            or not torch.isfinite(loss)
-        ):
-            self.logger.warning("遇到非有限 loss (NaN/Inf)，跳过该 batch")
-            return False
-
-        if self.scaler is not None:
-            # AMP 模式
-            self.scaler.scale(loss).backward()
-            self.scaler.unscale_(self.optimizer)
-            torch.nn.utils.clip_grad_norm_(
-                self.model.parameters(),
-                self.max_grad_norm,
-            )
-            self.scaler.step(self.optimizer)
-            self.scaler.update()
-        else:
-            # 普通 FP32 模式
-            loss.backward()
-            torch.nn.utils.clip_grad_norm_(
-                self.model.parameters(),
-                self.max_grad_norm,
-            )
-            self.optimizer.step()
-
-        return True
-
     # ==================================================================
-    # 训练单个 epoch：重构分支
+    # 训练主循环
     # ==================================================================
-    def _train_epoch_recon(self, epoch: int) -> float:
-        self.model.train()
-        total_loss = 0.0
-        num_batches = 0
 
-        torch.autograd.set_detect_anomaly(False)
-
-        for batch in tqdm(
-            self.train_loader,
-            desc=f"Train-Epoch{epoch}(recon)",
-            leave=False,
-        ):
-            x = batch["window"]
-            if isinstance(x, np.ndarray):
-                x = torch.from_numpy(x)
-            x = x.to(self.device, non_blocking=True)
-
-            # 输入清洗：去除 NaN / Inf，并限制数值范围
-            x = torch.nan_to_num(x, nan=0.0, posinf=1e4, neginf=-1e4)
-            x = torch.clamp(x, -1e4, 1e4)
-
-            self.optimizer.zero_grad(set_to_none=True)
-
-            # 前向：在 AMP 下进行，但 MSE 在 float32 下算
-            with autocast(enabled=(self.scaler is not None)):
-                out = self.model(x)
-
-                # 支持多尺度重构
-                if isinstance(out, dict):
-                    rec_list = out.get("recon_multi")
-                    recon = out.get("recon")
-                else:
-                    rec_list = None
-                    recon = out
-
-                if rec_list is None:
-                    if recon is None:
-                        raise ValueError("重构模型未返回 'recon'。")
-                    loss = self._safe_mse_loss(recon, x)
-                else:
-                    loss_val = 0.0
-                    for rec in rec_list:
-                        loss_val = loss_val + self._safe_mse_loss(rec, x)
-                    loss = loss_val
-
-            if not self._backward(loss):
-                continue
-
-            total_loss += float(loss.detach().cpu().item())
-            num_batches += 1
-
-        avg_loss = total_loss / max(num_batches, 1)
-        self.logger.info(f"[Epoch {epoch}] 重构分支训练损失: {avg_loss:.6f}")
-        return avg_loss
-
-    # ==================================================================
-    # 训练单个 epoch：预测分支
-    # ==================================================================
-    def _train_epoch_forecast(self, epoch: int) -> float:
-        assert self.context_len is not None
-
-        self.model.train()
-        total_loss = 0.0
-        num_batches = 0
-
-        torch.autograd.set_detect_anomaly(False)
-
-        for batch in tqdm(
-            self.train_loader,
-            desc=f"Train-Epoch{epoch}(forecast)",
-            leave=False,
-        ):
-            x = batch["window"]
-            if isinstance(x, np.ndarray):
-                x = torch.from_numpy(x)
-            x = x.to(self.device, non_blocking=True)
-
-            # 输入清洗
-            x = torch.nan_to_num(x, nan=0.0, posinf=1e4, neginf=-1e4)
-            x = torch.clamp(x, -1e4, 1e4)
-
-            B, L, D = x.shape
-            if L < self.context_len + self.pred_len:
-                raise ValueError(
-                    f"窗口长度 L={L} 小于 context_len + pred_len = "
-                    f"{self.context_len + self.pred_len}，请调大 --win_size。"
-                )
-
-            x_enc = x[:, : self.context_len, :]  # [B, L_c, D]
-            y_true = x[
-                :, self.context_len : self.context_len + self.pred_len, :
-            ]  # [B, T_pred, D]
-
-            self.optimizer.zero_grad(set_to_none=True)
-
-            with autocast(enabled=(self.scaler is not None)):
-                y_pred = self.model(x_enc)
-                if isinstance(y_pred, dict):
-                    if "pred" not in y_pred:
-                        raise ValueError(
-                            "预测模型 forward 返回的字典中未包含 'pred' 键。"
-                        )
-                    y_pred = y_pred["pred"]
-
-                if y_pred.shape != y_true.shape:
-                    raise ValueError(
-                        f"预测输出形状 {y_pred.shape} 与目标形状 {y_true.shape} 不一致，"
-                        "请检查 seq_len 与 pred_len 配置。"
-                    )
-
-                loss = self._safe_mse_loss(y_pred, y_true)
-
-            if not self._backward(loss):
-                continue
-
-            total_loss += float(loss.detach().cpu().item())
-            num_batches += 1
-
-        avg_loss = total_loss / max(num_batches, 1)
-        self.logger.info(f"[Epoch {epoch}] 预测分支训练损失: {avg_loss:.6f}")
-        return avg_loss
-
-    # ==================================================================
-    # 训练单个 epoch：混合模型
-    # ==================================================================
-    def _train_epoch_hybrid(self, epoch: int) -> float:
-        assert self.context_len is not None
-        hybrid_model = self.model
-
-        self.model.train()
-        total_loss = 0.0
-        total_loss_recon = 0.0
-        total_loss_forecast = 0.0
-        num_batches = 0
-
-        torch.autograd.set_detect_anomaly(False)
-
-        for batch in tqdm(
-            self.train_loader,
-            desc=f"Train-Epoch{epoch}(hybrid)",
-            leave=False,
-        ):
-            x = batch["window"]
-            if isinstance(x, np.ndarray):
-                x = torch.from_numpy(x)
-            x = x.to(self.device, non_blocking=True)
-
-            # 输入清洗
-            x = torch.nan_to_num(x, nan=0.0, posinf=1e4, neginf=-1e4)
-            x = torch.clamp(x, -1e4, 1e4)
-
-            B, L, D = x.shape
-            if L < self.context_len + self.pred_len:
-                raise ValueError(
-                    f"窗口长度 L={L} 小于 context_len + pred_len = "
-                    f"{self.context_len + self.pred_len}，请调大 --win_size。"
-                )
-
-            self.optimizer.zero_grad(set_to_none=True)
-
-            with autocast(enabled=(self.scaler is not None)):
-                out = hybrid_model(x)
-
-                # -------- 重构分支 loss --------
-                if not isinstance(out, dict):
-                    raise ValueError("混合模型 forward 必须返回 dict。")
-
-                rec_list = out.get("recon_multi")
-                recon = out.get("recon")
-                if rec_list is None and recon is None:
-                    raise ValueError("混合模型未返回重构结果。")
-
-                if rec_list is None:
-                    loss_recon = self._safe_mse_loss(recon, x)
-                else:
-                    loss_val = 0.0
-                    for rec in rec_list:
-                        loss_val = loss_val + self._safe_mse_loss(rec, x)
-                    loss_recon = loss_val
-
-                # -------- 预测分支 loss --------
-                y_pred = out.get("pred")
-                if y_pred is None:
-                    raise ValueError("混合模型未返回预测结果 'pred'。")
-
-                y_true = x[
-                    :, self.context_len : self.context_len + self.pred_len, :
-                ]
-                if y_pred.shape != y_true.shape:
-                    raise ValueError(
-                        f"混合模型预测输出形状 {y_pred.shape} 与目标形状 {y_true.shape} 不一致。"
-                    )
-
-                loss_forecast = self._safe_mse_loss(y_pred, y_true)
-
-                # -------- 多任务 loss 融合（简单加权） --------
-                loss = (
-                    self.lambda_recon * loss_recon
-                    + self.lambda_forecast * loss_forecast
-                )
-
-            if not self._backward(loss):
-                continue
-
-            total_loss += float(loss.detach().cpu().item())
-            total_loss_recon += float(loss_recon.detach().cpu().item())
-            total_loss_forecast += float(loss_forecast.detach().cpu().item())
-            num_batches += 1
-
-        avg_loss = total_loss / max(num_batches, 1)
-        avg_rec = total_loss_recon / max(num_batches, 1)
-        avg_fore = total_loss_forecast / max(num_batches, 1)
-        self.logger.info(
-            f"[Epoch {epoch}] 混合模型训练损失: "
-            f"total={avg_loss:.6f}, recon={avg_rec:.6f}, forecast={avg_fore:.6f}"
-        )
-        return avg_loss
-
-    # ==================================================================
-    # 评估：重构分支
-    # ==================================================================
-    def _evaluate_recon(
-        self,
-        model: nn.Module,
-        tag_prefix: str = "recon",
-    ) -> Tuple[np.ndarray, np.ndarray, float, Dict[str, float]]:
-        model.eval()
-
-        num_seqs = len(self.labels_list)
-
-        # 为每条原始序列分配累积得分数组
-        sum_scores = [
-            np.zeros(len(self.labels_list[i]), dtype=np.float64)
-            for i in range(num_seqs)
-        ]
-        cnt_scores = [
-            np.zeros(len(self.labels_list[i]), dtype=np.float64)
-            for i in range(num_seqs)
-        ]
-
-        for batch in tqdm(
-            self.test_loader,
-            desc=f"Eval({tag_prefix})",
-            leave=False,
-        ):
-            x = batch["window"]
-            if isinstance(x, np.ndarray):
-                x_t = torch.from_numpy(x)
-            else:
-                x_t = x
-            x_t = x_t.to(self.device, non_blocking=True)
-
-            # 清洗输入
-            x_t = torch.nan_to_num(x_t, nan=0.0, posinf=1e4, neginf=-1e4)
-            x_t = torch.clamp(x_t, -1e4, 1e4)
-
-            seq_idx = batch["seq_idx"]
-            starts = batch["start"]
-
-            if isinstance(seq_idx, torch.Tensor):
-                seq_idx = seq_idx.cpu().numpy()
-            elif not isinstance(seq_idx, np.ndarray):
-                seq_idx = np.array(seq_idx, dtype=np.int64)
-
-            if isinstance(starts, torch.Tensor):
-                starts = starts.cpu().numpy()
-            elif not isinstance(starts, np.ndarray):
-                starts = np.array(starts, dtype=np.int64)
-
-            with torch.no_grad():
-                out = model(x_t)
-                if isinstance(out, dict):
-                    rec = out["recon"]
-                else:
-                    rec = out
-
-                rec = torch.nan_to_num(
-                    rec, nan=0.0, posinf=1e4, neginf=-1e4
-                )
-                rec = torch.clamp(rec, -1e4, 1e4)
-
-                mse = ((rec - x_t) ** 2).mean(dim=-1)  # [B, L]
-
-            mse_np = mse.detach().cpu().numpy()
-            B, L = mse_np.shape
-
-            for i in range(B):
-                k = int(seq_idx[i])
-                s = int(starts[i])
-                e = s + self.win_size
-                e = min(e, len(sum_scores[k]))
-                sum_scores[k][s:e] += mse_np[i, : e - s]
-                cnt_scores[k][s:e] += 1.0
-
-        scores_list = []
-        labels_concat = []
-        for k in range(num_seqs):
-            c = cnt_scores[k]
-            c[c == 0] = 1.0  # 避免除零
-            seq_scores = sum_scores[k] / c
-            scores_list.append(seq_scores)
-            labels_concat.append(self.labels_list[k])
-
-        scores = np.concatenate(scores_list)
-        labels_full = np.concatenate(labels_concat).astype(int)
-
-        thr, metrics = search_best_f1_threshold(
-            scores,
-            labels_full,
-            num_steps=2048,
-            use_point_adjust=self.use_point_adjust,
-        )
-
-        self.logger.info(
-            f"[Eval-{tag_prefix}] "
-            f"F1={metrics['f1']:.4f}, "
-            f"P={metrics['precision']:.4f}, "
-            f"R={metrics['recall']:.4f}, "
-            f"AUC={metrics['auc']:.4f}, "
-            f"thr={metrics['threshold']:.6f}, "
-            f"point_adjust={metrics['use_point_adjust']}"
-        )
-
-        return scores, labels_full, thr, metrics
-
-    # ==================================================================
-    # 评估：预测分支
-    # ==================================================================
-    def _evaluate_forecast(
-        self,
-        model: nn.Module,
-        tag_prefix: str = "forecast",
-    ) -> Tuple[np.ndarray, np.ndarray, float, Dict[str, float]]:
-        assert self.context_len is not None
-
-        model.eval()
-        num_seqs = len(self.labels_list)
-
-        sum_scores = [
-            np.zeros(len(self.labels_list[i]), dtype=np.float64)
-            for i in range(num_seqs)
-        ]
-        cnt_scores = [
-            np.zeros(len(self.labels_list[i]), dtype=np.float64)
-            for i in range(num_seqs)
-        ]
-
-        for batch in tqdm(
-            self.test_loader,
-            desc=f"Eval({tag_prefix})",
-            leave=False,
-        ):
-            x = batch["window"]
-            if isinstance(x, np.ndarray):
-                x_t = torch.from_numpy(x)
-            else:
-                x_t = x
-            x_t = x_t.to(self.device, non_blocking=True)
-
-            x_t = torch.nan_to_num(x_t, nan=0.0, posinf=1e4, neginf=-1e4)
-            x_t = torch.clamp(x_t, -1e4, 1e4)
-
-            B, L, D = x_t.shape
-            if L < self.context_len + self.pred_len:
-                raise ValueError(
-                    f"测试窗口长度 L={L} 小于 context_len + pred_len = "
-                    f"{self.context_len + self.pred_len}，请调大 --win_size。"
-                )
-
-            seq_idx = batch["seq_idx"]
-            starts = batch["start"]
-
-            if isinstance(seq_idx, torch.Tensor):
-                seq_idx = seq_idx.cpu().numpy()
-            elif not isinstance(seq_idx, np.ndarray):
-                seq_idx = np.array(seq_idx, dtype=np.int64)
-
-            if isinstance(starts, torch.Tensor):
-                starts = starts.cpu().numpy()
-            elif not isinstance(starts, np.ndarray):
-                starts = np.array(starts, dtype=np.int64)
-
-            x_enc = x_t[:, : self.context_len, :]
-            y_true = x_t[
-                :, self.context_len : self.context_len + self.pred_len, :
-            ]
-
-            with torch.no_grad():
-                y_pred = model(x_enc)
-                if isinstance(y_pred, dict):
-                    if "pred" not in y_pred:
-                        raise ValueError(
-                            "预测模型 forward 返回的字典中未包含 'pred' 键。"
-                        )
-                    y_pred = y_pred["pred"]
-
-                y_pred = torch.nan_to_num(
-                    y_pred, nan=0.0, posinf=1e4, neginf=-1e4
-                )
-                y_pred = torch.clamp(y_pred, -1e4, 1e4)
-                y_true = torch.nan_to_num(
-                    y_true, nan=0.0, posinf=1e4, neginf=-1e4
-                )
-                y_true = torch.clamp(y_true, -1e4, 1e4)
-
-                if y_pred.shape != y_true.shape:
-                    raise ValueError(
-                        f"预测输出形状 {y_pred.shape} 与目标形状 {y_true.shape} 不一致。"
-                    )
-
-                mse = ((y_pred - y_true) ** 2).mean(dim=-1)  # [B, pred_len]
-
-            mse_np = mse.detach().cpu().numpy()
-
-            for i in range(B):
-                k = int(seq_idx[i])
-                s = int(starts[i])
-
-                s_pred = s + self.context_len
-                e_pred = s_pred + self.pred_len
-
-                if s_pred >= len(sum_scores[k]):
-                    continue
-
-                if e_pred > len(sum_scores[k]):
-                    valid_len = len(sum_scores[k]) - s_pred
-                    if valid_len <= 0:
-                        continue
-                    sum_scores[k][s_pred:] += mse_np[i, :valid_len]
-                    cnt_scores[k][s_pred:] += 1.0
-                else:
-                    sum_scores[k][s_pred:e_pred] += mse_np[i]
-                    cnt_scores[k][s_pred:e_pred] += 1.0
-
-        scores_list = []
-        labels_concat = []
-        for k in range(num_seqs):
-            c = cnt_scores[k]
-            c[c == 0] = 1.0
-            seq_scores = sum_scores[k] / c
-            scores_list.append(seq_scores)
-            labels_concat.append(self.labels_list[k])
-
-        scores = np.concatenate(scores_list)
-        labels_full = np.concatenate(labels_concat).astype(int)
-
-        thr, metrics = search_best_f1_threshold(
-            scores,
-            labels_full,
-            num_steps=2048,
-            use_point_adjust=self.use_point_adjust,
-        )
-
-        self.logger.info(
-            f"[Eval-{tag_prefix}] "
-            f"F1={metrics['f1']:.4f}, "
-            f"P={metrics['precision']:.4f}, "
-            f"R={metrics['recall']:.4f}, "
-            f"AUC={metrics['auc']:.4f}, "
-            f"thr={metrics['threshold']:.6f}, "
-            f"point_adjust={metrics['use_point_adjust']}"
-        )
-
-        return scores, labels_full, thr, metrics
-
-    # ==================================================================
-    # 评估：混合模型（融合重构 + 预测得分）
-    # ==================================================================
-    def _evaluate_hybrid(
-        self,
-        epoch: int,
-    ) -> Tuple[np.ndarray, np.ndarray, float, Dict[str, float]]:
-        hybrid_model = self.model
-
-        # 分别评估两条分支
-        scores_rec, labels_rec, thr_rec, metrics_rec = self._evaluate_recon(
-            hybrid_model.recon_branch,
-            tag_prefix="recon(hybrid)",
-        )
-        scores_pred, labels_pred, thr_pred, metrics_pred = (
-            self._evaluate_forecast(
-                hybrid_model.forecast_branch,
-                tag_prefix="forecast(hybrid)",
-            )
-        )
-
-        # 标签一致性检查
-        if not np.array_equal(labels_rec, labels_pred):
-            self.logger.warning(
-                "重构 / 预测分支的标签展开结果不一致，默认采用重构分支的标签。"
-            )
-        labels_full = labels_rec
-
-        # ---------------- 分数标准化（z-score） ----------------
-        def _z_norm(x: np.ndarray) -> np.ndarray:
-            x = np.asarray(x, dtype=np.float64)
-            m = x.mean()
-            s = x.std()
-            if not np.isfinite(s) or s < 1e-8:
-                s = 1.0
-            return (x - m) / s
-
-        scores_rec_norm = _z_norm(scores_rec)
-        scores_pred_norm = _z_norm(scores_pred)
-
-        # ---------------- 由不确定性 / λ 决定线性融合权重 ----------------
-        if hasattr(hybrid_model, "log_sigma_recon") and hasattr(
-            hybrid_model, "log_sigma_forecast"
-        ):
-            with torch.no_grad():
-                sigma_rec = float(
-                    torch.exp(hybrid_model.log_sigma_recon)
-                    .detach()
-                    .cpu()
-                    .item()
-                )
-                sigma_pred = float(
-                    torch.exp(hybrid_model.log_sigma_forecast)
-                    .detach()
-                    .cpu()
-                    .item()
-                )
-
-            # 1/σ² 作为任务“可信度”，再乘上 λ 系数
-            w_rec = self.lambda_recon / (sigma_rec**2 + 1e-8)
-            w_pred = self.lambda_forecast / (sigma_pred**2 + 1e-8)
-        else:
-            w_rec = self.lambda_recon
-            w_pred = self.lambda_forecast
-
-        if w_rec <= 0 and w_pred <= 0:
-            w_rec = 1.0
-            w_pred = 1.0
-
-        alpha = w_rec / (w_rec + w_pred)
-        beta = w_pred / (w_rec + w_pred)
-
-        # ---------------- 线性融合（稳定版） ----------------
-        # 与 MTAD-GAT / USAD 等工作类似，采用线性加权的形式：
-        # score = α * score_rec + β * score_pred
-        # 相比 L2 融合，这种方式更稳健，不容易在排序上“翻车”。
-        scores_hybrid = alpha * scores_rec_norm + beta * scores_pred_norm
-
-        # 首先直接尝试当前方向下的阈值搜索
-        thr, metrics = search_best_f1_threshold(
-            scores_hybrid,
-            labels_full,
-            num_steps=2048,
-            use_point_adjust=self.use_point_adjust,
-        )
-
-        # 若出现 AUC < 0.5，则说明整体排序近似被反转，
-        # 这种情况在 SMD/SWAT 上曾出现，此时自动取反再计算一次。
-        if metrics["auc"] < 0.5:
-            self.logger.warning(
-                f"融合后 AUC={metrics['auc']:.4f} < 0.5，"
-                "疑似得分方向被反转，将 scores 取反后重新计算。"
-            )
-            scores_hybrid = -scores_hybrid
-            thr, metrics = search_best_f1_threshold(
-                scores_hybrid,
-                labels_full,
-                num_steps=2048,
-                use_point_adjust=self.use_point_adjust,
-            )
-
-        self.logger.info(
-            f"[Eval-hybrid] "
-            f"F1={metrics['f1']:.4f}, "
-            f"P={metrics['precision']:.4f}, "
-            f"R={metrics['recall']:.4f}, "
-            f"AUC={metrics['auc']:.4f}, "
-            f"thr={metrics['threshold']:.6f}, "
-            f"point_adjust={metrics['use_point_adjust']}; "
-            f"recon_F1={metrics_rec['f1']:.4f}, "
-            f"forecast_F1={metrics_pred['f1']:.4f}"
-        )
-
-        # 额外记录到 TensorBoard，方便分析
-        if self.writer is not None:
-            self.writer.add_scalar("eval/recon_f1", metrics_rec["f1"], epoch)
-            self.writer.add_scalar("eval/forecast_f1", metrics_pred["f1"], epoch)
-
-        return scores_hybrid, labels_full, thr, metrics
-
-    # ==================================================================
-    # 对外暴露的训练主循环
-    # ==================================================================
     def train(self, num_epochs: int) -> None:
-        best_f1 = -1.0
-        best_metrics: Dict[str, float] | None = None
-        epochs_no_improve = 0
+        """主训练入口。"""
 
-        os.makedirs(self.log_dir, exist_ok=True)
-        ckpt_path = os.path.join(self.log_dir, f"best_model_{self.branch}.pt")
+        no_improve_epochs = 0
 
         for epoch in range(1, num_epochs + 1):
             self.logger.info(
-                "========== Epoch %d/%d (%s) ==========",
-                epoch,
-                num_epochs,
-                self.branch,
+                f"========== Epoch {epoch}/{num_epochs} ({self.branch}) =========="
             )
 
-            # ---------------- 训练 + 评估 ----------------
             if self.branch == "recon":
-                train_loss = self._train_epoch_recon(epoch)
-                if self.writer is not None:
-                    self.writer.add_scalar("train/loss_recon", train_loss, epoch)
-                scores, labels_full, thr, metrics = self._evaluate_recon(
-                    self.model,
-                    tag_prefix="recon",
-                )
-
+                train_stats = self._train_epoch_recon(epoch)
             elif self.branch == "forecast":
-                train_loss = self._train_epoch_forecast(epoch)
-                if self.writer is not None:
-                    self.writer.add_scalar("train/loss_forecast", train_loss, epoch)
-                scores, labels_full, thr, metrics = self._evaluate_forecast(
-                    self.model,
-                    tag_prefix="forecast",
+                train_stats = self._train_epoch_forecast(epoch)
+            else:
+                train_stats = self._train_epoch_hybrid(epoch)
+
+            # ====================== 评估 ======================
+            metrics_recon, metrics_forecast, metrics_hybrid = self.evaluate(epoch)
+
+            # 根据不同模式选择“主指标”
+            if self.branch == "recon":
+                curr_metrics = metrics_recon
+            elif self.branch == "forecast":
+                curr_metrics = metrics_forecast
+            else:
+                curr_metrics = metrics_hybrid
+
+            curr_f1 = float(curr_metrics.get("f1", 0.0))
+
+            # TensorBoard 记录
+            self.writer.add_scalar("train/loss", train_stats["loss"], epoch)
+            if "loss_recon" in train_stats:
+                self.writer.add_scalar("train/loss_recon", train_stats["loss_recon"], epoch)
+            if "loss_forecast" in train_stats:
+                self.writer.add_scalar(
+                    "train/loss_forecast", train_stats["loss_forecast"], epoch
                 )
 
-            else:  # hybrid
-                train_loss = self._train_epoch_hybrid(epoch)
-                if self.writer is not None:
-                    self.writer.add_scalar("train/loss_hybrid", train_loss, epoch)
-                scores, labels_full, thr, metrics = self._evaluate_hybrid(epoch)
+            self.writer.add_scalar("eval/f1", curr_f1, epoch)
 
-            # 统一记录评估指标
-            if self.writer is not None:
-                self.writer.add_scalar("eval/f1", metrics["f1"], epoch)
-                self.writer.add_scalar("eval/precision", metrics["precision"], epoch)
-                self.writer.add_scalar("eval/recall", metrics["recall"], epoch)
-                self.writer.add_scalar("eval/auc", metrics["auc"], epoch)
+            # ------------------ 早停 / 保存最优模型 ------------------
+            if curr_f1 > self.best_f1 + 1e-6:
+                self.best_f1 = curr_f1
+                self.best_metrics = curr_metrics
+                self.best_epoch = epoch
+                no_improve_epochs = 0
 
-            # ---------------- 早停 & 保存最优模型 ----------------
-            if metrics["f1"] > best_f1 + 1e-4:
-                best_f1 = metrics["f1"]
-                best_metrics = metrics
-                epochs_no_improve = 0
-
-                torch.save(self.model.state_dict(), ckpt_path)
-                self.logger.info("发现更优模型，已保存至 %s", ckpt_path)
+                best_path = os.path.join(self.log_dir, "best_model.pt")
+                torch.save(self.model.state_dict(), best_path)
+                self.logger.info(f"发现更优模型 (F1={curr_f1:.4f})，已保存至 {best_path}")
             else:
-                epochs_no_improve += 1
-                if epochs_no_improve >= self.patience:
+                no_improve_epochs += 1
+                self.logger.info(
+                    f"当前 F1={curr_f1:.4f}，已连续 {no_improve_epochs} 个 epoch 未提升。"
+                )
+                if no_improve_epochs >= self.patience:
                     self.logger.info(
-                        "早停触发：连续 %d 个 epoch F1 未提升，停止训练。",
-                        epochs_no_improve,
+                        f"早停触发：patience={self.patience}，最佳 F1={self.best_f1:.4f} "
+                        f"(epoch={self.best_epoch})，对应指标={self.best_metrics}"
                     )
                     break
 
-            # ---------------- 可视化当前 epoch 的得分分布 ----------------
-            vis_path = os.path.join(
-                self.log_dir,
-                f"scores_epoch{epoch}_{self.branch}.png",
-            )
-            plot_scores_with_labels(
-                scores=scores,
-                labels=labels_full,
-                threshold=thr,
-                save_path=vis_path,
-                max_points=2000,
-            )
-            self.logger.info("已保存可视化图：%s", vis_path)
+        self.logger.info(
+            f"训练结束，最佳 F1={self.best_f1:.4f} (epoch={self.best_epoch})，"
+            f"最佳指标={self.best_metrics}"
+        )
+
+    # ==================================================================
+    # 各分支训练一个 epoch
+    # ==================================================================
+
+    def _train_epoch_recon(self, epoch: int) -> Dict[str, float]:
+        self.model.train()
+        total_loss = 0.0
+        n_batches = 0
+
+        for batch in tqdm(self.train_loader, desc=f"Train-RECON-{epoch}"):
+            x = batch["window"].to(self.device)  # [B, L, D]
+
+            self.optimizer.zero_grad(set_to_none=True)
+            with autocast(enabled=self.use_amp):
+                x_hat = self.model(x)  # [B, L, D]
+                loss = self._safe_mse_loss(x_hat, x)
+
+            if not torch.isfinite(loss):
+                self.logger.warning("遇到非有限 loss (NaN/Inf)，跳过该 batch。")
+                continue
+
+            loss.backward()
+            if self.max_grad_norm is not None and self.max_grad_norm > 0:
+                torch.nn.utils.clip_grad_norm_(
+                    self.model.parameters(), self.max_grad_norm
+                )
+            self.optimizer.step()
+
+            total_loss += float(loss.detach().cpu())
+            n_batches += 1
+
+        avg_loss = total_loss / max(n_batches, 1)
+        self.logger.info(f"[Epoch {epoch}] 重构分支训练损失: {avg_loss:.6f}")
+        return {"loss": avg_loss, "loss_recon": avg_loss}
+
+    def _train_epoch_forecast(self, epoch: int) -> Dict[str, float]:
+        assert self.context_len is not None
+
+        self.model.train()
+        total_loss = 0.0
+        n_batches = 0
+
+        for batch in tqdm(self.train_loader, desc=f"Train-FORECAST-{epoch}"):
+            x = batch["window"].to(self.device)  # [B, L, D]
+            x_ctx = x[:, : self.context_len, :]
+            y_true = x[:, -self.pred_len :, :]  # [B, pred_len, D]
+
+            self.optimizer.zero_grad(set_to_none=True)
+            with autocast(enabled=self.use_amp):
+                y_pred = self.model(x_ctx)  # [B, pred_len, D]
+                loss = self._safe_mse_loss(y_pred, y_true)
+
+            if not torch.isfinite(loss):
+                self.logger.warning("遇到非有限 loss (NaN/Inf)，跳过该 batch。")
+                continue
+
+            loss.backward()
+            if self.max_grad_norm is not None and self.max_grad_norm > 0:
+                torch.nn.utils.clip_grad_norm_(
+                    self.model.parameters(), self.max_grad_norm
+                )
+            self.optimizer.step()
+
+            total_loss += float(loss.detach().cpu())
+            n_batches += 1
+
+        avg_loss = total_loss / max(n_batches, 1)
+        self.logger.info(f"[Epoch {epoch}] 预测分支训练损失: {avg_loss:.6f}")
+        return {"loss": avg_loss, "loss_forecast": avg_loss}
+
+    def _train_epoch_hybrid(self, epoch: int) -> Dict[str, float]:
+        assert self.context_len is not None
+
+        self.model.train()
+        total_loss = 0.0
+        loss_rec_sum = 0.0
+        loss_fore_sum = 0.0
+        n_batches = 0
+
+        for batch in tqdm(self.train_loader, desc=f"Train-HYBRID-{epoch}"):
+            x = batch["window"].to(self.device)  # [B, L, D]
+            y_true = x[:, -self.pred_len :, :]  # [B, pred_len, D]
+
+            self.optimizer.zero_grad(set_to_none=True)
+            with autocast(enabled=self.use_amp):
+                out = self.model(x)
+                x_hat = out["recon"]
+                y_pred = out["pred"]
+
+                loss_recon = self._safe_mse_loss(x_hat, x)
+                loss_fore = self._safe_mse_loss(y_pred, y_true)
+                loss = (
+                    self.lambda_recon * loss_recon
+                    + self.lambda_forecast * loss_fore
+                )
+
+            if not torch.isfinite(loss):
+                self.logger.warning("遇到非有限 loss (NaN/Inf)，跳过该 batch。")
+                continue
+
+            loss.backward()
+            if self.max_grad_norm is not None and self.max_grad_norm > 0:
+                torch.nn.utils.clip_grad_norm_(
+                    self.model.parameters(), self.max_grad_norm
+                )
+            self.optimizer.step()
+
+            total_loss += float(loss.detach().cpu())
+            loss_rec_sum += float(loss_recon.detach().cpu())
+            loss_fore_sum += float(loss_fore.detach().cpu())
+            n_batches += 1
+
+        avg_total = total_loss / max(n_batches, 1)
+        avg_rec = loss_rec_sum / max(n_batches, 1)
+        avg_fore = loss_fore_sum / max(n_batches, 1)
 
         self.logger.info(
-            "训练结束，最佳 F1=%.4f, 最佳指标=%s",
-            best_f1,
-            best_metrics,
+            f"[Epoch {epoch}] 混合模型训练损失: "
+            f"total={avg_total:.6f}, recon={avg_rec:.6f}, forecast={avg_fore:.6f}"
         )
+        return {
+            "loss": avg_total,
+            "loss_recon": avg_rec,
+            "loss_forecast": avg_fore,
+        }
+
+    # ==================================================================
+    # 评估逻辑
+    # ==================================================================
+
+    def _init_score_buffers(
+        self,
+    ) -> Tuple[List[np.ndarray], List[np.ndarray]]:
+        """为每个实体构建按时间的得分数组初值（全 0）。"""
+        recon_scores_list: List[np.ndarray] = []
+        forecast_scores_list: List[np.ndarray] = []
+
+        for labels in self.labels_list:
+            T = len(labels)
+            recon_scores_list.append(np.zeros(T, dtype=np.float32))
+            forecast_scores_list.append(np.zeros(T, dtype=np.float32))
+
+        return recon_scores_list, forecast_scores_list
+
+    def evaluate(
+        self, epoch: int
+    ) -> Tuple[Dict[str, float], Dict[str, float], Dict[str, float]]:
+        """
+        在测试集上计算重构 / 预测 / 混合得分，并根据 F1 最优阈值报告指标。
+
+        返回
+        ----
+        metrics_recon, metrics_forecast, metrics_hybrid
+        对于非 hybrid 分支，其中的一部分可能是空字典。
+        """
+        self.model.eval()
+
+        use_recon = self.branch in {"recon", "hybrid"}
+        use_forecast = self.branch in {"forecast", "hybrid"}
+
+        recon_scores_list, forecast_scores_list = self._init_score_buffers()
+        labels_list = self.labels_list
+
+        with torch.no_grad():
+            for batch in tqdm(self.test_loader, desc=f"Eval-{self.branch}-Epoch{epoch}"):
+                x = batch["window"].to(self.device)  # [B, L, D]
+                seq_idx = batch["seq_idx"].cpu().numpy().astype(int)
+                start = batch["start"].cpu().numpy().astype(int)
+                B = x.shape[0]
+
+                if self.branch == "recon":
+                    x_hat = self.model(x)
+                    rec_err = ((x_hat - x) ** 2).mean(dim=(1, 2)).cpu().numpy()
+                    fore_err = None
+                elif self.branch == "forecast":
+                    assert self.context_len is not None
+                    x_ctx = x[:, : self.context_len, :]
+                    y_true = x[:, -self.pred_len :, :]
+                    y_pred = self.model(x_ctx)
+                    fore_err = ((y_pred - y_true) ** 2).mean(dim=(1, 2)).cpu().numpy()
+                    rec_err = None
+                else:  # hybrid
+                    assert self.context_len is not None
+                    out = self.model(x)
+                    x_hat = out["recon"]
+                    y_pred = out["pred"]
+                    y_true = x[:, -self.pred_len :, :]
+
+                    rec_err = ((x_hat - x) ** 2).mean(dim=(1, 2)).cpu().numpy()
+                    fore_err = ((y_pred - y_true) ** 2).mean(dim=(1, 2)).cpu().numpy()
+
+                for i in range(B):
+                    idx = seq_idx[i]
+                    s = start[i]
+                    e = s + self.win_size
+
+                    if use_recon and rec_err is not None:
+                        # 全窗口都赋予同一标量得分，使用 max 聚合
+                        recon_scores_list[idx][s:e] = np.maximum(
+                            recon_scores_list[idx][s:e], rec_err[i]
+                        )
+
+                    if use_forecast and fore_err is not None:
+                        # 预测误差只作用于未来时间段
+                        s_f = s + (self.context_len or 0)
+                        e_f = s + self.win_size
+                        forecast_scores_list[idx][s_f:e_f] = np.maximum(
+                            forecast_scores_list[idx][s_f:e_f], fore_err[i]
+                        )
+
+        # 展平成全局 1D 数组
+        labels_all = np.concatenate(labels_list, axis=0)
+        recon_scores = (
+            np.concatenate(recon_scores_list, axis=0) if use_recon else None
+        )
+        forecast_scores = (
+            np.concatenate(forecast_scores_list, axis=0) if use_forecast else None
+        )
+
+        metrics_recon: Dict[str, float] = {}
+        metrics_forecast: Dict[str, float] = {}
+        metrics_hybrid: Dict[str, float] = {}
+
+        # ------------------ 重构分支 ------------------
+        if use_recon and recon_scores is not None:
+            thr_rec, metrics_rec = search_best_f1_threshold_with_auto_flip(
+                recon_scores,
+                labels_all,
+                use_point_adjust=self.use_point_adjust,
+            )
+            metrics_recon = metrics_rec
+            self.logger.info(
+                "[Eval-recon] "
+                f"F1={metrics_rec['f1']:.4f}, P={metrics_rec['precision']:.4f}, "
+                f"R={metrics_rec['recall']:.4f}, AUC={metrics_rec['auc']:.4f}, "
+                f"thr={metrics_rec['threshold']:.6f}, "
+                f"need_flip={metrics_rec.get('need_flip', False)}, "
+                f"dir={metrics_rec.get('direction', 'greater')}, "
+                f"point_adjust={self.use_point_adjust}"
+            )
+        else:
+            thr_rec = None
+
+        # ------------------ 预测分支 ------------------
+        if use_forecast and forecast_scores is not None:
+            thr_fore, metrics_for = search_best_f1_threshold_with_auto_flip(
+                forecast_scores,
+                labels_all,
+                use_point_adjust=self.use_point_adjust,
+            )
+            metrics_forecast = metrics_for
+            self.logger.info(
+                "[Eval-forecast] "
+                f"F1={metrics_for['f1']:.4f}, P={metrics_for['precision']:.4f}, "
+                f"R={metrics_for['recall']:.4f}, AUC={metrics_for['auc']:.4f}, "
+                f"thr={metrics_for['threshold']:.6f}, "
+                f"need_flip={metrics_for.get('need_flip', False)}, "
+                f"dir={metrics_for.get('direction', 'greater')}, "
+                f"point_adjust={self.use_point_adjust}"
+            )
+        else:
+            thr_fore = None
+
+        # ------------------ 混合分支（仅 hybrid 使用） ------------------
+        if self.branch == "hybrid" and recon_scores is not None and forecast_scores is not None:
+            # 先做归一化 + 线性融合（权重比例跟 loss 相同）
+            fused_scores = fuse_scores_by_zscore(
+                recon_scores,
+                forecast_scores,
+                w_recon=self.lambda_recon,
+                w_forecast=self.lambda_forecast,
+            )
+
+            thr_h, metrics_h = search_best_f1_threshold_with_auto_flip(
+                fused_scores,
+                labels_all,
+                use_point_adjust=self.use_point_adjust,
+            )
+            metrics_hybrid = metrics_h
+
+            self.logger.info(
+                "[Eval-hybrid] "
+                f"F1={metrics_h['f1']:.4f}, P={metrics_h['precision']:.4f}, "
+                f"R={metrics_h['recall']:.4f}, AUC={metrics_h['auc']:.4f}, "
+                f"thr={metrics_h['threshold']:.6f}, "
+                f"need_flip={metrics_h.get('need_flip', False)}, "
+                f"dir={metrics_h.get('direction', 'greater')}, "
+                f"point_adjust={self.use_point_adjust}; "
+                f"recon_F1={metrics_recon.get('f1', 0.0):.4f}, "
+                f"forecast_F1={metrics_forecast.get('f1', 0.0):.4f}"
+            )
+
+            # --- 可视化第一条实体的得分 ---
+            first_len = len(labels_list[0])
+            scores_vis = fused_scores[:first_len]
+            if metrics_h.get("need_flip", False):
+                scores_vis = -scores_vis
+            thr_vis = metrics_h["threshold"]
+            vis_path = os.path.join(
+                self.log_dir, f"scores_epoch{epoch}_hybrid.png"
+            )
+            plot_scores_with_labels(
+                scores=scores_vis,
+                labels=labels_list[0],
+                threshold=thr_vis,
+                save_path=vis_path,
+            )
+            self.logger.info(f"已保存可视化图：{vis_path}")
+
+        return metrics_recon, metrics_forecast, metrics_hybrid

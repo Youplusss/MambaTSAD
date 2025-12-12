@@ -7,13 +7,21 @@ SMAP 数据集构建工具。
 转成以下结构::
 
     processed_root/
-        train/      *.npy   # 每个通道一份 [T_train, D]
-        test/       *.npy   # [T_test, D]
-        test_label/ *.npy   # [T_test]
-        channels.txt        # 通道 id 列表
+        train/
+            *.npy        # 每个通道一份 [T_train, D]
+        test/
+            *.npy        # [T_test, D]
+        test_label/
+            *.npy        # [T_test]
+        channels.txt     # 通道 id 列表
 
-本文件在原有滑窗基础上，增加了**全局 z-score 归一化**，
-以避免各通道尺度差异导致训练困难。
+注意：telemanom 原始数据已经做过一次缩放（[-1, 1]），preprocess_smap.py
+中又对每个通道单独做了一次 StandardScaler。实践中再做一次「全局 z-score」
+反而会把部分异常“抹平”，因此这里 **不再额外做全局归一化**，只做
+nan/inf 清洗即可。
+
+若后续你希望尝试全局 z-score，可直接使用本文件中的
+compute_global_norm_stats / apply_norm_to_seqs 自行尝试。
 """
 
 from __future__ import annotations
@@ -32,6 +40,8 @@ def compute_global_norm_stats(train_seqs: List[np.ndarray]) -> Dict[str, np.ndar
     在所有训练序列上计算统一的均值 / 方差（z-score）。
 
     - train_seqs: 列表，每个元素形状 [T_train_i, D]
+
+    本函数保留作为可选操作，目前 build_smap_dataset **默认不会调用**。
     """
     all_list = []
     for s in train_seqs:
@@ -40,14 +50,12 @@ def compute_global_norm_stats(train_seqs: List[np.ndarray]) -> Dict[str, np.ndar
         all_list.append(s)
 
     all_train = np.vstack(all_list).astype(np.float32)
-
     mean = np.nanmean(all_train, axis=0).astype(np.float32)
     std = np.nanstd(all_train, axis=0).astype(np.float32)
 
     mean = np.where(np.isfinite(mean), mean, 0.0).astype(np.float32)
     std = np.where(np.isfinite(std), std, 1.0).astype(np.float32)
     std = np.where(std < EPS, 1.0, std).astype(np.float32)
-
     return {"mean": mean, "std": std}
 
 
@@ -84,6 +92,7 @@ class SMAPMultiWindowDataset(Dataset):
         self.stride = int(stride)
         self.mode = mode
 
+        # 预先生成 (seq_idx, start) 索引，加速 __getitem__
         self.indices: List[Tuple[int, int]] = []
         for seq_idx, seq in enumerate(sequences):
             T = seq.shape[0]
@@ -98,7 +107,6 @@ class SMAPMultiWindowDataset(Dataset):
     def __getitem__(self, idx: int):  # type: ignore[override]
         seq_idx, start = self.indices[idx]
         seq = self.sequences[seq_idx]
-
         win = seq[start : start + self.win_size].astype(np.float32)
         if not np.isfinite(win).all():
             win = np.nan_to_num(win, nan=0.0, posinf=1e6, neginf=-1e6)
@@ -121,6 +129,7 @@ def _load_smap_entities(
     processed_root: str,
 ) -> Tuple[List[str], List[np.ndarray], List[np.ndarray], List[np.ndarray]]:
     """读取 SMAP 预处理目录中的 train/test/label。"""
+
     train_root = os.path.join(processed_root, "train")
     test_root = os.path.join(processed_root, "test")
     label_root = os.path.join(processed_root, "test_label")
@@ -160,6 +169,7 @@ def _load_smap_entities(
                 f"期望 train/test 为二维数组 [T, D]，但 {cid} 得到 "
                 f"train={train.shape}, test={test.shape}"
             )
+
         if labels.ndim != 1 or labels.shape[0] != test.shape[0]:
             raise ValueError(
                 f"标签维度不匹配: {cid} labels.shape={labels.shape}, "
@@ -179,7 +189,16 @@ def build_smap_dataset(
     train_stride: int = 1,
     test_stride: int = 1,
 ):
-    """构建 SMAP 的训练 / 测试数据集，接口与其他数据集保持一致。"""
+    """
+    构建 SMAP 的训练 / 测试数据集，接口与其他数据集保持一致。
+
+    与之前版本的变化：
+    ----------------
+    - 过去这里会再次在所有通道上做一次「全局 z-score」；
+    - 现在默认 **只做 nan/inf 清洗，不再额外标准化**，
+      这样可以尽量保留 preprocess_smap.py 中已经编码好的
+      异常幅度信息，避免过度平滑。
+    """
     entity_ids, train_list, test_list, labels_list = _load_smap_entities(processed_root)
 
     dims = {arr.shape[1] for arr in train_list}
@@ -187,19 +206,14 @@ def build_smap_dataset(
         raise ValueError(f"SMAP 各通道特征维度不一致: {dims}")
     input_dim = dims.pop()
 
-    # 先做有限值清洗
     def _ensure_finite(arr: np.ndarray) -> np.ndarray:
         if np.isfinite(arr).all():
             return arr.astype(np.float32)
         return np.nan_to_num(arr, nan=0.0, posinf=1e6, neginf=-1e6).astype(np.float32)
 
-    train_seqs_raw = [_ensure_finite(a) for a in train_list]
-    test_seqs_raw = [_ensure_finite(a) for a in test_list]
-
-    # 在所有训练序列上计算全局 z-score，然后同时应用于 train/test
-    norm_stats = compute_global_norm_stats(train_seqs_raw)
-    train_seqs = apply_norm_to_seqs(train_seqs_raw, norm_stats)
-    test_seqs = apply_norm_to_seqs(test_seqs_raw, norm_stats)
+    # 只做有限值清洗，不再额外做全局 z-score
+    train_seqs = [_ensure_finite(a) for a in train_list]
+    test_seqs = [_ensure_finite(a) for a in test_list]
 
     labels_clean = [
         np.where(np.isfinite(lab), lab, 0).astype(np.int64) for lab in labels_list
@@ -212,7 +226,6 @@ def build_smap_dataset(
         stride=train_stride,
         mode="train",
     )
-
     test_ds = SMAPMultiWindowDataset(
         sequences=test_seqs,
         labels_list=labels_clean,

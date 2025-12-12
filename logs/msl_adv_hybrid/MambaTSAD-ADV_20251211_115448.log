@@ -1,0 +1,460 @@
+[2025-12-11 11:54:48,921] [INFO] 日志已写入：./logs/msl_adv_hybrid/MambaTSAD-ADV_20251211_115448.log
+[2025-12-11 11:54:48,921] [INFO] 命令行参数：Namespace(dataset='msl', processed_root='./dataset/MSL', log_dir='./logs/msl_adv_hybrid', win_size=100, pred_len=10, batch_size=64, epochs=50, lr=0.0001, weight_decay=0.0005, train_stride=1, test_stride=1, num_workers=4, seed=42, no_amp=False, max_grad_norm=1.0, use_adv_training=True, adv_warmup_epochs=5, lambda_rec=1.0, lambda_pred=1.0, lambda_adv1=0.5, lambda_adv2=0.5, use_pseudo_label=True, pseudo_contamination=0.01, no_point_adjust=False)
+[2025-12-11 11:54:49,469] [INFO] 当前使用的设备：cuda
+[2025-12-11 11:54:49,557] [INFO] 数据集 [msl] 构建完成，实体数量=27，input_dim=55，训练样本数=55644，测试样本数=71056
+[2025-12-11 11:54:49,558] [INFO] 开始使用 IsolationForest 生成伪标签，contamination=0.01
+[2025-12-11 12:01:06,461] [INFO] 伪标签过滤结果：原训练窗口数=55644，保留窗口数=55087 (比例=0.990)
+[2025-12-11 12:01:06,602] [INFO] 模型结构：
+[2025-12-11 12:01:06,603] [INFO] MambaTSADHybridSharedAdv(
+  (shared_encoder): SharedEncoder(
+    (encoder_in): Linear(in_features=55, out_features=128, bias=True)
+    (layers): ModuleList(
+      (0-1): 2 x BiMambaBlock(
+        (norm): LayerNorm((128,), eps=1e-05, elementwise_affine=True)
+        (mamba_fwd): Mamba(
+          (in_proj): Linear(in_features=128, out_features=512, bias=False)
+          (conv1d): Conv1d(256, 256, kernel_size=(4,), stride=(1,), padding=(3,), groups=256)
+          (act): SiLU()
+          (x_proj): Linear(in_features=256, out_features=40, bias=False)
+          (dt_proj): Linear(in_features=8, out_features=256, bias=True)
+          (out_proj): Linear(in_features=256, out_features=128, bias=False)
+        )
+        (mamba_bwd): Mamba(
+          (in_proj): Linear(in_features=128, out_features=512, bias=False)
+          (conv1d): Conv1d(256, 256, kernel_size=(4,), stride=(1,), padding=(3,), groups=256)
+          (act): SiLU()
+          (x_proj): Linear(in_features=256, out_features=40, bias=False)
+          (dt_proj): Linear(in_features=8, out_features=256, bias=True)
+          (out_proj): Linear(in_features=256, out_features=128, bias=False)
+        )
+        (ffn): Sequential(
+          (0): LayerNorm((128,), eps=1e-05, elementwise_affine=True)
+          (1): Linear(in_features=128, out_features=512, bias=True)
+          (2): GELU(approximate='none')
+          (3): Dropout(p=0.1, inplace=False)
+          (4): Linear(in_features=512, out_features=128, bias=True)
+        )
+        (dropout): Dropout(p=0.1, inplace=False)
+      )
+    )
+    (norm): LayerNorm((128,), eps=1e-05, elementwise_affine=True)
+  )
+  (recon_head): ReconHead(
+    (layers): ModuleList(
+      (0): BiMambaBlock(
+        (norm): LayerNorm((128,), eps=1e-05, elementwise_affine=True)
+        (mamba_fwd): Mamba(
+          (in_proj): Linear(in_features=128, out_features=512, bias=False)
+          (conv1d): Conv1d(256, 256, kernel_size=(4,), stride=(1,), padding=(3,), groups=256)
+          (act): SiLU()
+          (x_proj): Linear(in_features=256, out_features=40, bias=False)
+          (dt_proj): Linear(in_features=8, out_features=256, bias=True)
+          (out_proj): Linear(in_features=256, out_features=128, bias=False)
+        )
+        (mamba_bwd): Mamba(
+          (in_proj): Linear(in_features=128, out_features=512, bias=False)
+          (conv1d): Conv1d(256, 256, kernel_size=(4,), stride=(1,), padding=(3,), groups=256)
+          (act): SiLU()
+          (x_proj): Linear(in_features=256, out_features=40, bias=False)
+          (dt_proj): Linear(in_features=8, out_features=256, bias=True)
+          (out_proj): Linear(in_features=256, out_features=128, bias=False)
+        )
+        (ffn): Sequential(
+          (0): LayerNorm((128,), eps=1e-05, elementwise_affine=True)
+          (1): Linear(in_features=128, out_features=512, bias=True)
+          (2): GELU(approximate='none')
+          (3): Dropout(p=0.1, inplace=False)
+          (4): Linear(in_features=512, out_features=128, bias=True)
+        )
+        (dropout): Dropout(p=0.1, inplace=False)
+      )
+    )
+    (norm): LayerNorm((128,), eps=1e-05, elementwise_affine=True)
+    (proj_out): Linear(in_features=128, out_features=55, bias=True)
+  )
+  (forecast_head): ForecastHead(
+    (layers): ModuleList(
+      (0): BiMambaBlock(
+        (norm): LayerNorm((128,), eps=1e-05, elementwise_affine=True)
+        (mamba_fwd): Mamba(
+          (in_proj): Linear(in_features=128, out_features=512, bias=False)
+          (conv1d): Conv1d(256, 256, kernel_size=(4,), stride=(1,), padding=(3,), groups=256)
+          (act): SiLU()
+          (x_proj): Linear(in_features=256, out_features=40, bias=False)
+          (dt_proj): Linear(in_features=8, out_features=256, bias=True)
+          (out_proj): Linear(in_features=256, out_features=128, bias=False)
+        )
+        (mamba_bwd): Mamba(
+          (in_proj): Linear(in_features=128, out_features=512, bias=False)
+          (conv1d): Conv1d(256, 256, kernel_size=(4,), stride=(1,), padding=(3,), groups=256)
+          (act): SiLU()
+          (x_proj): Linear(in_features=256, out_features=40, bias=False)
+          (dt_proj): Linear(in_features=8, out_features=256, bias=True)
+          (out_proj): Linear(in_features=256, out_features=128, bias=False)
+        )
+        (ffn): Sequential(
+          (0): LayerNorm((128,), eps=1e-05, elementwise_affine=True)
+          (1): Linear(in_features=128, out_features=512, bias=True)
+          (2): GELU(approximate='none')
+          (3): Dropout(p=0.1, inplace=False)
+          (4): Linear(in_features=512, out_features=128, bias=True)
+        )
+        (dropout): Dropout(p=0.1, inplace=False)
+      )
+    )
+    (norm): LayerNorm((128,), eps=1e-05, elementwise_affine=True)
+    (proj_out): Linear(in_features=128, out_features=550, bias=True)
+  )
+)
+[2025-12-11 12:01:08,445] [INFO] ========== Epoch 1/50 [warmup / non-adv] ==========
+[2025-12-11 12:01:51,184] [INFO] [Warmup-Epoch 1] loss_total=1.322223, loss_rec=0.326527, loss_fore=0.995696
+[2025-12-11 12:02:59,183] [INFO] [ADV-Eval-recon] F1=0.3978, P=0.2680, R=0.7717, AUC=0.5399, thr=0.177641, need_flip=False, dir=greater, point_adjust=True
+[2025-12-11 12:03:45,693] [INFO] [ADV-Eval-forecast] F1=0.6993, P=0.5963, R=0.8454, AUC=0.5942, thr=9.279741, need_flip=False, dir=greater, point_adjust=True
+[2025-12-11 12:04:32,015] [INFO] [ADV-Eval-hybrid] F1=0.6221, P=0.5483, R=0.7190, AUC=0.5655, thr=0.026159, need_flip=False, dir=greater, point_adjust=True; recon_F1=0.3978, forecast_F1=0.6993
+[2025-12-11 12:04:32,268] [INFO] [ADV] 已保存可视化图：./logs/msl_adv_hybrid/scores_epoch1_adv_hybrid.png
+[2025-12-11 12:04:32,285] [INFO] [ADV] 发现更优模型 (F1=0.6221)，已保存至 ./logs/msl_adv_hybrid/best_model_adv.pt
+[2025-12-11 12:04:32,286] [INFO] ========== Epoch 2/50 [warmup / non-adv] ==========
+[2025-12-11 12:05:13,098] [INFO] [Warmup-Epoch 2] loss_total=1.110808, loss_rec=0.234240, loss_fore=0.876568
+[2025-12-11 12:06:19,531] [INFO] [ADV-Eval-recon] F1=0.3593, P=0.2333, R=0.7806, AUC=0.5478, thr=0.051935, need_flip=False, dir=greater, point_adjust=True
+[2025-12-11 12:07:07,424] [INFO] [ADV-Eval-forecast] F1=0.6989, P=0.6798, R=0.7190, AUC=0.6073, thr=17.406481, need_flip=False, dir=greater, point_adjust=True
+[2025-12-11 12:07:53,591] [INFO] [ADV-Eval-hybrid] F1=0.6067, P=0.5247, R=0.7190, AUC=0.5790, thr=0.012400, need_flip=False, dir=greater, point_adjust=True; recon_F1=0.3593, forecast_F1=0.6989
+[2025-12-11 12:07:53,826] [INFO] [ADV] 已保存可视化图：./logs/msl_adv_hybrid/scores_epoch2_adv_hybrid.png
+[2025-12-11 12:07:53,827] [INFO] [ADV] 当前 F1=0.6067，已连续 1 个 epoch 未提升。
+[2025-12-11 12:07:53,827] [INFO] ========== Epoch 3/50 [warmup / non-adv] ==========
+[2025-12-11 12:08:34,354] [INFO] [Warmup-Epoch 3] loss_total=1.019410, loss_rec=0.195021, loss_fore=0.824389
+[2025-12-11 12:09:40,464] [INFO] [ADV-Eval-recon] F1=0.3487, P=0.2230, R=0.8000, AUC=0.5800, thr=0.010044, need_flip=False, dir=greater, point_adjust=True
+[2025-12-11 12:10:27,424] [INFO] [ADV-Eval-forecast] F1=0.7002, P=0.6823, R=0.7190, AUC=0.6052, thr=15.263060, need_flip=False, dir=greater, point_adjust=True
+[2025-12-11 12:11:14,609] [INFO] [ADV-Eval-hybrid] F1=0.6077, P=0.5262, R=0.7190, AUC=0.5877, thr=-0.001280, need_flip=False, dir=greater, point_adjust=True; recon_F1=0.3487, forecast_F1=0.7002
+[2025-12-11 12:11:14,844] [INFO] [ADV] 已保存可视化图：./logs/msl_adv_hybrid/scores_epoch3_adv_hybrid.png
+[2025-12-11 12:11:14,845] [INFO] [ADV] 当前 F1=0.6077，已连续 2 个 epoch 未提升。
+[2025-12-11 12:11:14,845] [INFO] ========== Epoch 4/50 [warmup / non-adv] ==========
+[2025-12-11 12:11:55,650] [INFO] [Warmup-Epoch 4] loss_total=0.953552, loss_rec=0.168114, loss_fore=0.785438
+[2025-12-11 12:12:59,339] [INFO] [ADV-Eval-recon] F1=0.3471, P=0.2384, R=0.6382, AUC=0.6098, thr=0.005799, need_flip=False, dir=greater, point_adjust=True
+[2025-12-11 12:13:43,765] [INFO] [ADV-Eval-forecast] F1=0.6960, P=0.6744, R=0.7190, AUC=0.6004, thr=13.205276, need_flip=False, dir=greater, point_adjust=True
+[2025-12-11 12:14:29,688] [INFO] [ADV-Eval-hybrid] F1=0.6013, P=0.5167, R=0.7190, AUC=0.5931, thr=-0.014133, need_flip=False, dir=greater, point_adjust=True; recon_F1=0.3471, forecast_F1=0.6960
+[2025-12-11 12:14:29,925] [INFO] [ADV] 已保存可视化图：./logs/msl_adv_hybrid/scores_epoch4_adv_hybrid.png
+[2025-12-11 12:14:29,925] [INFO] [ADV] 当前 F1=0.6013，已连续 3 个 epoch 未提升。
+[2025-12-11 12:14:29,925] [INFO] ========== Epoch 5/50 [warmup / non-adv] ==========
+[2025-12-11 12:15:09,836] [INFO] [Warmup-Epoch 5] loss_total=0.900999, loss_rec=0.147098, loss_fore=0.753901
+[2025-12-11 12:16:14,925] [INFO] [ADV-Eval-recon] F1=0.3937, P=0.2776, R=0.6767, AUC=0.6355, thr=0.004327, need_flip=False, dir=greater, point_adjust=True
+[2025-12-11 12:17:01,308] [INFO] [ADV-Eval-forecast] F1=0.6957, P=0.6739, R=0.7190, AUC=0.6019, thr=11.296403, need_flip=False, dir=greater, point_adjust=True
+[2025-12-11 12:17:47,523] [INFO] [ADV-Eval-hybrid] F1=0.5997, P=0.5143, R=0.7190, AUC=0.5951, thr=-0.026101, need_flip=False, dir=greater, point_adjust=True; recon_F1=0.3937, forecast_F1=0.6957
+[2025-12-11 12:17:47,758] [INFO] [ADV] 已保存可视化图：./logs/msl_adv_hybrid/scores_epoch5_adv_hybrid.png
+[2025-12-11 12:17:47,758] [INFO] [ADV] 当前 F1=0.5997，已连续 4 个 epoch 未提升。
+[2025-12-11 12:17:47,758] [INFO] ========== Epoch 6/50 [adversarial] ==========
+[2025-12-11 12:19:33,393] [INFO] [ADV-Epoch 6] loss_gen=0.823425, loss_disc=0.129713, rec_pos=0.129712, rec_neg=0.170078, loss_pred=0.737144
+[2025-12-11 12:20:39,460] [INFO] [ADV-Eval-recon] F1=0.3870, P=0.2643, R=0.7220, AUC=0.6445, thr=0.003748, need_flip=False, dir=greater, point_adjust=True
+[2025-12-11 12:21:26,380] [INFO] [ADV-Eval-forecast] F1=0.6854, P=0.6549, R=0.7190, AUC=0.6042, thr=9.619082, need_flip=False, dir=greater, point_adjust=True
+[2025-12-11 12:22:12,778] [INFO] [ADV-Eval-hybrid] F1=0.5936, P=0.5054, R=0.7190, AUC=0.6102, thr=-0.032728, need_flip=False, dir=greater, point_adjust=True; recon_F1=0.3870, forecast_F1=0.6854
+[2025-12-11 12:22:13,013] [INFO] [ADV] 已保存可视化图：./logs/msl_adv_hybrid/scores_epoch6_adv_hybrid.png
+[2025-12-11 12:22:13,014] [INFO] [ADV] 当前 F1=0.5936，已连续 5 个 epoch 未提升。
+[2025-12-11 12:22:13,014] [INFO] ========== Epoch 7/50 [adversarial] ==========
+[2025-12-11 12:24:03,992] [INFO] [ADV-Epoch 7] loss_gen=0.794929, loss_disc=0.114803, rec_pos=0.114802, rec_neg=0.148766, loss_pred=0.720316
+[2025-12-11 12:25:10,631] [INFO] [ADV-Eval-recon] F1=0.3613, P=0.2371, R=0.7588, AUC=0.6453, thr=0.001479, need_flip=False, dir=greater, point_adjust=True
+[2025-12-11 12:25:56,998] [INFO] [ADV-Eval-forecast] F1=0.6753, P=0.6366, R=0.7190, AUC=0.5996, thr=7.889764, need_flip=False, dir=greater, point_adjust=True
+[2025-12-11 12:26:44,938] [INFO] [ADV-Eval-hybrid] F1=0.5907, P=0.5012, R=0.7190, AUC=0.6072, thr=-0.044092, need_flip=False, dir=greater, point_adjust=True; recon_F1=0.3613, forecast_F1=0.6753
+[2025-12-11 12:26:45,173] [INFO] [ADV] 已保存可视化图：./logs/msl_adv_hybrid/scores_epoch7_adv_hybrid.png
+[2025-12-11 12:26:45,174] [INFO] [ADV] 当前 F1=0.5907，已连续 6 个 epoch 未提升。
+[2025-12-11 12:26:45,174] [INFO] ========== Epoch 8/50 [adversarial] ==========
+[2025-12-11 12:28:36,445] [INFO] [ADV-Epoch 8] loss_gen=0.771863, loss_disc=0.102006, rec_pos=0.101998, rec_neg=0.134201, loss_pred=0.704371
+[2025-12-11 12:29:43,751] [INFO] [ADV-Eval-recon] F1=0.3713, P=0.2541, R=0.6897, AUC=0.6632, thr=0.002449, need_flip=False, dir=greater, point_adjust=True
+[2025-12-11 12:30:32,477] [INFO] [ADV-Eval-forecast] F1=0.6725, P=0.6317, R=0.7190, AUC=0.5990, thr=5.722343, need_flip=False, dir=greater, point_adjust=True
+[2025-12-11 12:31:20,828] [INFO] [ADV-Eval-hybrid] F1=0.5886, P=0.4982, R=0.7190, AUC=0.6090, thr=-0.052990, need_flip=False, dir=greater, point_adjust=True; recon_F1=0.3713, forecast_F1=0.6725
+[2025-12-11 12:31:21,275] [INFO] [ADV] 已保存可视化图：./logs/msl_adv_hybrid/scores_epoch8_adv_hybrid.png
+[2025-12-11 12:31:21,276] [INFO] [ADV] 当前 F1=0.5886，已连续 7 个 epoch 未提升。
+[2025-12-11 12:31:21,276] [INFO] ========== Epoch 9/50 [adversarial] ==========
+[2025-12-11 12:33:12,227] [INFO] [ADV-Epoch 9] loss_gen=0.752674, loss_disc=0.091791, rec_pos=0.091780, rec_neg=0.123102, loss_pred=0.690692
+[2025-12-11 12:34:15,617] [INFO] [ADV-Eval-recon] F1=0.4106, P=0.2923, R=0.6897, AUC=0.6775, thr=0.002493, need_flip=False, dir=greater, point_adjust=True
+[2025-12-11 12:35:01,319] [INFO] [ADV-Eval-forecast] F1=0.6720, P=0.6308, R=0.7190, AUC=0.5984, thr=4.642487, need_flip=False, dir=greater, point_adjust=True
+[2025-12-11 12:35:48,387] [INFO] [ADV-Eval-hybrid] F1=0.5870, P=0.4959, R=0.7190, AUC=0.6073, thr=-0.060106, need_flip=False, dir=greater, point_adjust=True; recon_F1=0.4106, forecast_F1=0.6720
+[2025-12-11 12:35:48,618] [INFO] [ADV] 已保存可视化图：./logs/msl_adv_hybrid/scores_epoch9_adv_hybrid.png
+[2025-12-11 12:35:48,619] [INFO] [ADV] 当前 F1=0.5870，已连续 8 个 epoch 未提升。
+[2025-12-11 12:35:48,619] [INFO] ========== Epoch 10/50 [adversarial] ==========
+[2025-12-11 12:37:40,893] [INFO] [ADV-Epoch 10] loss_gen=0.734045, loss_disc=0.082730, rec_pos=0.082703, rec_neg=0.111961, loss_pred=0.677639
+[2025-12-11 12:38:46,027] [INFO] [ADV-Eval-recon] F1=0.4834, P=0.3760, R=0.6767, AUC=0.6651, thr=0.003144, need_flip=False, dir=greater, point_adjust=True
+[2025-12-11 12:39:33,265] [INFO] [ADV-Eval-forecast] F1=0.6740, P=0.6343, R=0.7190, AUC=0.5940, thr=4.233913, need_flip=False, dir=greater, point_adjust=True
+[2025-12-11 12:40:20,614] [INFO] [ADV-Eval-hybrid] F1=0.5864, P=0.4951, R=0.7190, AUC=0.6032, thr=-0.065882, need_flip=False, dir=greater, point_adjust=True; recon_F1=0.4834, forecast_F1=0.6740
+[2025-12-11 12:40:20,845] [INFO] [ADV] 已保存可视化图：./logs/msl_adv_hybrid/scores_epoch10_adv_hybrid.png
+[2025-12-11 12:40:20,846] [INFO] [ADV] 当前 F1=0.5864，已连续 9 个 epoch 未提升。
+[2025-12-11 12:40:20,846] [INFO] ========== Epoch 11/50 [adversarial] ==========
+[2025-12-11 12:42:14,418] [INFO] [ADV-Epoch 11] loss_gen=0.716739, loss_disc=0.074486, rec_pos=0.074469, rec_neg=0.101916, loss_pred=0.665253
+[2025-12-11 12:43:19,441] [INFO] [ADV-Eval-recon] F1=0.4541, P=0.3467, R=0.6577, AUC=0.6728, thr=0.002872, need_flip=False, dir=greater, point_adjust=True
+[2025-12-11 12:44:08,986] [INFO] [ADV-Eval-forecast] F1=0.6652, P=0.6188, R=0.7190, AUC=0.5985, thr=3.283343, need_flip=False, dir=greater, point_adjust=True
+[2025-12-11 12:44:56,395] [INFO] [ADV-Eval-hybrid] F1=0.5817, P=0.4885, R=0.7190, AUC=0.6042, thr=-0.070886, need_flip=False, dir=greater, point_adjust=True; recon_F1=0.4541, forecast_F1=0.6652
+[2025-12-11 12:44:56,628] [INFO] [ADV] 已保存可视化图：./logs/msl_adv_hybrid/scores_epoch11_adv_hybrid.png
+[2025-12-11 12:44:56,629] [INFO] [ADV] 当前 F1=0.5817，已连续 10 个 epoch 未提升。
+[2025-12-11 12:44:56,629] [INFO] ========== Epoch 12/50 [adversarial] ==========
+[2025-12-11 12:46:46,462] [INFO] [ADV-Epoch 12] loss_gen=0.701483, loss_disc=0.066789, rec_pos=0.066748, rec_neg=0.092157, loss_pred=0.654967
+[2025-12-11 12:47:51,606] [INFO] [ADV-Eval-recon] F1=0.4003, P=0.2851, R=0.6720, AUC=0.6664, thr=0.002394, need_flip=False, dir=greater, point_adjust=True
+[2025-12-11 12:48:38,380] [INFO] [ADV-Eval-forecast] F1=0.6519, P=0.6540, R=0.6499, AUC=0.5996, thr=3.636855, need_flip=False, dir=greater, point_adjust=True
+[2025-12-11 12:49:25,028] [INFO] [ADV-Eval-hybrid] F1=0.5719, P=0.4747, R=0.7190, AUC=0.6043, thr=-0.074239, need_flip=False, dir=greater, point_adjust=True; recon_F1=0.4003, forecast_F1=0.6519
+[2025-12-11 12:49:25,260] [INFO] [ADV] 已保存可视化图：./logs/msl_adv_hybrid/scores_epoch12_adv_hybrid.png
+[2025-12-11 12:49:25,260] [INFO] [ADV] 当前 F1=0.5719，已连续 11 个 epoch 未提升。
+[2025-12-11 12:49:25,260] [INFO] ========== Epoch 13/50 [adversarial] ==========
+[2025-12-11 12:51:17,149] [INFO] [ADV-Epoch 13] loss_gen=0.687527, loss_disc=0.059308, rec_pos=0.059268, rec_neg=0.084027, loss_pred=0.644986
+[2025-12-11 12:52:20,970] [INFO] [ADV-Eval-recon] F1=0.4797, P=0.3775, R=0.6577, AUC=0.6479, thr=0.003634, need_flip=False, dir=greater, point_adjust=True
+[2025-12-11 12:53:09,509] [INFO] [ADV-Eval-forecast] F1=0.6389, P=0.6283, R=0.6499, AUC=0.5962, thr=2.999607, need_flip=False, dir=greater, point_adjust=True
+[2025-12-11 12:53:57,469] [INFO] [ADV-Eval-hybrid] F1=0.5656, P=0.4662, R=0.7190, AUC=0.6023, thr=-0.075591, need_flip=False, dir=greater, point_adjust=True; recon_F1=0.4797, forecast_F1=0.6389
+[2025-12-11 12:53:57,701] [INFO] [ADV] 已保存可视化图：./logs/msl_adv_hybrid/scores_epoch13_adv_hybrid.png
+[2025-12-11 12:53:57,701] [INFO] [ADV] 当前 F1=0.5656，已连续 12 个 epoch 未提升。
+[2025-12-11 12:53:57,701] [INFO] ========== Epoch 14/50 [adversarial] ==========
+[2025-12-11 12:55:44,311] [INFO] [ADV-Epoch 14] loss_gen=0.673820, loss_disc=0.052451, rec_pos=0.052410, rec_neg=0.076389, loss_pred=0.635006
+[2025-12-11 12:56:49,958] [INFO] [ADV-Eval-recon] F1=0.4175, P=0.2890, R=0.7516, AUC=0.6496, thr=0.002872, need_flip=False, dir=greater, point_adjust=True
+[2025-12-11 12:57:37,161] [INFO] [ADV-Eval-forecast] F1=0.6460, P=0.5865, R=0.7190, AUC=0.5986, thr=2.050003, need_flip=False, dir=greater, point_adjust=True
+[2025-12-11 12:58:26,068] [INFO] [ADV-Eval-hybrid] F1=0.5721, P=0.4750, R=0.7190, AUC=0.6030, thr=-0.074433, need_flip=False, dir=greater, point_adjust=True; recon_F1=0.4175, forecast_F1=0.6460
+[2025-12-11 12:58:26,300] [INFO] [ADV] 已保存可视化图：./logs/msl_adv_hybrid/scores_epoch14_adv_hybrid.png
+[2025-12-11 12:58:26,300] [INFO] [ADV] 当前 F1=0.5721，已连续 13 个 epoch 未提升。
+[2025-12-11 12:58:26,300] [INFO] ========== Epoch 15/50 [adversarial] ==========
+[2025-12-11 13:00:18,374] [INFO] [ADV-Epoch 15] loss_gen=0.662265, loss_disc=0.046061, rec_pos=0.046009, rec_neg=0.069676, loss_pred=0.626893
+[2025-12-11 13:01:25,434] [INFO] [ADV-Eval-recon] F1=0.4646, P=0.3443, R=0.7139, AUC=0.6308, thr=0.003976, need_flip=False, dir=greater, point_adjust=True
+[2025-12-11 13:02:12,832] [INFO] [ADV-Eval-forecast] F1=0.6482, P=0.5902, R=0.7190, AUC=0.5981, thr=2.027127, need_flip=False, dir=greater, point_adjust=True
+[2025-12-11 13:03:00,841] [INFO] [ADV-Eval-hybrid] F1=0.5746, P=0.4785, R=0.7190, AUC=0.6025, thr=-0.073331, need_flip=False, dir=greater, point_adjust=True; recon_F1=0.4646, forecast_F1=0.6482
+[2025-12-11 13:03:01,073] [INFO] [ADV] 已保存可视化图：./logs/msl_adv_hybrid/scores_epoch15_adv_hybrid.png
+[2025-12-11 13:03:01,074] [INFO] [ADV] 当前 F1=0.5746，已连续 14 个 epoch 未提升。
+[2025-12-11 13:03:01,074] [INFO] ========== Epoch 16/50 [adversarial] ==========
+[2025-12-11 13:04:51,120] [INFO] [ADV-Epoch 16] loss_gen=0.650426, loss_disc=0.040279, rec_pos=0.040232, rec_neg=0.063161, loss_pred=0.618213
+[2025-12-11 13:05:57,153] [INFO] [ADV-Eval-recon] F1=0.4318, P=0.3072, R=0.7269, AUC=0.6581, thr=0.002822, need_flip=False, dir=greater, point_adjust=True
+[2025-12-11 13:06:44,835] [INFO] [ADV-Eval-forecast] F1=0.6489, P=0.5913, R=0.7190, AUC=0.5983, thr=2.015661, need_flip=False, dir=greater, point_adjust=True
+[2025-12-11 13:07:31,549] [INFO] [ADV-Eval-hybrid] F1=0.5753, P=0.4795, R=0.7190, AUC=0.6034, thr=-0.072503, need_flip=False, dir=greater, point_adjust=True; recon_F1=0.4318, forecast_F1=0.6489
+[2025-12-11 13:07:31,783] [INFO] [ADV] 已保存可视化图：./logs/msl_adv_hybrid/scores_epoch16_adv_hybrid.png
+[2025-12-11 13:07:31,784] [INFO] [ADV] 当前 F1=0.5753，已连续 15 个 epoch 未提升。
+[2025-12-11 13:07:31,784] [INFO] ========== Epoch 17/50 [adversarial] ==========
+[2025-12-11 13:09:23,861] [INFO] [ADV-Epoch 17] loss_gen=0.640198, loss_disc=0.035297, rec_pos=0.035263, rec_neg=0.058632, loss_pred=0.610364
+[2025-12-11 13:10:29,408] [INFO] [ADV-Eval-recon] F1=0.4278, P=0.3031, R=0.7269, AUC=0.6546, thr=0.003459, need_flip=False, dir=greater, point_adjust=True
+[2025-12-11 13:11:15,512] [INFO] [ADV-Eval-forecast] F1=0.6461, P=0.5867, R=0.7190, AUC=0.5960, thr=1.973645, need_flip=False, dir=greater, point_adjust=True
+[2025-12-11 13:12:01,679] [INFO] [ADV-Eval-hybrid] F1=0.5740, P=0.4776, R=0.7190, AUC=0.6024, thr=-0.071932, need_flip=False, dir=greater, point_adjust=True; recon_F1=0.4278, forecast_F1=0.6461
+[2025-12-11 13:12:01,911] [INFO] [ADV] 已保存可视化图：./logs/msl_adv_hybrid/scores_epoch17_adv_hybrid.png
+[2025-12-11 13:12:01,911] [INFO] [ADV] 当前 F1=0.5740，已连续 16 个 epoch 未提升。
+[2025-12-11 13:12:01,911] [INFO] ========== Epoch 18/50 [adversarial] ==========
+[2025-12-11 13:13:53,898] [INFO] [ADV-Epoch 18] loss_gen=0.630892, loss_disc=0.030956, rec_pos=0.030917, rec_neg=0.054137, loss_pred=0.603196
+[2025-12-11 13:15:01,074] [INFO] [ADV-Eval-recon] F1=0.4316, P=0.3212, R=0.6577, AUC=0.6360, thr=0.004156, need_flip=False, dir=greater, point_adjust=True
+[2025-12-11 13:15:49,358] [INFO] [ADV-Eval-forecast] F1=0.6503, P=0.5935, R=0.7190, AUC=0.5958, thr=1.970879, need_flip=False, dir=greater, point_adjust=True
+[2025-12-11 13:16:36,812] [INFO] [ADV-Eval-hybrid] F1=0.5947, P=0.5071, R=0.7190, AUC=0.6019, thr=-0.070623, need_flip=False, dir=greater, point_adjust=True; recon_F1=0.4316, forecast_F1=0.6503
+[2025-12-11 13:16:37,044] [INFO] [ADV] 已保存可视化图：./logs/msl_adv_hybrid/scores_epoch18_adv_hybrid.png
+[2025-12-11 13:16:37,044] [INFO] [ADV] 当前 F1=0.5947，已连续 17 个 epoch 未提升。
+[2025-12-11 13:16:37,044] [INFO] ========== Epoch 19/50 [adversarial] ==========
+[2025-12-11 13:18:30,366] [INFO] [ADV-Epoch 19] loss_gen=0.626383, loss_disc=0.030452, rec_pos=0.030416, rec_neg=0.053509, loss_pred=0.598949
+[2025-12-11 13:19:34,721] [INFO] [ADV-Eval-recon] F1=0.4071, P=0.2793, R=0.7503, AUC=0.7013, thr=0.006675, need_flip=False, dir=greater, point_adjust=True
+[2025-12-11 13:20:23,583] [INFO] [ADV-Eval-forecast] F1=0.6515, P=0.5956, R=0.7190, AUC=0.5949, thr=1.966846, need_flip=False, dir=greater, point_adjust=True
+[2025-12-11 13:21:11,133] [INFO] [ADV-Eval-hybrid] F1=0.5938, P=0.5057, R=0.7190, AUC=0.6084, thr=-0.073901, need_flip=False, dir=greater, point_adjust=True; recon_F1=0.4071, forecast_F1=0.6515
+[2025-12-11 13:21:11,361] [INFO] [ADV] 已保存可视化图：./logs/msl_adv_hybrid/scores_epoch19_adv_hybrid.png
+[2025-12-11 13:21:11,361] [INFO] [ADV] 当前 F1=0.5938，已连续 18 个 epoch 未提升。
+[2025-12-11 13:21:11,361] [INFO] ========== Epoch 20/50 [adversarial] ==========
+[2025-12-11 13:22:46,851] [INFO] [ADV-Epoch 20] loss_gen=0.641531, loss_disc=0.035781, rec_pos=0.035755, rec_neg=0.060864, loss_pred=0.610274
+[2025-12-11 13:23:49,455] [INFO] [ADV-Eval-recon] F1=0.3984, P=0.2539, R=0.9243, AUC=0.6344, thr=0.011192, need_flip=False, dir=greater, point_adjust=True
+[2025-12-11 13:24:38,146] [INFO] [ADV-Eval-forecast] F1=0.6493, P=0.5954, R=0.7138, AUC=0.5971, thr=2.001312, need_flip=False, dir=greater, point_adjust=True
+[2025-12-11 13:25:25,547] [INFO] [ADV-Eval-hybrid] F1=0.6041, P=0.5111, R=0.7385, AUC=0.6078, thr=-0.073872, need_flip=False, dir=greater, point_adjust=True; recon_F1=0.3984, forecast_F1=0.6493
+[2025-12-11 13:25:25,775] [INFO] [ADV] 已保存可视化图：./logs/msl_adv_hybrid/scores_epoch20_adv_hybrid.png
+[2025-12-11 13:25:25,776] [INFO] [ADV] 当前 F1=0.6041，已连续 19 个 epoch 未提升。
+[2025-12-11 13:25:25,776] [INFO] ========== Epoch 21/50 [adversarial] ==========
+[2025-12-11 13:27:01,588] [INFO] [ADV-Epoch 21] loss_gen=0.767114, loss_disc=0.313081, rec_pos=0.310554, rec_neg=0.323606, loss_pred=0.605092
+[2025-12-11 13:27:17,038] [INFO] [ADV-Eval-recon] F1=0.0000, P=0.0000, R=0.0000, AUC=0.5000, thr=nan, need_flip=False, dir=greater, point_adjust=True
+[2025-12-11 13:27:17,086] [INFO] [ADV-Eval-forecast] F1=0.0000, P=0.0000, R=0.0000, AUC=0.7081, thr=0.000000, need_flip=False, dir=greater, point_adjust=True
+[2025-12-11 13:27:17,109] [INFO] [ADV-Eval-hybrid] F1=0.0000, P=0.0000, R=0.0000, AUC=0.5000, thr=nan, need_flip=False, dir=greater, point_adjust=True; recon_F1=0.0000, forecast_F1=0.0000
+[2025-12-11 13:27:17,330] [INFO] [ADV] 已保存可视化图：./logs/msl_adv_hybrid/scores_epoch21_adv_hybrid.png
+[2025-12-11 13:27:17,330] [INFO] [ADV] 当前 F1=0.0000，已连续 20 个 epoch 未提升。
+[2025-12-11 13:27:17,331] [INFO] ========== Epoch 22/50 [adversarial] ==========
+[2025-12-11 13:28:54,045] [INFO] [ADV-Epoch 22] loss_gen=0.864741, loss_disc=0.583661, rec_pos=0.578661, rec_neg=0.578661, loss_pred=0.575410
+[2025-12-11 13:29:04,227] [INFO] [ADV-Eval-recon] F1=0.0000, P=0.0000, R=0.0000, AUC=0.5000, thr=nan, need_flip=False, dir=greater, point_adjust=True
+[2025-12-11 13:29:04,275] [INFO] [ADV-Eval-forecast] F1=0.0000, P=0.0000, R=0.0000, AUC=0.7081, thr=0.000000, need_flip=False, dir=greater, point_adjust=True
+[2025-12-11 13:29:04,299] [INFO] [ADV-Eval-hybrid] F1=0.0000, P=0.0000, R=0.0000, AUC=0.5000, thr=nan, need_flip=False, dir=greater, point_adjust=True; recon_F1=0.0000, forecast_F1=0.0000
+[2025-12-11 13:29:04,518] [INFO] [ADV] 已保存可视化图：./logs/msl_adv_hybrid/scores_epoch22_adv_hybrid.png
+[2025-12-11 13:29:04,519] [INFO] [ADV] 当前 F1=0.0000，已连续 21 个 epoch 未提升。
+[2025-12-11 13:29:04,519] [INFO] ========== Epoch 23/50 [adversarial] ==========
+[2025-12-11 13:30:43,832] [INFO] [ADV-Epoch 23] loss_gen=0.865219, loss_disc=0.584037, rec_pos=0.579037, rec_neg=0.579037, loss_pred=0.575701
+[2025-12-11 13:30:57,803] [INFO] [ADV-Eval-recon] F1=0.0000, P=0.0000, R=0.0000, AUC=0.5000, thr=nan, need_flip=False, dir=greater, point_adjust=True
+[2025-12-11 13:30:57,851] [INFO] [ADV-Eval-forecast] F1=0.0000, P=0.0000, R=0.0000, AUC=0.7081, thr=0.000000, need_flip=False, dir=greater, point_adjust=True
+[2025-12-11 13:30:57,875] [INFO] [ADV-Eval-hybrid] F1=0.0000, P=0.0000, R=0.0000, AUC=0.5000, thr=nan, need_flip=False, dir=greater, point_adjust=True; recon_F1=0.0000, forecast_F1=0.0000
+[2025-12-11 13:30:58,095] [INFO] [ADV] 已保存可视化图：./logs/msl_adv_hybrid/scores_epoch23_adv_hybrid.png
+[2025-12-11 13:30:58,096] [INFO] [ADV] 当前 F1=0.0000，已连续 22 个 epoch 未提升。
+[2025-12-11 13:30:58,096] [INFO] ========== Epoch 24/50 [adversarial] ==========
+[2025-12-11 13:32:33,001] [INFO] [ADV-Epoch 24] loss_gen=0.865235, loss_disc=0.583950, rec_pos=0.578950, rec_neg=0.578950, loss_pred=0.575760
+[2025-12-11 13:32:43,465] [INFO] [ADV-Eval-recon] F1=0.0000, P=0.0000, R=0.0000, AUC=0.5000, thr=nan, need_flip=False, dir=greater, point_adjust=True
+[2025-12-11 13:32:43,512] [INFO] [ADV-Eval-forecast] F1=0.0000, P=0.0000, R=0.0000, AUC=0.7081, thr=0.000000, need_flip=False, dir=greater, point_adjust=True
+[2025-12-11 13:32:43,536] [INFO] [ADV-Eval-hybrid] F1=0.0000, P=0.0000, R=0.0000, AUC=0.5000, thr=nan, need_flip=False, dir=greater, point_adjust=True; recon_F1=0.0000, forecast_F1=0.0000
+[2025-12-11 13:32:43,756] [INFO] [ADV] 已保存可视化图：./logs/msl_adv_hybrid/scores_epoch24_adv_hybrid.png
+[2025-12-11 13:32:43,756] [INFO] [ADV] 当前 F1=0.0000，已连续 23 个 epoch 未提升。
+[2025-12-11 13:32:43,756] [INFO] ========== Epoch 25/50 [adversarial] ==========
+[2025-12-11 13:34:22,005] [INFO] [ADV-Epoch 25] loss_gen=0.864612, loss_disc=0.583745, rec_pos=0.578745, rec_neg=0.578745, loss_pred=0.575240
+[2025-12-11 13:34:32,489] [INFO] [ADV-Eval-recon] F1=0.0000, P=0.0000, R=0.0000, AUC=0.5000, thr=nan, need_flip=False, dir=greater, point_adjust=True
+[2025-12-11 13:34:32,537] [INFO] [ADV-Eval-forecast] F1=0.0000, P=0.0000, R=0.0000, AUC=0.7081, thr=0.000000, need_flip=False, dir=greater, point_adjust=True
+[2025-12-11 13:34:32,560] [INFO] [ADV-Eval-hybrid] F1=0.0000, P=0.0000, R=0.0000, AUC=0.5000, thr=nan, need_flip=False, dir=greater, point_adjust=True; recon_F1=0.0000, forecast_F1=0.0000
+[2025-12-11 13:34:32,779] [INFO] [ADV] 已保存可视化图：./logs/msl_adv_hybrid/scores_epoch25_adv_hybrid.png
+[2025-12-11 13:34:32,780] [INFO] [ADV] 当前 F1=0.0000，已连续 24 个 epoch 未提升。
+[2025-12-11 13:34:32,780] [INFO] ========== Epoch 26/50 [adversarial] ==========
+[2025-12-11 13:36:08,530] [INFO] [ADV-Epoch 26] loss_gen=0.864484, loss_disc=0.583699, rec_pos=0.578699, rec_neg=0.578699, loss_pred=0.575134
+[2025-12-11 13:36:22,488] [INFO] [ADV-Eval-recon] F1=0.0000, P=0.0000, R=0.0000, AUC=0.5000, thr=nan, need_flip=False, dir=greater, point_adjust=True
+[2025-12-11 13:36:22,536] [INFO] [ADV-Eval-forecast] F1=0.0000, P=0.0000, R=0.0000, AUC=0.7081, thr=0.000000, need_flip=False, dir=greater, point_adjust=True
+[2025-12-11 13:36:22,559] [INFO] [ADV-Eval-hybrid] F1=0.0000, P=0.0000, R=0.0000, AUC=0.5000, thr=nan, need_flip=False, dir=greater, point_adjust=True; recon_F1=0.0000, forecast_F1=0.0000
+[2025-12-11 13:36:22,788] [INFO] [ADV] 已保存可视化图：./logs/msl_adv_hybrid/scores_epoch26_adv_hybrid.png
+[2025-12-11 13:36:22,788] [INFO] [ADV] 当前 F1=0.0000，已连续 25 个 epoch 未提升。
+[2025-12-11 13:36:22,788] [INFO] ========== Epoch 27/50 [adversarial] ==========
+[2025-12-11 13:38:00,605] [INFO] [ADV-Epoch 27] loss_gen=0.865093, loss_disc=0.583923, rec_pos=0.578923, rec_neg=0.578923, loss_pred=0.575632
+[2025-12-11 13:38:11,248] [INFO] [ADV-Eval-recon] F1=0.0000, P=0.0000, R=0.0000, AUC=0.5000, thr=nan, need_flip=False, dir=greater, point_adjust=True
+[2025-12-11 13:38:11,296] [INFO] [ADV-Eval-forecast] F1=0.0000, P=0.0000, R=0.0000, AUC=0.7081, thr=0.000000, need_flip=False, dir=greater, point_adjust=True
+[2025-12-11 13:38:11,319] [INFO] [ADV-Eval-hybrid] F1=0.0000, P=0.0000, R=0.0000, AUC=0.5000, thr=nan, need_flip=False, dir=greater, point_adjust=True; recon_F1=0.0000, forecast_F1=0.0000
+[2025-12-11 13:38:11,774] [INFO] [ADV] 已保存可视化图：./logs/msl_adv_hybrid/scores_epoch27_adv_hybrid.png
+[2025-12-11 13:38:11,775] [INFO] [ADV] 当前 F1=0.0000，已连续 26 个 epoch 未提升。
+[2025-12-11 13:38:11,775] [INFO] ========== Epoch 28/50 [adversarial] ==========
+[2025-12-11 13:39:52,932] [INFO] [ADV-Epoch 28] loss_gen=0.864976, loss_disc=0.583513, rec_pos=0.578513, rec_neg=0.578513, loss_pred=0.575720
+[2025-12-11 13:40:03,059] [INFO] [ADV-Eval-recon] F1=0.0000, P=0.0000, R=0.0000, AUC=0.5000, thr=nan, need_flip=False, dir=greater, point_adjust=True
+[2025-12-11 13:40:03,107] [INFO] [ADV-Eval-forecast] F1=0.0000, P=0.0000, R=0.0000, AUC=0.7081, thr=0.000000, need_flip=False, dir=greater, point_adjust=True
+[2025-12-11 13:40:03,130] [INFO] [ADV-Eval-hybrid] F1=0.0000, P=0.0000, R=0.0000, AUC=0.5000, thr=nan, need_flip=False, dir=greater, point_adjust=True; recon_F1=0.0000, forecast_F1=0.0000
+[2025-12-11 13:40:03,351] [INFO] [ADV] 已保存可视化图：./logs/msl_adv_hybrid/scores_epoch28_adv_hybrid.png
+[2025-12-11 13:40:03,351] [INFO] [ADV] 当前 F1=0.0000，已连续 27 个 epoch 未提升。
+[2025-12-11 13:40:03,351] [INFO] ========== Epoch 29/50 [adversarial] ==========
+[2025-12-11 13:41:41,669] [INFO] [ADV-Epoch 29] loss_gen=0.864942, loss_disc=0.583560, rec_pos=0.578560, rec_neg=0.578560, loss_pred=0.575661
+[2025-12-11 13:41:52,331] [INFO] [ADV-Eval-recon] F1=0.0000, P=0.0000, R=0.0000, AUC=0.5000, thr=nan, need_flip=False, dir=greater, point_adjust=True
+[2025-12-11 13:41:52,378] [INFO] [ADV-Eval-forecast] F1=0.0000, P=0.0000, R=0.0000, AUC=0.7081, thr=0.000000, need_flip=False, dir=greater, point_adjust=True
+[2025-12-11 13:41:52,401] [INFO] [ADV-Eval-hybrid] F1=0.0000, P=0.0000, R=0.0000, AUC=0.5000, thr=nan, need_flip=False, dir=greater, point_adjust=True; recon_F1=0.0000, forecast_F1=0.0000
+[2025-12-11 13:41:52,622] [INFO] [ADV] 已保存可视化图：./logs/msl_adv_hybrid/scores_epoch29_adv_hybrid.png
+[2025-12-11 13:41:52,622] [INFO] [ADV] 当前 F1=0.0000，已连续 28 个 epoch 未提升。
+[2025-12-11 13:41:52,622] [INFO] ========== Epoch 30/50 [adversarial] ==========
+[2025-12-11 13:43:31,243] [INFO] [ADV-Epoch 30] loss_gen=0.865108, loss_disc=0.583719, rec_pos=0.578719, rec_neg=0.578719, loss_pred=0.575748
+[2025-12-11 13:43:42,944] [INFO] [ADV-Eval-recon] F1=0.0000, P=0.0000, R=0.0000, AUC=0.5000, thr=nan, need_flip=False, dir=greater, point_adjust=True
+[2025-12-11 13:43:42,991] [INFO] [ADV-Eval-forecast] F1=0.0000, P=0.0000, R=0.0000, AUC=0.7081, thr=0.000000, need_flip=False, dir=greater, point_adjust=True
+[2025-12-11 13:43:43,015] [INFO] [ADV-Eval-hybrid] F1=0.0000, P=0.0000, R=0.0000, AUC=0.5000, thr=nan, need_flip=False, dir=greater, point_adjust=True; recon_F1=0.0000, forecast_F1=0.0000
+[2025-12-11 13:43:43,235] [INFO] [ADV] 已保存可视化图：./logs/msl_adv_hybrid/scores_epoch30_adv_hybrid.png
+[2025-12-11 13:43:43,235] [INFO] [ADV] 当前 F1=0.0000，已连续 29 个 epoch 未提升。
+[2025-12-11 13:43:43,235] [INFO] ========== Epoch 31/50 [adversarial] ==========
+[2025-12-11 13:45:18,932] [INFO] [ADV-Epoch 31] loss_gen=0.865042, loss_disc=0.583998, rec_pos=0.578998, rec_neg=0.578998, loss_pred=0.575543
+[2025-12-11 13:45:28,605] [INFO] [ADV-Eval-recon] F1=0.0000, P=0.0000, R=0.0000, AUC=0.5000, thr=nan, need_flip=False, dir=greater, point_adjust=True
+[2025-12-11 13:45:28,653] [INFO] [ADV-Eval-forecast] F1=0.0000, P=0.0000, R=0.0000, AUC=0.7081, thr=0.000000, need_flip=False, dir=greater, point_adjust=True
+[2025-12-11 13:45:28,676] [INFO] [ADV-Eval-hybrid] F1=0.0000, P=0.0000, R=0.0000, AUC=0.5000, thr=nan, need_flip=False, dir=greater, point_adjust=True; recon_F1=0.0000, forecast_F1=0.0000
+[2025-12-11 13:45:28,899] [INFO] [ADV] 已保存可视化图：./logs/msl_adv_hybrid/scores_epoch31_adv_hybrid.png
+[2025-12-11 13:45:28,899] [INFO] [ADV] 当前 F1=0.0000，已连续 30 个 epoch 未提升。
+[2025-12-11 13:45:28,899] [INFO] ========== Epoch 32/50 [adversarial] ==========
+[2025-12-11 13:47:03,518] [INFO] [ADV-Epoch 32] loss_gen=0.865179, loss_disc=0.584010, rec_pos=0.579010, rec_neg=0.579010, loss_pred=0.575674
+[2025-12-11 13:47:18,564] [INFO] [ADV-Eval-recon] F1=0.0000, P=0.0000, R=0.0000, AUC=0.5000, thr=nan, need_flip=False, dir=greater, point_adjust=True
+[2025-12-11 13:47:18,613] [INFO] [ADV-Eval-forecast] F1=0.0000, P=0.0000, R=0.0000, AUC=0.7081, thr=0.000000, need_flip=False, dir=greater, point_adjust=True
+[2025-12-11 13:47:18,639] [INFO] [ADV-Eval-hybrid] F1=0.0000, P=0.0000, R=0.0000, AUC=0.5000, thr=nan, need_flip=False, dir=greater, point_adjust=True; recon_F1=0.0000, forecast_F1=0.0000
+[2025-12-11 13:47:18,860] [INFO] [ADV] 已保存可视化图：./logs/msl_adv_hybrid/scores_epoch32_adv_hybrid.png
+[2025-12-11 13:47:18,860] [INFO] [ADV] 当前 F1=0.0000，已连续 31 个 epoch 未提升。
+[2025-12-11 13:47:18,861] [INFO] ========== Epoch 33/50 [adversarial] ==========
+[2025-12-11 13:48:55,567] [INFO] [ADV-Epoch 33] loss_gen=0.865010, loss_disc=0.583856, rec_pos=0.578856, rec_neg=0.578856, loss_pred=0.575582
+[2025-12-11 13:49:05,960] [INFO] [ADV-Eval-recon] F1=0.0000, P=0.0000, R=0.0000, AUC=0.5000, thr=nan, need_flip=False, dir=greater, point_adjust=True
+[2025-12-11 13:49:06,009] [INFO] [ADV-Eval-forecast] F1=0.0000, P=0.0000, R=0.0000, AUC=0.7081, thr=0.000000, need_flip=False, dir=greater, point_adjust=True
+[2025-12-11 13:49:06,032] [INFO] [ADV-Eval-hybrid] F1=0.0000, P=0.0000, R=0.0000, AUC=0.5000, thr=nan, need_flip=False, dir=greater, point_adjust=True; recon_F1=0.0000, forecast_F1=0.0000
+[2025-12-11 13:49:06,252] [INFO] [ADV] 已保存可视化图：./logs/msl_adv_hybrid/scores_epoch33_adv_hybrid.png
+[2025-12-11 13:49:06,253] [INFO] [ADV] 当前 F1=0.0000，已连续 32 个 epoch 未提升。
+[2025-12-11 13:49:06,253] [INFO] ========== Epoch 34/50 [adversarial] ==========
+[2025-12-11 13:50:43,905] [INFO] [ADV-Epoch 34] loss_gen=0.865007, loss_disc=0.583907, rec_pos=0.578907, rec_neg=0.578907, loss_pred=0.575553
+[2025-12-11 13:50:58,123] [INFO] [ADV-Eval-recon] F1=0.0000, P=0.0000, R=0.0000, AUC=0.5000, thr=nan, need_flip=False, dir=greater, point_adjust=True
+[2025-12-11 13:50:58,172] [INFO] [ADV-Eval-forecast] F1=0.0000, P=0.0000, R=0.0000, AUC=0.7081, thr=0.000000, need_flip=False, dir=greater, point_adjust=True
+[2025-12-11 13:50:58,195] [INFO] [ADV-Eval-hybrid] F1=0.0000, P=0.0000, R=0.0000, AUC=0.5000, thr=nan, need_flip=False, dir=greater, point_adjust=True; recon_F1=0.0000, forecast_F1=0.0000
+[2025-12-11 13:50:58,419] [INFO] [ADV] 已保存可视化图：./logs/msl_adv_hybrid/scores_epoch34_adv_hybrid.png
+[2025-12-11 13:50:58,420] [INFO] [ADV] 当前 F1=0.0000，已连续 33 个 epoch 未提升。
+[2025-12-11 13:50:58,420] [INFO] ========== Epoch 35/50 [adversarial] ==========
+[2025-12-11 13:52:35,850] [INFO] [ADV-Epoch 35] loss_gen=0.865141, loss_disc=0.583998, rec_pos=0.578998, rec_neg=0.578998, loss_pred=0.575642
+[2025-12-11 13:52:46,570] [INFO] [ADV-Eval-recon] F1=0.0000, P=0.0000, R=0.0000, AUC=0.5000, thr=nan, need_flip=False, dir=greater, point_adjust=True
+[2025-12-11 13:52:46,618] [INFO] [ADV-Eval-forecast] F1=0.0000, P=0.0000, R=0.0000, AUC=0.7081, thr=0.000000, need_flip=False, dir=greater, point_adjust=True
+[2025-12-11 13:52:46,641] [INFO] [ADV-Eval-hybrid] F1=0.0000, P=0.0000, R=0.0000, AUC=0.5000, thr=nan, need_flip=False, dir=greater, point_adjust=True; recon_F1=0.0000, forecast_F1=0.0000
+[2025-12-11 13:52:46,870] [INFO] [ADV] 已保存可视化图：./logs/msl_adv_hybrid/scores_epoch35_adv_hybrid.png
+[2025-12-11 13:52:46,870] [INFO] [ADV] 当前 F1=0.0000，已连续 34 个 epoch 未提升。
+[2025-12-11 13:52:46,870] [INFO] ========== Epoch 36/50 [adversarial] ==========
+[2025-12-11 13:54:23,582] [INFO] [ADV-Epoch 36] loss_gen=0.865113, loss_disc=0.583930, rec_pos=0.578930, rec_neg=0.578930, loss_pred=0.575648
+[2025-12-11 13:54:35,180] [INFO] [ADV-Eval-recon] F1=0.0000, P=0.0000, R=0.0000, AUC=0.5000, thr=nan, need_flip=False, dir=greater, point_adjust=True
+[2025-12-11 13:54:35,229] [INFO] [ADV-Eval-forecast] F1=0.0000, P=0.0000, R=0.0000, AUC=0.7081, thr=0.000000, need_flip=False, dir=greater, point_adjust=True
+[2025-12-11 13:54:35,253] [INFO] [ADV-Eval-hybrid] F1=0.0000, P=0.0000, R=0.0000, AUC=0.5000, thr=nan, need_flip=False, dir=greater, point_adjust=True; recon_F1=0.0000, forecast_F1=0.0000
+[2025-12-11 13:54:35,478] [INFO] [ADV] 已保存可视化图：./logs/msl_adv_hybrid/scores_epoch36_adv_hybrid.png
+[2025-12-11 13:54:35,478] [INFO] [ADV] 当前 F1=0.0000，已连续 35 个 epoch 未提升。
+[2025-12-11 13:54:35,478] [INFO] ========== Epoch 37/50 [adversarial] ==========
+[2025-12-11 13:56:18,571] [INFO] [ADV-Epoch 37] loss_gen=0.865213, loss_disc=0.583989, rec_pos=0.578989, rec_neg=0.578989, loss_pred=0.575719
+[2025-12-11 13:56:30,631] [INFO] [ADV-Eval-recon] F1=0.0000, P=0.0000, R=0.0000, AUC=0.5000, thr=nan, need_flip=False, dir=greater, point_adjust=True
+[2025-12-11 13:56:30,680] [INFO] [ADV-Eval-forecast] F1=0.0000, P=0.0000, R=0.0000, AUC=0.7081, thr=0.000000, need_flip=False, dir=greater, point_adjust=True
+[2025-12-11 13:56:30,705] [INFO] [ADV-Eval-hybrid] F1=0.0000, P=0.0000, R=0.0000, AUC=0.5000, thr=nan, need_flip=False, dir=greater, point_adjust=True; recon_F1=0.0000, forecast_F1=0.0000
+[2025-12-11 13:56:30,926] [INFO] [ADV] 已保存可视化图：./logs/msl_adv_hybrid/scores_epoch37_adv_hybrid.png
+[2025-12-11 13:56:30,926] [INFO] [ADV] 当前 F1=0.0000，已连续 36 个 epoch 未提升。
+[2025-12-11 13:56:30,927] [INFO] ========== Epoch 38/50 [adversarial] ==========
+[2025-12-11 13:58:12,581] [INFO] [ADV-Epoch 38] loss_gen=0.865141, loss_disc=0.583906, rec_pos=0.578906, rec_neg=0.578906, loss_pred=0.575688
+[2025-12-11 13:58:28,124] [INFO] [ADV-Eval-recon] F1=0.0000, P=0.0000, R=0.0000, AUC=0.5000, thr=nan, need_flip=False, dir=greater, point_adjust=True
+[2025-12-11 13:58:28,172] [INFO] [ADV-Eval-forecast] F1=0.0000, P=0.0000, R=0.0000, AUC=0.7081, thr=0.000000, need_flip=False, dir=greater, point_adjust=True
+[2025-12-11 13:58:28,196] [INFO] [ADV-Eval-hybrid] F1=0.0000, P=0.0000, R=0.0000, AUC=0.5000, thr=nan, need_flip=False, dir=greater, point_adjust=True; recon_F1=0.0000, forecast_F1=0.0000
+[2025-12-11 13:58:28,419] [INFO] [ADV] 已保存可视化图：./logs/msl_adv_hybrid/scores_epoch38_adv_hybrid.png
+[2025-12-11 13:58:28,419] [INFO] [ADV] 当前 F1=0.0000，已连续 37 个 epoch 未提升。
+[2025-12-11 13:58:28,419] [INFO] ========== Epoch 39/50 [adversarial] ==========
+[2025-12-11 14:00:00,909] [INFO] [ADV-Epoch 39] loss_gen=0.865009, loss_disc=0.583622, rec_pos=0.578622, rec_neg=0.578622, loss_pred=0.575699
+[2025-12-11 14:00:10,915] [INFO] [ADV-Eval-recon] F1=0.0000, P=0.0000, R=0.0000, AUC=0.5000, thr=nan, need_flip=False, dir=greater, point_adjust=True
+[2025-12-11 14:00:10,963] [INFO] [ADV-Eval-forecast] F1=0.0000, P=0.0000, R=0.0000, AUC=0.7081, thr=0.000000, need_flip=False, dir=greater, point_adjust=True
+[2025-12-11 14:00:10,986] [INFO] [ADV-Eval-hybrid] F1=0.0000, P=0.0000, R=0.0000, AUC=0.5000, thr=nan, need_flip=False, dir=greater, point_adjust=True; recon_F1=0.0000, forecast_F1=0.0000
+[2025-12-11 14:00:11,207] [INFO] [ADV] 已保存可视化图：./logs/msl_adv_hybrid/scores_epoch39_adv_hybrid.png
+[2025-12-11 14:00:11,207] [INFO] [ADV] 当前 F1=0.0000，已连续 38 个 epoch 未提升。
+[2025-12-11 14:00:11,207] [INFO] ========== Epoch 40/50 [adversarial] ==========
+[2025-12-11 14:01:44,217] [INFO] [ADV-Epoch 40] loss_gen=0.865003, loss_disc=0.583935, rec_pos=0.578935, rec_neg=0.578935, loss_pred=0.575536
+[2025-12-11 14:01:58,967] [INFO] [ADV-Eval-recon] F1=0.0000, P=0.0000, R=0.0000, AUC=0.5000, thr=nan, need_flip=False, dir=greater, point_adjust=True
+[2025-12-11 14:01:59,014] [INFO] [ADV-Eval-forecast] F1=0.0000, P=0.0000, R=0.0000, AUC=0.7081, thr=0.000000, need_flip=False, dir=greater, point_adjust=True
+[2025-12-11 14:01:59,037] [INFO] [ADV-Eval-hybrid] F1=0.0000, P=0.0000, R=0.0000, AUC=0.5000, thr=nan, need_flip=False, dir=greater, point_adjust=True; recon_F1=0.0000, forecast_F1=0.0000
+[2025-12-11 14:01:59,259] [INFO] [ADV] 已保存可视化图：./logs/msl_adv_hybrid/scores_epoch40_adv_hybrid.png
+[2025-12-11 14:01:59,259] [INFO] [ADV] 当前 F1=0.0000，已连续 39 个 epoch 未提升。
+[2025-12-11 14:01:59,259] [INFO] ========== Epoch 41/50 [adversarial] ==========
+[2025-12-11 14:03:36,380] [INFO] [ADV-Epoch 41] loss_gen=0.864421, loss_disc=0.583965, rec_pos=0.578965, rec_neg=0.578965, loss_pred=0.574939
+[2025-12-11 14:03:49,988] [INFO] [ADV-Eval-recon] F1=0.0000, P=0.0000, R=0.0000, AUC=0.5000, thr=nan, need_flip=False, dir=greater, point_adjust=True
+[2025-12-11 14:03:50,035] [INFO] [ADV-Eval-forecast] F1=0.0000, P=0.0000, R=0.0000, AUC=0.7081, thr=0.000000, need_flip=False, dir=greater, point_adjust=True
+[2025-12-11 14:03:50,059] [INFO] [ADV-Eval-hybrid] F1=0.0000, P=0.0000, R=0.0000, AUC=0.5000, thr=nan, need_flip=False, dir=greater, point_adjust=True; recon_F1=0.0000, forecast_F1=0.0000
+[2025-12-11 14:03:50,284] [INFO] [ADV] 已保存可视化图：./logs/msl_adv_hybrid/scores_epoch41_adv_hybrid.png
+[2025-12-11 14:03:50,284] [INFO] [ADV] 当前 F1=0.0000，已连续 40 个 epoch 未提升。
+[2025-12-11 14:03:50,284] [INFO] ========== Epoch 42/50 [adversarial] ==========
+[2025-12-11 14:05:26,011] [INFO] [ADV-Epoch 42] loss_gen=0.865083, loss_disc=0.583834, rec_pos=0.578834, rec_neg=0.578834, loss_pred=0.575666
+[2025-12-11 14:05:36,301] [INFO] [ADV-Eval-recon] F1=0.0000, P=0.0000, R=0.0000, AUC=0.5000, thr=nan, need_flip=False, dir=greater, point_adjust=True
+[2025-12-11 14:05:36,349] [INFO] [ADV-Eval-forecast] F1=0.0000, P=0.0000, R=0.0000, AUC=0.7081, thr=0.000000, need_flip=False, dir=greater, point_adjust=True
+[2025-12-11 14:05:36,373] [INFO] [ADV-Eval-hybrid] F1=0.0000, P=0.0000, R=0.0000, AUC=0.5000, thr=nan, need_flip=False, dir=greater, point_adjust=True; recon_F1=0.0000, forecast_F1=0.0000
+[2025-12-11 14:05:36,595] [INFO] [ADV] 已保存可视化图：./logs/msl_adv_hybrid/scores_epoch42_adv_hybrid.png
+[2025-12-11 14:05:36,595] [INFO] [ADV] 当前 F1=0.0000，已连续 41 个 epoch 未提升。
+[2025-12-11 14:05:36,595] [INFO] ========== Epoch 43/50 [adversarial] ==========
+[2025-12-11 14:07:11,993] [INFO] [ADV-Epoch 43] loss_gen=0.865074, loss_disc=0.583760, rec_pos=0.578760, rec_neg=0.578760, loss_pred=0.575694
+[2025-12-11 14:07:25,224] [INFO] [ADV-Eval-recon] F1=0.0000, P=0.0000, R=0.0000, AUC=0.5000, thr=nan, need_flip=False, dir=greater, point_adjust=True
+[2025-12-11 14:07:25,272] [INFO] [ADV-Eval-forecast] F1=0.0000, P=0.0000, R=0.0000, AUC=0.7081, thr=0.000000, need_flip=False, dir=greater, point_adjust=True
+[2025-12-11 14:07:25,295] [INFO] [ADV-Eval-hybrid] F1=0.0000, P=0.0000, R=0.0000, AUC=0.5000, thr=nan, need_flip=False, dir=greater, point_adjust=True; recon_F1=0.0000, forecast_F1=0.0000
+[2025-12-11 14:07:25,517] [INFO] [ADV] 已保存可视化图：./logs/msl_adv_hybrid/scores_epoch43_adv_hybrid.png
+[2025-12-11 14:07:25,518] [INFO] [ADV] 当前 F1=0.0000，已连续 42 个 epoch 未提升。
+[2025-12-11 14:07:25,518] [INFO] ========== Epoch 44/50 [adversarial] ==========
+[2025-12-11 14:09:05,012] [INFO] [ADV-Epoch 44] loss_gen=0.864965, loss_disc=0.583925, rec_pos=0.578925, rec_neg=0.578925, loss_pred=0.575502
+[2025-12-11 14:09:18,739] [INFO] [ADV-Eval-recon] F1=0.0000, P=0.0000, R=0.0000, AUC=0.5000, thr=nan, need_flip=False, dir=greater, point_adjust=True
+[2025-12-11 14:09:18,786] [INFO] [ADV-Eval-forecast] F1=0.0000, P=0.0000, R=0.0000, AUC=0.7081, thr=0.000000, need_flip=False, dir=greater, point_adjust=True
+[2025-12-11 14:09:18,810] [INFO] [ADV-Eval-hybrid] F1=0.0000, P=0.0000, R=0.0000, AUC=0.5000, thr=nan, need_flip=False, dir=greater, point_adjust=True; recon_F1=0.0000, forecast_F1=0.0000
+[2025-12-11 14:09:19,030] [INFO] [ADV] 已保存可视化图：./logs/msl_adv_hybrid/scores_epoch44_adv_hybrid.png
+[2025-12-11 14:09:19,030] [INFO] [ADV] 当前 F1=0.0000，已连续 43 个 epoch 未提升。
+[2025-12-11 14:09:19,030] [INFO] ========== Epoch 45/50 [adversarial] ==========
+[2025-12-11 14:10:57,537] [INFO] [ADV-Epoch 45] loss_gen=0.865046, loss_disc=0.583681, rec_pos=0.578681, rec_neg=0.578681, loss_pred=0.575705
+[2025-12-11 14:11:08,905] [INFO] [ADV-Eval-recon] F1=0.0000, P=0.0000, R=0.0000, AUC=0.5000, thr=nan, need_flip=False, dir=greater, point_adjust=True
+[2025-12-11 14:11:08,952] [INFO] [ADV-Eval-forecast] F1=0.0000, P=0.0000, R=0.0000, AUC=0.7081, thr=0.000000, need_flip=False, dir=greater, point_adjust=True
+[2025-12-11 14:11:08,976] [INFO] [ADV-Eval-hybrid] F1=0.0000, P=0.0000, R=0.0000, AUC=0.5000, thr=nan, need_flip=False, dir=greater, point_adjust=True; recon_F1=0.0000, forecast_F1=0.0000
+[2025-12-11 14:11:09,199] [INFO] [ADV] 已保存可视化图：./logs/msl_adv_hybrid/scores_epoch45_adv_hybrid.png
+[2025-12-11 14:11:09,199] [INFO] [ADV] 当前 F1=0.0000，已连续 44 个 epoch 未提升。
+[2025-12-11 14:11:09,199] [INFO] ========== Epoch 46/50 [adversarial] ==========
+[2025-12-11 14:12:48,121] [INFO] [ADV-Epoch 46] loss_gen=0.864835, loss_disc=0.583909, rec_pos=0.578909, rec_neg=0.578909, loss_pred=0.575381
+[2025-12-11 14:13:04,017] [INFO] [ADV-Eval-recon] F1=0.0000, P=0.0000, R=0.0000, AUC=0.5000, thr=nan, need_flip=False, dir=greater, point_adjust=True
+[2025-12-11 14:13:04,064] [INFO] [ADV-Eval-forecast] F1=0.0000, P=0.0000, R=0.0000, AUC=0.7081, thr=0.000000, need_flip=False, dir=greater, point_adjust=True
+[2025-12-11 14:13:04,088] [INFO] [ADV-Eval-hybrid] F1=0.0000, P=0.0000, R=0.0000, AUC=0.5000, thr=nan, need_flip=False, dir=greater, point_adjust=True; recon_F1=0.0000, forecast_F1=0.0000
+[2025-12-11 14:13:04,313] [INFO] [ADV] 已保存可视化图：./logs/msl_adv_hybrid/scores_epoch46_adv_hybrid.png
+[2025-12-11 14:13:04,313] [INFO] [ADV] 当前 F1=0.0000，已连续 45 个 epoch 未提升。
+[2025-12-11 14:13:04,313] [INFO] ========== Epoch 47/50 [adversarial] ==========
+[2025-12-11 14:14:42,418] [INFO] [ADV-Epoch 47] loss_gen=0.865107, loss_disc=0.583975, rec_pos=0.578975, rec_neg=0.578975, loss_pred=0.575619
+[2025-12-11 14:14:56,193] [INFO] [ADV-Eval-recon] F1=0.0000, P=0.0000, R=0.0000, AUC=0.5000, thr=nan, need_flip=False, dir=greater, point_adjust=True
+[2025-12-11 14:14:56,241] [INFO] [ADV-Eval-forecast] F1=0.0000, P=0.0000, R=0.0000, AUC=0.7081, thr=0.000000, need_flip=False, dir=greater, point_adjust=True
+[2025-12-11 14:14:56,265] [INFO] [ADV-Eval-hybrid] F1=0.0000, P=0.0000, R=0.0000, AUC=0.5000, thr=nan, need_flip=False, dir=greater, point_adjust=True; recon_F1=0.0000, forecast_F1=0.0000
+[2025-12-11 14:14:56,486] [INFO] [ADV] 已保存可视化图：./logs/msl_adv_hybrid/scores_epoch47_adv_hybrid.png
+[2025-12-11 14:14:56,486] [INFO] [ADV] 当前 F1=0.0000，已连续 46 个 epoch 未提升。
+[2025-12-11 14:14:56,486] [INFO] ========== Epoch 48/50 [adversarial] ==========
+[2025-12-11 14:16:41,190] [INFO] [ADV-Epoch 48] loss_gen=0.864475, loss_disc=0.583519, rec_pos=0.578519, rec_neg=0.578519, loss_pred=0.575216
+[2025-12-11 14:16:52,363] [INFO] [ADV-Eval-recon] F1=0.0000, P=0.0000, R=0.0000, AUC=0.5000, thr=nan, need_flip=False, dir=greater, point_adjust=True
+[2025-12-11 14:16:52,410] [INFO] [ADV-Eval-forecast] F1=0.0000, P=0.0000, R=0.0000, AUC=0.7081, thr=0.000000, need_flip=False, dir=greater, point_adjust=True
+[2025-12-11 14:16:52,434] [INFO] [ADV-Eval-hybrid] F1=0.0000, P=0.0000, R=0.0000, AUC=0.5000, thr=nan, need_flip=False, dir=greater, point_adjust=True; recon_F1=0.0000, forecast_F1=0.0000
+[2025-12-11 14:16:52,848] [INFO] [ADV] 已保存可视化图：./logs/msl_adv_hybrid/scores_epoch48_adv_hybrid.png
+[2025-12-11 14:16:52,849] [INFO] [ADV] 当前 F1=0.0000，已连续 47 个 epoch 未提升。
+[2025-12-11 14:16:52,849] [INFO] ========== Epoch 49/50 [adversarial] ==========
+[2025-12-11 14:18:35,328] [INFO] [ADV-Epoch 49] loss_gen=0.865152, loss_disc=0.583997, rec_pos=0.578997, rec_neg=0.578997, loss_pred=0.575654
+[2025-12-11 14:18:48,318] [INFO] [ADV-Eval-recon] F1=0.0000, P=0.0000, R=0.0000, AUC=0.5000, thr=nan, need_flip=False, dir=greater, point_adjust=True
+[2025-12-11 14:18:48,365] [INFO] [ADV-Eval-forecast] F1=0.0000, P=0.0000, R=0.0000, AUC=0.7081, thr=0.000000, need_flip=False, dir=greater, point_adjust=True
+[2025-12-11 14:18:48,391] [INFO] [ADV-Eval-hybrid] F1=0.0000, P=0.0000, R=0.0000, AUC=0.5000, thr=nan, need_flip=False, dir=greater, point_adjust=True; recon_F1=0.0000, forecast_F1=0.0000
+[2025-12-11 14:18:48,613] [INFO] [ADV] 已保存可视化图：./logs/msl_adv_hybrid/scores_epoch49_adv_hybrid.png
+[2025-12-11 14:18:48,613] [INFO] [ADV] 当前 F1=0.0000，已连续 48 个 epoch 未提升。
+[2025-12-11 14:18:48,613] [INFO] ========== Epoch 50/50 [adversarial] ==========
+[2025-12-11 14:20:27,971] [INFO] [ADV-Epoch 50] loss_gen=0.864738, loss_disc=0.583671, rec_pos=0.578671, rec_neg=0.578671, loss_pred=0.575403
+[2025-12-11 14:20:38,529] [INFO] [ADV-Eval-recon] F1=0.0000, P=0.0000, R=0.0000, AUC=0.5000, thr=nan, need_flip=False, dir=greater, point_adjust=True
+[2025-12-11 14:20:38,578] [INFO] [ADV-Eval-forecast] F1=0.0000, P=0.0000, R=0.0000, AUC=0.7081, thr=0.000000, need_flip=False, dir=greater, point_adjust=True
+[2025-12-11 14:20:38,602] [INFO] [ADV-Eval-hybrid] F1=0.0000, P=0.0000, R=0.0000, AUC=0.5000, thr=nan, need_flip=False, dir=greater, point_adjust=True; recon_F1=0.0000, forecast_F1=0.0000
+[2025-12-11 14:20:38,825] [INFO] [ADV] 已保存可视化图：./logs/msl_adv_hybrid/scores_epoch50_adv_hybrid.png
+[2025-12-11 14:20:38,825] [INFO] [ADV] 当前 F1=0.0000，已连续 49 个 epoch 未提升。
+[2025-12-11 14:20:38,825] [INFO] [ADV] 训练结束，最佳 F1=0.6221 (epoch=1)，最佳指标={'precision': 0.5482572410402079, 'recall': 0.7190316765378328, 'f1': 0.622138037538991, 'auc': 0.5655444784209305, 'threshold': 0.026158995046224584, 'use_point_adjust': True, 'need_flip': False, 'direction': 'greater'}
+[2025-12-11 14:20:38,825] [INFO] 实验版训练流程已结束。
