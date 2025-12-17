@@ -4,7 +4,7 @@
 DATA_ROOT=./dataset/SMD
 LOG_DIR=./logs/smd_hybrid
 
-CUDA_VISIBLE_DEVICES=1 python -u main.py \
+CUDA_VISIBLE_DEVICES=2 python -u main.py \
   --dataset smd \
   --branch hybrid \
   --processed_root ${DATA_ROOT} \

@@ -1,0 +1,78 @@
+[2025-12-17 16:04:48][INFO] Logger initialized. Log file: ./logs/wadi_adv_hybrid/MambaTSAD-ADV_20251217_160448.log
+[2025-12-17 16:04:48][INFO] Args: {'dataset': 'smap', 'processed_root': './dataset/WADI', 'log_dir': './logs/wadi_adv_hybrid', 'branch': 'hybrid_shared_adv', 'win_size': 100, 'pred_len': 10, 'train_stride': 1, 'test_stride': 1, 'batch_size': 64, 'epochs': 50, 'lr': 0.0001, 'weight_decay': 0.0005, 'seed': 42, 'device': 'cuda', 'lambda_recon': 1.0, 'lambda_forecast': 1.0, 'adv_epsilon': 0.05, 'adv_beta': 0.5, 'adv_warmup': 5, 'max_grad_norm': 1.0, 'no_point_adjust': False, 'test_batch_size': 128}
+[2025-12-17 16:04:48][INFO] Using device: cuda
+[2025-12-17 16:04:48][INFO] 从 entities.txt 读取到 1 个实体。
+[2025-12-17 16:04:48][INFO] [wadi] train=(76297, 126), test=(17280, 126), label=(17280,), 异常比例=0.058449
+[2025-12-17 16:04:48][INFO] 检测到特征维度 D=126
+[2025-12-17 16:04:48][INFO] Train windows: 76198 (batch_size=64)
+[2025-12-17 16:04:50][INFO] Model: HybridSharedAdvModel(
+  (encoder): SharedEncoder(
+    (input_proj): Linear(in_features=126, out_features=128, bias=True)
+    (layers): ModuleList(
+      (0-3): 4 x MambaBlock(
+        (backbone): Mamba(
+          (in_proj): Linear(in_features=128, out_features=512, bias=False)
+          (conv1d): Conv1d(256, 256, kernel_size=(4,), stride=(1,), padding=(3,), groups=256)
+          (act): SiLU()
+          (x_proj): Linear(in_features=256, out_features=40, bias=False)
+          (dt_proj): Linear(in_features=8, out_features=256, bias=True)
+          (out_proj): Linear(in_features=256, out_features=128, bias=False)
+        )
+        (norm): LayerNorm((128,), eps=1e-05, elementwise_affine=True)
+        (dropout): Dropout(p=0.1, inplace=False)
+        (ffn): Sequential(
+          (0): Linear(in_features=128, out_features=512, bias=True)
+          (1): GELU(approximate='none')
+          (2): Dropout(p=0.1, inplace=False)
+          (3): Linear(in_features=512, out_features=128, bias=True)
+        )
+      )
+    )
+    (output_norm): LayerNorm((128,), eps=1e-05, elementwise_affine=True)
+  )
+  (recon_head): ReconHead(
+    (conv): Conv1d(128, 128, kernel_size=(3,), stride=(1,), padding=(1,))
+    (act): GELU(approximate='none')
+    (dropout): Dropout(p=0.1, inplace=False)
+    (proj): Linear(in_features=128, out_features=126, bias=True)
+  )
+  (forecast_head): ForecastHead(
+    (pool): AdaptiveAvgPool1d(output_size=1)
+    (mlp): Sequential(
+      (0): Linear(in_features=128, out_features=512, bias=True)
+      (1): GELU(approximate='none')
+      (2): Dropout(p=0.1, inplace=False)
+      (3): Linear(in_features=512, out_features=6300, bias=True)
+    )
+  )
+)
+[2025-12-17 16:04:50][INFO] AdvConfig: AdvConfig(enabled=True, epsilon=0.05, beta=0.5, warmup_epochs=5, lambda_recon=1.0, lambda_forecast=1.0, max_grad_norm=1.0)
+[2025-12-17 16:05:22][INFO] [Train][Epoch 1] loss=0.550310, clean=0.550310, adv=0.000000, batches=1190
+[2025-12-17 16:05:25][INFO] [Eval] F1=0.1778, P=0.0976, R=1.0000, best_th=-1.0951
+[2025-12-17 16:05:25][INFO] [Epoch 1] F1 提升为 0.1778，已保存最佳模型到 ./logs/wadi_adv_hybrid/best_model_hybrid_shared_adv.pt
+[2025-12-17 16:05:56][INFO] [Train][Epoch 2] loss=0.351220, clean=0.351220, adv=0.000000, batches=1190
+[2025-12-17 16:05:59][INFO] [Eval] F1=0.1778, P=0.0976, R=1.0000, best_th=-1.0951
+[2025-12-17 16:05:59][INFO] [Epoch 2] F1 未提升 (当前=0.1778, 最佳=0.1778), no_improve=1/8
+[2025-12-17 16:06:26][INFO] [Train][Epoch 3] loss=0.308533, clean=0.308533, adv=0.000000, batches=1190
+[2025-12-17 16:06:29][INFO] [Eval] F1=0.1773, P=0.0973, R=1.0000, best_th=-1.0951
+[2025-12-17 16:06:29][INFO] [Epoch 3] F1 未提升 (当前=0.1773, 最佳=0.1778), no_improve=2/8
+[2025-12-17 16:07:01][INFO] [Train][Epoch 4] loss=0.285934, clean=0.285934, adv=0.000000, batches=1190
+[2025-12-17 16:07:03][INFO] [Eval] F1=0.1763, P=0.0967, R=1.0000, best_th=-1.0951
+[2025-12-17 16:07:03][INFO] [Epoch 4] F1 未提升 (当前=0.1763, 最佳=0.1778), no_improve=3/8
+[2025-12-17 16:08:26][INFO] [Train][Epoch 5] loss=0.421335, clean=0.269174, adv=0.304322, batches=1190
+[2025-12-17 16:08:29][INFO] [Eval] F1=0.1763, P=0.0967, R=1.0000, best_th=-1.0951
+[2025-12-17 16:08:29][INFO] [Epoch 5] F1 未提升 (当前=0.1763, 最佳=0.1778), no_improve=4/8
+[2025-12-17 16:09:52][INFO] [Train][Epoch 6] loss=0.396367, clean=0.254884, adv=0.282966, batches=1190
+[2025-12-17 16:09:54][INFO] [Eval] F1=0.1771, P=0.0971, R=1.0000, best_th=-1.0951
+[2025-12-17 16:09:54][INFO] [Epoch 6] F1 未提升 (当前=0.1771, 最佳=0.1778), no_improve=5/8
+[2025-12-17 16:11:17][INFO] [Train][Epoch 7] loss=0.380348, clean=0.245027, adv=0.270642, batches=1190
+[2025-12-17 16:11:20][INFO] [Eval] F1=0.1771, P=0.0971, R=1.0000, best_th=-1.0951
+[2025-12-17 16:11:20][INFO] [Epoch 7] F1 未提升 (当前=0.1771, 最佳=0.1778), no_improve=6/8
+[2025-12-17 16:12:42][INFO] [Train][Epoch 8] loss=0.367700, clean=0.237127, adv=0.261145, batches=1190
+[2025-12-17 16:12:45][INFO] [Eval] F1=0.1770, P=0.0971, R=1.0000, best_th=-1.0951
+[2025-12-17 16:12:45][INFO] [Epoch 8] F1 未提升 (当前=0.1770, 最佳=0.1778), no_improve=7/8
+[2025-12-17 16:14:08][INFO] [Train][Epoch 9] loss=0.356860, clean=0.230251, adv=0.253218, batches=1190
+[2025-12-17 16:14:11][INFO] [Eval] F1=0.1767, P=0.0969, R=1.0000, best_th=-1.0951
+[2025-12-17 16:14:11][INFO] [Epoch 9] F1 未提升 (当前=0.1767, 最佳=0.1778), no_improve=8/8
+[2025-12-17 16:14:11][INFO] F1 连续多轮未提升，提前停止训练。
+[2025-12-17 16:14:11][INFO] 训练结束，最佳 F1=0.1778

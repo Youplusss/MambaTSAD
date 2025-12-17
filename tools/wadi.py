@@ -2,48 +2,7 @@ import numpy as np
 import pandas as pd
 from sklearn.preprocessing import MinMaxScaler
 
-# train_new = pd.read_csv('../data/WADI/WADI_14days_new.csv')
-# test_new = pd.read_csv('../data/WADI/WADI_attackdataLABLE.csv', skiprows=1)
-#
-# test = pd.read_csv('../data/WADI/WADI_attackdata.csv')
-# train = pd.read_csv('../data/WADI/WADI_14days.csv', skiprows=4)
-#
-# def recover_date(str1, str2):
-#     return str1+" "+str2
-# train["datetime"] = train.apply(lambda x : recover_date(x['Date'], x['Time']), axis=1)
-# train["datetime"] = pd.to_datetime(train['datetime'])
-#
-# train_time = train[['Row', 'datetime']]
-# train_new_time = pd.merge(train_new, train_time, how='left', on='Row')
-# del train_new_time['Row']
-# del train_new_time['Date']
-# del train_new_time['Time']
-# train_new_time.to_csv('../data/WADI/processing/WADI_train.csv', index=False)
-#
-# test["datetime"] = test.apply(lambda x : recover_date(x['Date'], x['Time']), axis=1)
-# test["datetime"] = pd.to_datetime(test['datetime'])
-# test = test.loc[-2:, :]
-# test_new = test_new.rename(columns={'Row ':'Row'})
-#
-# test_time = test[['Row', 'datetime']]
-# test_new_time = pd.merge(test_new, test_time, how='left', on='Row')
-#
-# del test_new_time['Row']
-# del test_new_time['Date ']
-# del test_new_time['Time']
-#
-# test_new_time = test_new_time.rename(columns={'Attack LABLE (1:No Attack, -1:Attack)':'label'})
-# test_new_time.loc[test_new_time['label'] == 1, 'label'] = 0
-# test_new_time.loc[test_new_time['label'] == -1, 'label'] = 1
-#
-# test_new_time.to_csv('../data/WADI/processing/WADI_test.csv', index=False)
-# import numpy as np
-# import pandas as pd
-# import re
-# from sklearn.preprocessing import MinMaxScaler
-#
-#
-# # max min(0-1)
+# max min(0-1)
 def norm(train, test):
     normalizer = MinMaxScaler(feature_range=(0, 1)).fit(train)  # scale training data to [0,1] range
     train_ret = normalizer.transform(train)
@@ -78,51 +37,82 @@ def downsample(data, labels, down_len):
     return d_data.tolist(), d_labels.tolist()
 
 
+def trim_and_dedup_columns(columns, prefix_len=46):
+    def _trim(col):
+        col = str(col).strip()
+        return col[prefix_len:] if len(col) > prefix_len else col
+
+    trimmed = [_trim(col) for col in columns]
+    counts = {}
+    deduped = []
+    for col in trimmed:
+        base = col or 'col'
+        count = counts.get(base, 0)
+        deduped.append(f'{base}__{count}' if count else base)
+        counts[base] = count + 1
+    return deduped
+
+
 def main():
-    # 读入时先关掉 low_memory，避免类型被分块推断
+    # 1. 读数据
     train = pd.read_csv('./data/WADI/WADI_14days_new.csv', index_col=0, low_memory=False)
-    test = pd.read_csv('./data/WADI/WADI_attackdataLABLE.csv', index_col=0, low_memory=False)
+    # test 第一行是数字表头，第二行才是真正名字
+    test = pd.read_csv('./data/WADI/WADI_attackdataLABLE.csv', header=1, low_memory=False)
 
-    train = train.iloc[:, 2:]
-    test = test.iloc[:, 2:]
+    # 如果 train 的前 3 列不是特征（比如行号、时间），按原逻辑裁剪
+    train = train.iloc[:, 3:]
 
-    # 1. 先把所有列尽量转成数值类型，无法转换的变成 NaN
+    # 2. 先把列名清洗下（去掉两边空格）
+    train = train.rename(columns=lambda x: str(x).strip())
+    test = test.rename(columns=lambda x: str(x).strip())
+
+    # 3. 在 test 中找到标签列（带有 Attack LABLE 关键字的）
+    attack_cols = [c for c in test.columns if 'Attack LABLE' in c]
+    if len(attack_cols) != 1:
+        raise ValueError(f'期望只找到 1 个 Attack LABLE 列，实际找到 {len(attack_cols)} 个: {attack_cols}')
+    attack_col = attack_cols[0]
+
+    # 4. 提取标签，并转换成 0/1（1=无攻击, -1=有攻击）
+    test_labels = test[attack_col].copy()
+    test_labels = test_labels.replace({1: 0, -1: 1})
+
+    # 5. 从 test 的特征中删除标签列
+    test = test.drop(columns=[attack_col])
+
+    # 6. 如果 test 的前 3 列也不是特征（比如 Row, Date, Time），此时再统一裁剪
+    # 注意：train 已经是从第 4 列开始了，这里 test 也从第 4 列开始，保证特征列对齐
+    # 由于 test 比 train 多 1 列（PLANT_START_STOP_LOG/TOTAL_CONS_REQUIRED_FLOW 等），
+    # 这里通过与 train 做列交集来对齐特征空间
+    common_cols = [c for c in train.columns if c in test.columns]
+    train = train[common_cols]
+    test = test[common_cols]
+
+    # 7. 数值化 + 填充缺失
     train = train.apply(pd.to_numeric, errors='coerce')
     test = test.apply(pd.to_numeric, errors='coerce')
 
-    # 2. 再用各列均值填充 NaN
     train = train.fillna(train.mean(numeric_only=True))
     test = test.fillna(test.mean(numeric_only=True))
 
-    # 3. 再兜底把还剩下的 NaN 填成 0（如果有）
     train = train.fillna(0)
     test = test.fillna(0)
 
-    # 后面保持不变
-    # trim column names
-    train = train.rename(columns=lambda x: x.strip())
-    test = test.rename(columns=lambda x: x.strip())
-
+    # 8. 构造 train_labels（全 0，因为 train 是正常数据）
     train_labels = np.zeros(len(train))
 
-    test = test.rename(columns={'Attack LABLE (1:No Attack, -1:Attack)': 'attack'})
+    # 9. 去掉列名前缀并去重
+    clean_cols = trim_and_dedup_columns(train.columns)
+    train.columns = clean_cols
+    test.columns = clean_cols
 
-    test_labels = test.attack
-
-    # train = train.drop(columns=['attack'])
-
-    test = test.drop(columns=['attack'])
-
-    cols = [x[46:] for x in train.columns]  # remove column name prefixes
-    train.columns = cols
-    test.columns = cols
-
+    # 10. 归一化
     x_train, x_test = norm(train.values, test.values)
 
     for i, col in enumerate(train.columns):
         train.loc[:, col] = x_train[:, i]
         test.loc[:, col] = x_test[:, i]
 
+    # 11. 下采样
     d_train_x, d_train_labels = downsample(train.values, train_labels, 10)
     d_test_x, d_test_labels = downsample(test.values, test_labels, 10)
 
@@ -130,17 +120,14 @@ def main():
     test_df = pd.DataFrame(d_test_x, columns=test.columns)
 
     test_df['attack'] = d_test_labels
+    # 如果需要 train 的标签可以打开这行
     # train_df['attack'] = d_train_labels
 
+    # 保留你原来的截断逻辑
     train_df = train_df.iloc[2160:]
 
-    train_df.to_csv('./data/WADI/processing/WADI_train.csv')
-    test_df.to_csv('./data/WADI/processing/WADI_test.csv')
-
-    # f = open('./list.txt', 'w')
-    # for col in train.columns:
-    #     f.write(col + '\n')
-    # f.close()
+    train_df.to_csv('./data/WADI/processing/WADI_train.csv', index=False)
+    test_df.to_csv('./data/WADI/processing/WADI_test.csv', index=False)
 
 
 if __name__ == '__main__':

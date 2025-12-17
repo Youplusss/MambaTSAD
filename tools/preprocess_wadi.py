@@ -191,7 +191,7 @@ def main() -> None:
     parser.add_argument(
         "--label_col",
         type=str,
-        default="label",
+        default="attack",
         help="测试集标签列名，默认使用测试数据的最后一列",
     )
     args = parser.parse_args()
