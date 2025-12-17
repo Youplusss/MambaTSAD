@@ -20,6 +20,26 @@ import numpy as np
 from sklearn.preprocessing import StandardScaler
 
 
+def downsample_features(data: np.ndarray, factor: int) -> np.ndarray:
+    """Median-pool time axis by the given factor; drop trailing remainder."""
+    if factor <= 1 or data.shape[0] < factor:
+        return data
+    usable = (data.shape[0] // factor) * factor
+    trimmed = data[:usable]
+    reshaped = trimmed.reshape(-1, factor, data.shape[1])
+    return np.median(reshaped, axis=1)
+
+
+def downsample_labels(labels: np.ndarray, factor: int) -> np.ndarray:
+    """Mark window anomalous if any inner label is anomalous."""
+    if factor <= 1 or labels.shape[0] < factor:
+        return labels
+    usable = (labels.shape[0] // factor) * factor
+    trimmed = labels[:usable]
+    reshaped = trimmed.reshape(-1, factor)
+    return np.max(reshaped, axis=1)
+
+
 def list_machine_ids(raw_root: str) -> List[str]:
     train_dir = os.path.join(raw_root, "train")
     machine_ids = []
@@ -42,10 +62,20 @@ def load_raw_smd_machine(raw_root: str, machine_id: str):
     return train, test, labels
 
 
+def skip_head_rows(arr: np.ndarray, count: int) -> np.ndarray:
+    if count <= 0 or arr.shape[0] == 0:
+        return arr
+    if arr.shape[0] <= count:
+        return arr[0:0]
+    return arr[count:]
+
+
 def preprocess_smd(
     raw_root: str,
     out_root: str,
     use_global_scaler: bool = False,
+    downsample_factor: int = 1,
+    skip_head: int = 2160,
 ):
     os.makedirs(out_root, exist_ok=True)
     out_train = os.path.join(out_root, "train")
@@ -86,6 +116,16 @@ def preprocess_smd(
         test_norm = scaler.transform(test_raw).astype(np.float32)
         labels = labels.astype(np.int64)
 
+        if downsample_factor > 1:
+            train_norm = downsample_features(train_norm, downsample_factor)
+            test_norm = downsample_features(test_norm, downsample_factor)
+            labels = downsample_labels(labels, downsample_factor)
+
+        if skip_head > 0:
+            train_norm = skip_head_rows(train_norm, skip_head)
+            test_norm = skip_head_rows(test_norm, skip_head)
+            labels = skip_head_rows(labels, skip_head)
+
         np.save(os.path.join(out_train, f"{mid}.npy"), train_norm)
         np.save(os.path.join(out_test, f"{mid}.npy"), test_norm)
         np.save(os.path.join(out_label, f"{mid}.npy"), labels)
@@ -112,6 +152,11 @@ def parse_args():
     parser.add_argument("--use_global_scaler", action="store_true",
                         help="是否使用所有机器的训练数据拟合【统一】StandardScaler，"
                              "默认：每台机器单独拟合 scaler")
+    parser.add_argument("--downsample_factor", type=int, default=10,
+                        help="可选下采样窗口长度（>1 则按窗口做中位数池化，并在标签上取最大值）")
+    parser.add_argument("--skip_head", type=int, default=2160,
+                        help="跳过序列开头的样本数量，默认 2160（与 wadi.py 保持一致）；"
+                             "设为 0 可关闭")
     return parser.parse_args()
 
 
@@ -121,4 +166,6 @@ if __name__ == "__main__":
         raw_root=args.raw_root,
         out_root=args.out_root,
         use_global_scaler=args.use_global_scaler,
+        downsample_factor=args.downsample_factor,
+        skip_head=args.skip_head,
     )

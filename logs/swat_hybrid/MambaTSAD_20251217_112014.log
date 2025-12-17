@@ -305,3 +305,40 @@ MambaTSADHybrid(
 [2025-12-17 17:05:23,688] [INFO] [Eval-hybrid] F1=0.9196, P=0.9038, R=0.9359, AUC=0.8416, thr=0.443948, point_adjust=True; recon_F1=0.9283, forecast_F1=0.9203
 [2025-12-17 17:05:23,928] [INFO] 已保存可视化图：./logs/swat_hybrid/scores_epoch13_hybrid.png
 [2025-12-17 17:05:23,928] [INFO] ========== Epoch 14/50 (hybrid) ==========
+[2025-12-17 17:21:00,177] [INFO] [Epoch 14] 混合模型训练损失: total=0.026912, recon=0.006899, forecast=0.020013
+[2025-12-17 17:27:17,810] [INFO] [Eval-recon(hybrid)] F1=0.9284, P=0.9443, R=0.9131, AUC=0.8559, thr=0.059988, point_adjust=True
+[2025-12-17 17:30:21,838] [INFO] [Eval-forecast(hybrid)] F1=0.9202, P=0.8895, R=0.9531, AUC=0.2375, thr=0.369972, point_adjust=True
+[2025-12-17 17:32:38,094] [INFO] [Eval-hybrid] F1=0.9180, P=0.9009, R=0.9359, AUC=0.8491, thr=0.288236, point_adjust=True; recon_F1=0.9284, forecast_F1=0.9202
+[2025-12-17 17:32:38,347] [INFO] 已保存可视化图：./logs/swat_hybrid/scores_epoch14_hybrid.png
+[2025-12-17 17:32:38,348] [INFO] ========== Epoch 15/50 (hybrid) ==========
+[2025-12-17 17:46:30,842] [INFO] [Epoch 15] 混合模型训练损失: total=0.026735, recon=0.006897, forecast=0.019838
+[2025-12-17 17:52:55,107] [INFO] [Eval-recon(hybrid)] F1=0.9276, P=0.9425, R=0.9131, AUC=0.8516, thr=0.055805, point_adjust=True
+[2025-12-17 17:56:01,398] [INFO] [Eval-forecast(hybrid)] F1=0.9203, P=0.8897, R=0.9531, AUC=0.2399, thr=0.374734, point_adjust=True
+[2025-12-17 17:58:15,627] [INFO] [Eval-hybrid] F1=0.9199, P=0.9045, R=0.9359, AUC=0.8473, thr=0.338674, point_adjust=True; recon_F1=0.9276, forecast_F1=0.9203
+[2025-12-17 17:58:15,879] [INFO] 已保存可视化图：./logs/swat_hybrid/scores_epoch15_hybrid.png
+[2025-12-17 17:58:15,879] [INFO] ========== Epoch 16/50 (hybrid) ==========
+[2025-12-17 18:14:16,844] [INFO] [Epoch 16] 混合模型训练损失: total=0.928184, recon=0.688412, forecast=0.239771
+[2025-12-17 18:19:11,560] [INFO] [Eval-recon(hybrid)] F1=0.8502, P=0.8906, R=0.8132, AUC=0.8185, thr=9.022614, point_adjust=True
+[2025-12-17 18:22:10,616] [INFO] [Eval-forecast(hybrid)] F1=0.8502, P=0.8907, R=0.8132, AUC=0.8185, thr=9.024842, point_adjust=True
+[2025-12-17 18:24:23,585] [INFO] [Eval-hybrid] F1=0.8502, P=0.8906, R=0.8132, AUC=0.8185, thr=-0.017801, point_adjust=True; recon_F1=0.8502, forecast_F1=0.8502
+[2025-12-17 18:24:23,827] [INFO] 已保存可视化图：./logs/swat_hybrid/scores_epoch16_hybrid.png
+[2025-12-17 18:24:23,828] [INFO] ========== Epoch 17/50 (hybrid) ==========
+[2025-12-17 18:39:29,653] [INFO] [Epoch 17] 混合模型训练损失: total=3.100769, recon=2.330725, forecast=0.770044
+[2025-12-17 18:45:50,904] [INFO] [Eval-recon(hybrid)] F1=0.8502, P=0.8906, R=0.8132, AUC=0.8185, thr=9.022614, point_adjust=True
+[2025-12-17 18:48:52,950] [INFO] [Eval-forecast(hybrid)] F1=0.8502, P=0.8907, R=0.8132, AUC=0.8185, thr=9.024842, point_adjust=True
+[2025-12-17 18:51:07,014] [INFO] [Eval-hybrid] F1=0.8502, P=0.8906, R=0.8132, AUC=0.8185, thr=-0.017801, point_adjust=True; recon_F1=0.8502, forecast_F1=0.8502
+[2025-12-17 18:51:07,255] [INFO] 已保存可视化图：./logs/swat_hybrid/scores_epoch17_hybrid.png
+[2025-12-17 18:51:07,255] [INFO] ========== Epoch 18/50 (hybrid) ==========
+[2025-12-17 19:04:49,389] [INFO] [Epoch 18] 混合模型训练损失: total=3.100688, recon=2.330660, forecast=0.770028
+[2025-12-17 19:11:12,815] [INFO] [Eval-recon(hybrid)] F1=0.8502, P=0.8906, R=0.8132, AUC=0.8185, thr=9.022614, point_adjust=True
+[2025-12-17 19:14:20,069] [INFO] [Eval-forecast(hybrid)] F1=0.8502, P=0.8907, R=0.8132, AUC=0.8185, thr=9.024842, point_adjust=True
+[2025-12-17 19:16:36,841] [INFO] [Eval-hybrid] F1=0.8502, P=0.8906, R=0.8132, AUC=0.8185, thr=-0.017801, point_adjust=True; recon_F1=0.8502, forecast_F1=0.8502
+[2025-12-17 19:16:37,083] [INFO] 已保存可视化图：./logs/swat_hybrid/scores_epoch18_hybrid.png
+[2025-12-17 19:16:37,083] [INFO] ========== Epoch 19/50 (hybrid) ==========
+[2025-12-17 19:32:17,059] [INFO] [Epoch 19] 混合模型训练损失: total=3.100703, recon=2.330675, forecast=0.770028
+[2025-12-17 19:37:07,565] [INFO] [Eval-recon(hybrid)] F1=0.8502, P=0.8906, R=0.8132, AUC=0.8185, thr=9.022614, point_adjust=True
+[2025-12-17 19:40:04,666] [INFO] [Eval-forecast(hybrid)] F1=0.8502, P=0.8907, R=0.8132, AUC=0.8185, thr=9.024842, point_adjust=True
+[2025-12-17 19:42:20,486] [INFO] [Eval-hybrid] F1=0.8502, P=0.8906, R=0.8132, AUC=0.8185, thr=-0.017801, point_adjust=True; recon_F1=0.8502, forecast_F1=0.8502
+[2025-12-17 19:42:20,487] [INFO] 早停触发：连续 8 个 epoch F1 未提升，停止训练。
+[2025-12-17 19:42:20,487] [INFO] 训练结束，最佳 F1=0.9201, 最佳指标={'precision': 0.9049515817797184, 'recall': 0.9358671573202733, 'f1': 0.9201497591946423, 'auc': 0.8419766428847957, 'threshold': 0.5260931130562068, 'use_point_adjust': True}
+[2025-12-17 19:42:20,488] [INFO] 训练流程已结束。

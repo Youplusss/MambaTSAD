@@ -4,16 +4,21 @@
 DATA_ROOT=./dataset/SMAP
 LOG_DIR=./logs/smap_adv_hybrid
 
-CUDA_VISIBLE_DEVICES=0 python main_adv.py \
+CUDA_VISIBLE_DEVICES=7 python main_adv.py \
   --dataset smap \
   --processed_root ${DATA_ROOT} \
   --log_dir ${LOG_DIR} \
+  --branch hybrid_shared_adv \
   --win_size 100 \
   --pred_len 10 \
+  --train_stride 1 \
+  --test_stride 1 \
   --batch_size 64 \
   --epochs 50 \
-  --lr 1e-4 \
-  --weight_decay 5e-4 \
+  --lr 1e-3 \
+  --weight_decay 1e-4 \
+  --lambda_recon 1.0 \
+  --lambda_forecast 1.0 \
   --adv_epsilon 0.05 \
   --adv_beta 0.5 \
-  --adv_warmup 5
+  --adv_warmup_epochs 5

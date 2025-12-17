@@ -1,0 +1,278 @@
+[2025-12-17 20:27:53,382] [INFO] 日志已写入：./logs/smd_adv_hybrid/MambaTSAD_20251217_202753.log
+[2025-12-17 20:27:53,383] [INFO] [shared_adv] 命令行参数：Namespace(dataset='smd', processed_root='./dataset/SMD', log_dir='./logs/smd_adv_hybrid', branch='hybrid_shared_adv', win_size=100, pred_len=10, train_stride=1, test_stride=1, batch_size=64, epochs=50, lr=0.001, weight_decay=0.0001, seed=42, no_amp=False, max_grad_norm=1.0, patience=8, lambda_recon=1.0, lambda_forecast=1.0, adv_epsilon=0.05, adv_beta=0.5, adv_warmup_epochs=5, no_point_adjust=False, num_workers=4)
+[2025-12-17 20:27:53,455] [INFO] [shared_adv] 数据集 [smd] 构建完成，实体数量=28，input_dim=38，训练样本数=68055，测试样本数=68056
+[2025-12-17 20:27:53,677] [INFO] [shared_adv] 当前使用设备：cuda
+[2025-12-17 20:27:54,090] [INFO] 训练模式：混合模型 (hybrid)，context_len=90, pred_len=10。
+[2025-12-17 20:27:55,614] [INFO] 模型结构：
+MambaTSADHybrid(
+  (recon_branch): MambaTSAD(
+    (encoder): Linear(in_features=38, out_features=128, bias=True)
+    (level1): ModuleList(
+      (0-1): 2 x LSSBlockTS(
+        (global_layers): ModuleList(
+          (0-1): 2 x BiMambaBlock(
+            (norm): LayerNorm((128,), eps=1e-05, elementwise_affine=True)
+            (mamba_fwd): Mamba(
+              (in_proj): Linear(in_features=128, out_features=512, bias=False)
+              (conv1d): Conv1d(256, 256, kernel_size=(4,), stride=(1,), padding=(3,), groups=256)
+              (act): SiLU()
+              (x_proj): Linear(in_features=256, out_features=40, bias=False)
+              (dt_proj): Linear(in_features=8, out_features=256, bias=True)
+              (out_proj): Linear(in_features=256, out_features=128, bias=False)
+            )
+            (mamba_bwd): Mamba(
+              (in_proj): Linear(in_features=128, out_features=512, bias=False)
+              (conv1d): Conv1d(256, 256, kernel_size=(4,), stride=(1,), padding=(3,), groups=256)
+              (act): SiLU()
+              (x_proj): Linear(in_features=256, out_features=40, bias=False)
+              (dt_proj): Linear(in_features=8, out_features=256, bias=True)
+              (out_proj): Linear(in_features=256, out_features=128, bias=False)
+            )
+            (ffn): Sequential(
+              (0): LayerNorm((128,), eps=1e-05, elementwise_affine=True)
+              (1): Linear(in_features=128, out_features=512, bias=True)
+              (2): GELU(approximate='none')
+              (3): Dropout(p=0.1, inplace=False)
+              (4): Linear(in_features=512, out_features=128, bias=True)
+            )
+            (dropout): Dropout(p=0.1, inplace=False)
+          )
+        )
+        (local_branches): ModuleList(
+          (0): LocalConvBlock1D(
+            (block): Sequential(
+              (0): Conv1d(128, 128, kernel_size=(1,), stride=(1,))
+              (1): InstanceNorm1d(128, eps=1e-05, momentum=0.1, affine=False, track_running_stats=False)
+              (2): SiLU()
+              (3): Conv1d(128, 128, kernel_size=(5,), stride=(1,), padding=(2,), groups=128)
+              (4): InstanceNorm1d(128, eps=1e-05, momentum=0.1, affine=False, track_running_stats=False)
+              (5): SiLU()
+              (6): Conv1d(128, 128, kernel_size=(1,), stride=(1,))
+            )
+          )
+          (1): LocalConvBlock1D(
+            (block): Sequential(
+              (0): Conv1d(128, 128, kernel_size=(1,), stride=(1,))
+              (1): InstanceNorm1d(128, eps=1e-05, momentum=0.1, affine=False, track_running_stats=False)
+              (2): SiLU()
+              (3): Conv1d(128, 128, kernel_size=(7,), stride=(1,), padding=(3,), groups=128)
+              (4): InstanceNorm1d(128, eps=1e-05, momentum=0.1, affine=False, track_running_stats=False)
+              (5): SiLU()
+              (6): Conv1d(128, 128, kernel_size=(1,), stride=(1,))
+            )
+          )
+        )
+        (proj): Linear(in_features=384, out_features=128, bias=True)
+      )
+    )
+    (level2): ModuleList(
+      (0-1): 2 x LSSBlockTS(
+        (global_layers): ModuleList(
+          (0-1): 2 x BiMambaBlock(
+            (norm): LayerNorm((128,), eps=1e-05, elementwise_affine=True)
+            (mamba_fwd): Mamba(
+              (in_proj): Linear(in_features=128, out_features=512, bias=False)
+              (conv1d): Conv1d(256, 256, kernel_size=(4,), stride=(1,), padding=(3,), groups=256)
+              (act): SiLU()
+              (x_proj): Linear(in_features=256, out_features=40, bias=False)
+              (dt_proj): Linear(in_features=8, out_features=256, bias=True)
+              (out_proj): Linear(in_features=256, out_features=128, bias=False)
+            )
+            (mamba_bwd): Mamba(
+              (in_proj): Linear(in_features=128, out_features=512, bias=False)
+              (conv1d): Conv1d(256, 256, kernel_size=(4,), stride=(1,), padding=(3,), groups=256)
+              (act): SiLU()
+              (x_proj): Linear(in_features=256, out_features=40, bias=False)
+              (dt_proj): Linear(in_features=8, out_features=256, bias=True)
+              (out_proj): Linear(in_features=256, out_features=128, bias=False)
+            )
+            (ffn): Sequential(
+              (0): LayerNorm((128,), eps=1e-05, elementwise_affine=True)
+              (1): Linear(in_features=128, out_features=512, bias=True)
+              (2): GELU(approximate='none')
+              (3): Dropout(p=0.1, inplace=False)
+              (4): Linear(in_features=512, out_features=128, bias=True)
+            )
+            (dropout): Dropout(p=0.1, inplace=False)
+          )
+        )
+        (local_branches): ModuleList(
+          (0): LocalConvBlock1D(
+            (block): Sequential(
+              (0): Conv1d(128, 128, kernel_size=(1,), stride=(1,))
+              (1): InstanceNorm1d(128, eps=1e-05, momentum=0.1, affine=False, track_running_stats=False)
+              (2): SiLU()
+              (3): Conv1d(128, 128, kernel_size=(5,), stride=(1,), padding=(2,), groups=128)
+              (4): InstanceNorm1d(128, eps=1e-05, momentum=0.1, affine=False, track_running_stats=False)
+              (5): SiLU()
+              (6): Conv1d(128, 128, kernel_size=(1,), stride=(1,))
+            )
+          )
+          (1): LocalConvBlock1D(
+            (block): Sequential(
+              (0): Conv1d(128, 128, kernel_size=(1,), stride=(1,))
+              (1): InstanceNorm1d(128, eps=1e-05, momentum=0.1, affine=False, track_running_stats=False)
+              (2): SiLU()
+              (3): Conv1d(128, 128, kernel_size=(7,), stride=(1,), padding=(3,), groups=128)
+              (4): InstanceNorm1d(128, eps=1e-05, momentum=0.1, affine=False, track_running_stats=False)
+              (5): SiLU()
+              (6): Conv1d(128, 128, kernel_size=(1,), stride=(1,))
+            )
+          )
+        )
+        (proj): Linear(in_features=384, out_features=128, bias=True)
+      )
+    )
+    (level3): ModuleList(
+      (0-1): 2 x LSSBlockTS(
+        (global_layers): ModuleList(
+          (0-1): 2 x BiMambaBlock(
+            (norm): LayerNorm((128,), eps=1e-05, elementwise_affine=True)
+            (mamba_fwd): Mamba(
+              (in_proj): Linear(in_features=128, out_features=512, bias=False)
+              (conv1d): Conv1d(256, 256, kernel_size=(4,), stride=(1,), padding=(3,), groups=256)
+              (act): SiLU()
+              (x_proj): Linear(in_features=256, out_features=40, bias=False)
+              (dt_proj): Linear(in_features=8, out_features=256, bias=True)
+              (out_proj): Linear(in_features=256, out_features=128, bias=False)
+            )
+            (mamba_bwd): Mamba(
+              (in_proj): Linear(in_features=128, out_features=512, bias=False)
+              (conv1d): Conv1d(256, 256, kernel_size=(4,), stride=(1,), padding=(3,), groups=256)
+              (act): SiLU()
+              (x_proj): Linear(in_features=256, out_features=40, bias=False)
+              (dt_proj): Linear(in_features=8, out_features=256, bias=True)
+              (out_proj): Linear(in_features=256, out_features=128, bias=False)
+            )
+            (ffn): Sequential(
+              (0): LayerNorm((128,), eps=1e-05, elementwise_affine=True)
+              (1): Linear(in_features=128, out_features=512, bias=True)
+              (2): GELU(approximate='none')
+              (3): Dropout(p=0.1, inplace=False)
+              (4): Linear(in_features=512, out_features=128, bias=True)
+            )
+            (dropout): Dropout(p=0.1, inplace=False)
+          )
+        )
+        (local_branches): ModuleList(
+          (0): LocalConvBlock1D(
+            (block): Sequential(
+              (0): Conv1d(128, 128, kernel_size=(1,), stride=(1,))
+              (1): InstanceNorm1d(128, eps=1e-05, momentum=0.1, affine=False, track_running_stats=False)
+              (2): SiLU()
+              (3): Conv1d(128, 128, kernel_size=(5,), stride=(1,), padding=(2,), groups=128)
+              (4): InstanceNorm1d(128, eps=1e-05, momentum=0.1, affine=False, track_running_stats=False)
+              (5): SiLU()
+              (6): Conv1d(128, 128, kernel_size=(1,), stride=(1,))
+            )
+          )
+          (1): LocalConvBlock1D(
+            (block): Sequential(
+              (0): Conv1d(128, 128, kernel_size=(1,), stride=(1,))
+              (1): InstanceNorm1d(128, eps=1e-05, momentum=0.1, affine=False, track_running_stats=False)
+              (2): SiLU()
+              (3): Conv1d(128, 128, kernel_size=(7,), stride=(1,), padding=(3,), groups=128)
+              (4): InstanceNorm1d(128, eps=1e-05, momentum=0.1, affine=False, track_running_stats=False)
+              (5): SiLU()
+              (6): Conv1d(128, 128, kernel_size=(1,), stride=(1,))
+            )
+          )
+        )
+        (proj): Linear(in_features=384, out_features=128, bias=True)
+      )
+    )
+    (decoder): Linear(in_features=128, out_features=38, bias=True)
+  )
+  (forecast_branch): MambaTSADForecast(
+    (enc_embedding): InvertedTimeEmbedding(
+      (proj): Linear(in_features=90, out_features=128, bias=True)
+      (dropout): Dropout(p=0.1, inplace=False)
+    )
+    (encoder_layers): ModuleList(
+      (0-2): 3 x BiMambaBlock1D(
+        (norm): LayerNorm((128,), eps=1e-05, elementwise_affine=True)
+        (mamba_fwd): Mamba(
+          (in_proj): Linear(in_features=128, out_features=512, bias=False)
+          (conv1d): Conv1d(256, 256, kernel_size=(4,), stride=(1,), padding=(3,), groups=256)
+          (act): SiLU()
+          (x_proj): Linear(in_features=256, out_features=40, bias=False)
+          (dt_proj): Linear(in_features=8, out_features=256, bias=True)
+          (out_proj): Linear(in_features=256, out_features=128, bias=False)
+        )
+        (mamba_bwd): Mamba(
+          (in_proj): Linear(in_features=128, out_features=512, bias=False)
+          (conv1d): Conv1d(256, 256, kernel_size=(4,), stride=(1,), padding=(3,), groups=256)
+          (act): SiLU()
+          (x_proj): Linear(in_features=256, out_features=40, bias=False)
+          (dt_proj): Linear(in_features=8, out_features=256, bias=True)
+          (out_proj): Linear(in_features=256, out_features=128, bias=False)
+        )
+        (ffn): Sequential(
+          (0): LayerNorm((128,), eps=1e-05, elementwise_affine=True)
+          (1): Linear(in_features=128, out_features=512, bias=True)
+          (2): GELU(approximate='none')
+          (3): Dropout(p=0.1, inplace=False)
+          (4): Linear(in_features=512, out_features=128, bias=True)
+        )
+        (dropout): Dropout(p=0.1, inplace=False)
+      )
+    )
+    (enc_norm): LayerNorm((128,), eps=1e-05, elementwise_affine=True)
+    (projector): Linear(in_features=128, out_features=10, bias=True)
+  )
+)
+[2025-12-17 20:27:55,616] [INFO] [TSADAdvTrainer] 对抗训练配置: epsilon=0.0500, beta=0.5000, warmup_epochs=5
+[2025-12-17 20:27:55,617] [INFO] ========== Epoch 1/50 (hybrid_shared_adv) ==========
+[2025-12-17 20:30:10,419] [INFO] [Epoch 1] hybrid_shared_adv 训练损失: total=0.720775, recon=0.300194, forecast=0.420581, adv=0.000000
+[2025-12-17 20:31:07,499] [INFO] [Eval-recon(hybrid)] F1=0.5654, P=0.8162, R=0.4325, AUC=0.7702, thr=24.433200, point_adjust=True
+[2025-12-17 20:31:39,333] [INFO] [Eval-forecast(hybrid)] F1=0.5209, P=0.4815, R=0.5672, AUC=0.7695, thr=23.855141, point_adjust=True
+[2025-12-17 20:32:03,882] [INFO] [Eval-hybrid] F1=0.5127, P=0.6539, R=0.4217, AUC=0.7697, thr=-0.019049, point_adjust=True; recon_F1=0.5654, forecast_F1=0.5209
+[2025-12-17 20:32:03,997] [INFO] 发现更优模型，已保存至 ./logs/smd_adv_hybrid/best_model_hybrid_shared_adv.pt
+[2025-12-17 20:32:04,258] [INFO] 已保存可视化图：./logs/smd_adv_hybrid/scores_epoch1_hybrid_shared_adv.png
+[2025-12-17 20:32:04,259] [INFO] ========== Epoch 2/50 (hybrid_shared_adv) ==========
+[2025-12-17 20:34:14,059] [INFO] [Epoch 2] hybrid_shared_adv 训练损失: total=0.571064, recon=0.214091, forecast=0.356973, adv=0.000000
+[2025-12-17 20:35:12,282] [INFO] [Eval-recon(hybrid)] F1=0.5711, P=0.7668, R=0.4550, AUC=0.7710, thr=10.518147, point_adjust=True
+[2025-12-17 20:35:43,594] [INFO] [Eval-forecast(hybrid)] F1=0.5155, P=0.4533, R=0.5974, AUC=0.7695, thr=14.387737, point_adjust=True
+[2025-12-17 20:36:08,144] [INFO] [Eval-hybrid] F1=0.5266, P=0.6910, R=0.4254, AUC=0.7738, thr=-0.019525, point_adjust=True; recon_F1=0.5711, forecast_F1=0.5155
+[2025-12-17 20:36:08,258] [INFO] 发现更优模型，已保存至 ./logs/smd_adv_hybrid/best_model_hybrid_shared_adv.pt
+[2025-12-17 20:36:08,512] [INFO] 已保存可视化图：./logs/smd_adv_hybrid/scores_epoch2_hybrid_shared_adv.png
+[2025-12-17 20:36:08,512] [INFO] ========== Epoch 3/50 (hybrid_shared_adv) ==========
+[2025-12-17 20:38:15,976] [INFO] [Epoch 3] hybrid_shared_adv 训练损失: total=0.544080, recon=0.209761, forecast=0.334318, adv=0.000000
+[2025-12-17 20:39:12,368] [INFO] [Eval-recon(hybrid)] F1=0.5679, P=0.8020, R=0.4396, AUC=0.7704, thr=14.976508, point_adjust=True
+[2025-12-17 20:39:43,396] [INFO] [Eval-forecast(hybrid)] F1=0.5249, P=0.4887, R=0.5669, AUC=0.7691, thr=21.235250, point_adjust=True
+[2025-12-17 20:40:08,107] [INFO] [Eval-hybrid] F1=0.5314, P=0.7077, R=0.4254, AUC=0.7744, thr=-0.019429, point_adjust=True; recon_F1=0.5679, forecast_F1=0.5249
+[2025-12-17 20:40:08,220] [INFO] 发现更优模型，已保存至 ./logs/smd_adv_hybrid/best_model_hybrid_shared_adv.pt
+[2025-12-17 20:40:08,471] [INFO] 已保存可视化图：./logs/smd_adv_hybrid/scores_epoch3_hybrid_shared_adv.png
+[2025-12-17 20:40:08,471] [INFO] ========== Epoch 4/50 (hybrid_shared_adv) ==========
+[2025-12-17 20:40:08,473] [INFO] [Epoch 4] hybrid_shared_adv 启用对抗训练 (epsilon=0.0500, beta=0.5000)
+[2025-12-17 20:45:49,580] [INFO] [Epoch 4] hybrid_shared_adv 训练损失: total=0.863840, recon=0.209801, forecast=0.327156, adv=0.653764
+[2025-12-17 20:46:46,168] [INFO] [Eval-recon(hybrid)] F1=0.5682, P=0.8034, R=0.4396, AUC=0.7701, thr=16.355797, point_adjust=True
+[2025-12-17 20:47:17,671] [INFO] [Eval-forecast(hybrid)] F1=0.5268, P=0.4939, R=0.5644, AUC=0.7720, thr=22.669272, point_adjust=True
+[2025-12-17 20:47:41,259] [INFO] [Eval-hybrid] F1=0.5312, P=0.7070, R=0.4254, AUC=0.7753, thr=-0.019793, point_adjust=True; recon_F1=0.5682, forecast_F1=0.5268
+[2025-12-17 20:47:41,513] [INFO] 已保存可视化图：./logs/smd_adv_hybrid/scores_epoch4_hybrid_shared_adv.png
+[2025-12-17 20:47:41,513] [INFO] ========== Epoch 5/50 (hybrid_shared_adv) ==========
+[2025-12-17 20:47:41,515] [INFO] [Epoch 5] hybrid_shared_adv 启用对抗训练 (epsilon=0.0500, beta=0.5000)
+[2025-12-17 20:54:54,840] [INFO] [Epoch 5] hybrid_shared_adv 训练损失: total=0.824216, recon=0.208673, forecast=0.311860, adv=0.607367
+[2025-12-17 20:56:02,462] [INFO] [Eval-recon(hybrid)] F1=0.5682, P=0.8034, R=0.4396, AUC=0.7687, thr=16.438005, point_adjust=True
+[2025-12-17 20:56:33,617] [INFO] [Eval-forecast(hybrid)] F1=0.5294, P=0.4752, R=0.5974, AUC=0.7725, thr=15.196738, point_adjust=True
+[2025-12-17 20:56:57,808] [INFO] [Eval-hybrid] F1=0.5267, P=0.6896, R=0.4260, AUC=0.7753, thr=-0.019553, point_adjust=True; recon_F1=0.5682, forecast_F1=0.5294
+[2025-12-17 20:56:58,062] [INFO] 已保存可视化图：./logs/smd_adv_hybrid/scores_epoch5_hybrid_shared_adv.png
+[2025-12-17 20:56:58,062] [INFO] ========== Epoch 6/50 (hybrid_shared_adv) ==========
+[2025-12-17 20:56:58,064] [INFO] [Epoch 6] hybrid_shared_adv 启用对抗训练 (epsilon=0.0500, beta=0.5000)
+[2025-12-17 21:03:41,336] [INFO] [Epoch 6] hybrid_shared_adv 训练损失: total=0.798009, recon=0.207144, forecast=0.297929, adv=0.585872
+[2025-12-17 21:04:36,380] [INFO] [Eval-recon(hybrid)] F1=0.5673, P=0.7998, R=0.4396, AUC=0.7702, thr=15.020358, point_adjust=True
+[2025-12-17 21:05:07,026] [INFO] [Eval-forecast(hybrid)] F1=0.5345, P=0.5076, R=0.5644, AUC=0.7729, thr=24.605793, point_adjust=True
+[2025-12-17 21:05:31,411] [INFO] [Eval-hybrid] F1=0.5369, P=0.7275, R=0.4254, AUC=0.7756, thr=-0.020059, point_adjust=True; recon_F1=0.5673, forecast_F1=0.5345
+[2025-12-17 21:05:31,523] [INFO] 发现更优模型，已保存至 ./logs/smd_adv_hybrid/best_model_hybrid_shared_adv.pt
+[2025-12-17 21:05:31,775] [INFO] 已保存可视化图：./logs/smd_adv_hybrid/scores_epoch6_hybrid_shared_adv.png
+[2025-12-17 21:05:31,775] [INFO] ========== Epoch 7/50 (hybrid_shared_adv) ==========
+[2025-12-17 21:05:31,776] [INFO] [Epoch 7] hybrid_shared_adv 启用对抗训练 (epsilon=0.0500, beta=0.5000)
+[2025-12-17 21:11:07,789] [INFO] [Epoch 7] hybrid_shared_adv 训练损失: total=0.787296, recon=0.207232, forecast=0.291539, adv=0.577049
+[2025-12-17 21:12:02,725] [INFO] [Eval-recon(hybrid)] F1=0.5681, P=0.8009, R=0.4402, AUC=0.7689, thr=15.221239, point_adjust=True
+[2025-12-17 21:12:34,398] [INFO] [Eval-forecast(hybrid)] F1=0.5415, P=0.5203, R=0.5644, AUC=0.7703, thr=22.568119, point_adjust=True
+[2025-12-17 21:12:58,642] [INFO] [Eval-hybrid] F1=0.5390, P=0.7352, R=0.4254, AUC=0.7745, thr=-0.019720, point_adjust=True; recon_F1=0.5681, forecast_F1=0.5415
+[2025-12-17 21:12:58,760] [INFO] 发现更优模型，已保存至 ./logs/smd_adv_hybrid/best_model_hybrid_shared_adv.pt
+[2025-12-17 21:12:59,012] [INFO] 已保存可视化图：./logs/smd_adv_hybrid/scores_epoch7_hybrid_shared_adv.png
+[2025-12-17 21:12:59,012] [INFO] ========== Epoch 8/50 (hybrid_shared_adv) ==========
+[2025-12-17 21:12:59,013] [INFO] [Epoch 8] hybrid_shared_adv 启用对抗训练 (epsilon=0.0500, beta=0.5000)
+[2025-12-17 21:18:32,978] [INFO] [Epoch 8] hybrid_shared_adv 训练损失: total=0.775459, recon=0.207088, forecast=0.283652, adv=0.569438
