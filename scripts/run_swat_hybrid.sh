@@ -4,7 +4,7 @@
 DATA_ROOT=./dataset/SWaT
 LOG_DIR=./logs/swat_hybrid
 
-CUDA_VISIBLE_DEVICES=1 python -u main.py \
+CUDA_VISIBLE_DEVICES=2 python -u main.py \
   --dataset swat \
   --branch hybrid \
   --processed_root ${DATA_ROOT} \

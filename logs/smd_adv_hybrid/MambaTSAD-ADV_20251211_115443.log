@@ -427,3 +427,32 @@
 [2025-12-12 09:39:29,759] [INFO] [ADV] 已保存可视化图：./logs/smd_adv_hybrid/scores_epoch46_adv_hybrid.png
 [2025-12-12 09:39:29,759] [INFO] [ADV] 当前 F1=0.0000，已连续 38 个 epoch 未提升。
 [2025-12-12 09:39:29,759] [INFO] ========== Epoch 47/50 [adversarial] ==========
+[2025-12-12 09:59:13,497] [INFO] [ADV-Epoch 47] loss_gen=1.459708, loss_disc=0.976971, rec_pos=0.971971, rec_neg=0.971971, loss_pred=0.973723
+[2025-12-12 10:00:30,500] [INFO] [ADV-Eval-recon] F1=0.0000, P=0.0000, R=0.0000, AUC=0.5000, thr=nan, need_flip=False, dir=greater, point_adjust=True
+[2025-12-12 10:00:30,999] [INFO] [ADV-Eval-forecast] F1=0.0000, P=0.0000, R=0.0000, AUC=0.5786, thr=0.000000, need_flip=False, dir=greater, point_adjust=True
+[2025-12-12 10:00:31,234] [INFO] [ADV-Eval-hybrid] F1=0.0000, P=0.0000, R=0.0000, AUC=0.5000, thr=nan, need_flip=False, dir=greater, point_adjust=True; recon_F1=0.0000, forecast_F1=0.0000
+[2025-12-12 10:00:31,446] [INFO] [ADV] 已保存可视化图：./logs/smd_adv_hybrid/scores_epoch47_adv_hybrid.png
+[2025-12-12 10:00:31,447] [INFO] [ADV] 当前 F1=0.0000，已连续 39 个 epoch 未提升。
+[2025-12-12 10:00:31,447] [INFO] ========== Epoch 48/50 [adversarial] ==========
+[2025-12-12 10:20:48,963] [INFO] [ADV-Epoch 48] loss_gen=1.459709, loss_disc=0.976976, rec_pos=0.971976, rec_neg=0.971976, loss_pred=0.973721
+[2025-12-12 10:22:43,377] [INFO] [ADV-Eval-recon] F1=0.0000, P=0.0000, R=0.0000, AUC=0.5000, thr=nan, need_flip=False, dir=greater, point_adjust=True
+[2025-12-12 10:22:43,880] [INFO] [ADV-Eval-forecast] F1=0.0000, P=0.0000, R=0.0000, AUC=0.5786, thr=0.000000, need_flip=False, dir=greater, point_adjust=True
+[2025-12-12 10:22:44,120] [INFO] [ADV-Eval-hybrid] F1=0.0000, P=0.0000, R=0.0000, AUC=0.5000, thr=nan, need_flip=False, dir=greater, point_adjust=True; recon_F1=0.0000, forecast_F1=0.0000
+[2025-12-12 10:22:44,339] [INFO] [ADV] 已保存可视化图：./logs/smd_adv_hybrid/scores_epoch48_adv_hybrid.png
+[2025-12-12 10:22:44,340] [INFO] [ADV] 当前 F1=0.0000，已连续 40 个 epoch 未提升。
+[2025-12-12 10:22:44,340] [INFO] ========== Epoch 49/50 [adversarial] ==========
+[2025-12-12 10:43:02,021] [INFO] [ADV-Epoch 49] loss_gen=1.459700, loss_disc=0.976974, rec_pos=0.971974, rec_neg=0.971974, loss_pred=0.973713
+[2025-12-12 10:44:45,860] [INFO] [ADV-Eval-recon] F1=0.0000, P=0.0000, R=0.0000, AUC=0.5000, thr=nan, need_flip=False, dir=greater, point_adjust=True
+[2025-12-12 10:44:46,337] [INFO] [ADV-Eval-forecast] F1=0.0000, P=0.0000, R=0.0000, AUC=0.5786, thr=0.000000, need_flip=False, dir=greater, point_adjust=True
+[2025-12-12 10:44:46,570] [INFO] [ADV-Eval-hybrid] F1=0.0000, P=0.0000, R=0.0000, AUC=0.5000, thr=nan, need_flip=False, dir=greater, point_adjust=True; recon_F1=0.0000, forecast_F1=0.0000
+[2025-12-12 10:44:46,789] [INFO] [ADV] 已保存可视化图：./logs/smd_adv_hybrid/scores_epoch49_adv_hybrid.png
+[2025-12-12 10:44:46,790] [INFO] [ADV] 当前 F1=0.0000，已连续 41 个 epoch 未提升。
+[2025-12-12 10:44:46,790] [INFO] ========== Epoch 50/50 [adversarial] ==========
+[2025-12-12 11:05:14,976] [INFO] [ADV-Epoch 50] loss_gen=1.459697, loss_disc=0.976965, rec_pos=0.971965, rec_neg=0.971965, loss_pred=0.973714
+[2025-12-12 11:07:11,125] [INFO] [ADV-Eval-recon] F1=0.0000, P=0.0000, R=0.0000, AUC=0.5000, thr=nan, need_flip=False, dir=greater, point_adjust=True
+[2025-12-12 11:07:11,609] [INFO] [ADV-Eval-forecast] F1=0.0000, P=0.0000, R=0.0000, AUC=0.5786, thr=0.000000, need_flip=False, dir=greater, point_adjust=True
+[2025-12-12 11:07:11,842] [INFO] [ADV-Eval-hybrid] F1=0.0000, P=0.0000, R=0.0000, AUC=0.5000, thr=nan, need_flip=False, dir=greater, point_adjust=True; recon_F1=0.0000, forecast_F1=0.0000
+[2025-12-12 11:07:12,060] [INFO] [ADV] 已保存可视化图：./logs/smd_adv_hybrid/scores_epoch50_adv_hybrid.png
+[2025-12-12 11:07:12,060] [INFO] [ADV] 当前 F1=0.0000，已连续 42 个 epoch 未提升。
+[2025-12-12 11:07:12,060] [INFO] [ADV] 训练结束，最佳 F1=0.3854 (epoch=8)，最佳指标={'precision': 0.2493803470056519, 'recall': 0.8474392066292462, 'f1': 0.3853590698455912, 'auc': 0.8306787344955074, 'threshold': -0.022794193692525618, 'use_point_adjust': True, 'need_flip': False, 'direction': 'greater'}
+[2025-12-12 11:07:12,060] [INFO] 实验版训练流程已结束。
