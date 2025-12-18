@@ -293,7 +293,7 @@ def build_forecast_model(input_dim: int, seq_len: int, pred_len: int) -> MambaTS
         input_dim=input_dim,
         seq_len=seq_len,
         pred_len=pred_len,
-        d_model=128,
+        d_model=256,
         e_layers=3,
         d_state=16,
         d_conv=4,

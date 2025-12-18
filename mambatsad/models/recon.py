@@ -359,7 +359,7 @@ def build_recon_model(input_dim: int) -> MambaTSAD:
     """重构分支的默认工厂函数，方便在外部统一调用。"""
     model = MambaTSAD(
         input_dim=input_dim,
-        d_model=128,
+        d_model=256,
         num_layers=(2, 2, 2),
         d_state=16,
         d_conv=4,

@@ -152,9 +152,9 @@ def parse_args():
     parser.add_argument("--use_global_scaler", action="store_true",
                         help="是否使用所有机器的训练数据拟合【统一】StandardScaler，"
                              "默认：每台机器单独拟合 scaler")
-    parser.add_argument("--downsample_factor", type=int, default=10,
+    parser.add_argument("--downsample_factor", type=int, default=1,
                         help="可选下采样窗口长度（>1 则按窗口做中位数池化，并在标签上取最大值）")
-    parser.add_argument("--skip_head", type=int, default=2160,
+    parser.add_argument("--skip_head", type=int, default=0,
                         help="跳过序列开头的样本数量，默认 2160（与 wadi.py 保持一致）；"
                              "设为 0 可关闭")
     return parser.parse_args()

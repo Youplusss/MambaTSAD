@@ -1,0 +1,529 @@
+[2025-12-18 11:48:47,888] [INFO] 日志已写入：./logs/wadi_hybrid/MambaTSAD_20251218_114847.log
+[2025-12-18 11:48:47,889] [INFO] 命令行参数：Namespace(dataset='wadi', processed_root='./dataset/WADI', log_dir='./logs/wadi_hybrid', branch='hybrid', win_size=15, pred_len=3, train_stride=1, test_stride=1, batch_size=64, epochs=50, lr=0.0001, weight_decay=0.0005, seed=42, no_amp=False, max_grad_norm=1.0, patience=8, lambda_recon=2.0, lambda_forecast=1.0, no_point_adjust=False, num_workers=4)
+[2025-12-18 11:48:47,934] [INFO] 数据集 [wadi] 构建完成，实体数量=1，input_dim=126，训练样本数=76283，测试样本数=17266
+[2025-12-18 11:48:48,394] [INFO] 当前使用的设备：cuda
+[2025-12-18 11:48:48,832] [INFO] 训练模式：混合模型 (hybrid)，context_len=12, pred_len=3。
+[2025-12-18 11:48:49,336] [INFO] 模型结构：
+MambaTSADHybrid(
+  (recon_branch): MambaTSAD(
+    (encoder): Linear(in_features=126, out_features=256, bias=True)
+    (level1): ModuleList(
+      (0-1): 2 x LSSBlockTS(
+        (global_layers): ModuleList(
+          (0-1): 2 x BiMambaBlock(
+            (norm): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+            (mamba_fwd): Mamba(
+              (in_proj): Linear(in_features=256, out_features=1024, bias=False)
+              (conv1d): Conv1d(512, 512, kernel_size=(4,), stride=(1,), padding=(3,), groups=512)
+              (act): SiLU()
+              (x_proj): Linear(in_features=512, out_features=48, bias=False)
+              (dt_proj): Linear(in_features=16, out_features=512, bias=True)
+              (out_proj): Linear(in_features=512, out_features=256, bias=False)
+            )
+            (mamba_bwd): Mamba(
+              (in_proj): Linear(in_features=256, out_features=1024, bias=False)
+              (conv1d): Conv1d(512, 512, kernel_size=(4,), stride=(1,), padding=(3,), groups=512)
+              (act): SiLU()
+              (x_proj): Linear(in_features=512, out_features=48, bias=False)
+              (dt_proj): Linear(in_features=16, out_features=512, bias=True)
+              (out_proj): Linear(in_features=512, out_features=256, bias=False)
+            )
+            (ffn): Sequential(
+              (0): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+              (1): Linear(in_features=256, out_features=1024, bias=True)
+              (2): GELU(approximate='none')
+              (3): Dropout(p=0.1, inplace=False)
+              (4): Linear(in_features=1024, out_features=256, bias=True)
+            )
+            (dropout): Dropout(p=0.1, inplace=False)
+          )
+        )
+        (local_branches): ModuleList(
+          (0): LocalConvBlock1D(
+            (block): Sequential(
+              (0): Conv1d(256, 256, kernel_size=(1,), stride=(1,))
+              (1): InstanceNorm1d(256, eps=1e-05, momentum=0.1, affine=False, track_running_stats=False)
+              (2): SiLU()
+              (3): Conv1d(256, 256, kernel_size=(5,), stride=(1,), padding=(2,), groups=256)
+              (4): InstanceNorm1d(256, eps=1e-05, momentum=0.1, affine=False, track_running_stats=False)
+              (5): SiLU()
+              (6): Conv1d(256, 256, kernel_size=(1,), stride=(1,))
+            )
+          )
+          (1): LocalConvBlock1D(
+            (block): Sequential(
+              (0): Conv1d(256, 256, kernel_size=(1,), stride=(1,))
+              (1): InstanceNorm1d(256, eps=1e-05, momentum=0.1, affine=False, track_running_stats=False)
+              (2): SiLU()
+              (3): Conv1d(256, 256, kernel_size=(7,), stride=(1,), padding=(3,), groups=256)
+              (4): InstanceNorm1d(256, eps=1e-05, momentum=0.1, affine=False, track_running_stats=False)
+              (5): SiLU()
+              (6): Conv1d(256, 256, kernel_size=(1,), stride=(1,))
+            )
+          )
+        )
+        (proj): Linear(in_features=768, out_features=256, bias=True)
+      )
+    )
+    (level2): ModuleList(
+      (0-1): 2 x LSSBlockTS(
+        (global_layers): ModuleList(
+          (0-1): 2 x BiMambaBlock(
+            (norm): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+            (mamba_fwd): Mamba(
+              (in_proj): Linear(in_features=256, out_features=1024, bias=False)
+              (conv1d): Conv1d(512, 512, kernel_size=(4,), stride=(1,), padding=(3,), groups=512)
+              (act): SiLU()
+              (x_proj): Linear(in_features=512, out_features=48, bias=False)
+              (dt_proj): Linear(in_features=16, out_features=512, bias=True)
+              (out_proj): Linear(in_features=512, out_features=256, bias=False)
+            )
+            (mamba_bwd): Mamba(
+              (in_proj): Linear(in_features=256, out_features=1024, bias=False)
+              (conv1d): Conv1d(512, 512, kernel_size=(4,), stride=(1,), padding=(3,), groups=512)
+              (act): SiLU()
+              (x_proj): Linear(in_features=512, out_features=48, bias=False)
+              (dt_proj): Linear(in_features=16, out_features=512, bias=True)
+              (out_proj): Linear(in_features=512, out_features=256, bias=False)
+            )
+            (ffn): Sequential(
+              (0): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+              (1): Linear(in_features=256, out_features=1024, bias=True)
+              (2): GELU(approximate='none')
+              (3): Dropout(p=0.1, inplace=False)
+              (4): Linear(in_features=1024, out_features=256, bias=True)
+            )
+            (dropout): Dropout(p=0.1, inplace=False)
+          )
+        )
+        (local_branches): ModuleList(
+          (0): LocalConvBlock1D(
+            (block): Sequential(
+              (0): Conv1d(256, 256, kernel_size=(1,), stride=(1,))
+              (1): InstanceNorm1d(256, eps=1e-05, momentum=0.1, affine=False, track_running_stats=False)
+              (2): SiLU()
+              (3): Conv1d(256, 256, kernel_size=(5,), stride=(1,), padding=(2,), groups=256)
+              (4): InstanceNorm1d(256, eps=1e-05, momentum=0.1, affine=False, track_running_stats=False)
+              (5): SiLU()
+              (6): Conv1d(256, 256, kernel_size=(1,), stride=(1,))
+            )
+          )
+          (1): LocalConvBlock1D(
+            (block): Sequential(
+              (0): Conv1d(256, 256, kernel_size=(1,), stride=(1,))
+              (1): InstanceNorm1d(256, eps=1e-05, momentum=0.1, affine=False, track_running_stats=False)
+              (2): SiLU()
+              (3): Conv1d(256, 256, kernel_size=(7,), stride=(1,), padding=(3,), groups=256)
+              (4): InstanceNorm1d(256, eps=1e-05, momentum=0.1, affine=False, track_running_stats=False)
+              (5): SiLU()
+              (6): Conv1d(256, 256, kernel_size=(1,), stride=(1,))
+            )
+          )
+        )
+        (proj): Linear(in_features=768, out_features=256, bias=True)
+      )
+    )
+    (level3): ModuleList(
+      (0-1): 2 x LSSBlockTS(
+        (global_layers): ModuleList(
+          (0-1): 2 x BiMambaBlock(
+            (norm): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+            (mamba_fwd): Mamba(
+              (in_proj): Linear(in_features=256, out_features=1024, bias=False)
+              (conv1d): Conv1d(512, 512, kernel_size=(4,), stride=(1,), padding=(3,), groups=512)
+              (act): SiLU()
+              (x_proj): Linear(in_features=512, out_features=48, bias=False)
+              (dt_proj): Linear(in_features=16, out_features=512, bias=True)
+              (out_proj): Linear(in_features=512, out_features=256, bias=False)
+            )
+            (mamba_bwd): Mamba(
+              (in_proj): Linear(in_features=256, out_features=1024, bias=False)
+              (conv1d): Conv1d(512, 512, kernel_size=(4,), stride=(1,), padding=(3,), groups=512)
+              (act): SiLU()
+              (x_proj): Linear(in_features=512, out_features=48, bias=False)
+              (dt_proj): Linear(in_features=16, out_features=512, bias=True)
+              (out_proj): Linear(in_features=512, out_features=256, bias=False)
+            )
+            (ffn): Sequential(
+              (0): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+              (1): Linear(in_features=256, out_features=1024, bias=True)
+              (2): GELU(approximate='none')
+              (3): Dropout(p=0.1, inplace=False)
+              (4): Linear(in_features=1024, out_features=256, bias=True)
+            )
+            (dropout): Dropout(p=0.1, inplace=False)
+          )
+        )
+        (local_branches): ModuleList(
+          (0): LocalConvBlock1D(
+            (block): Sequential(
+              (0): Conv1d(256, 256, kernel_size=(1,), stride=(1,))
+              (1): InstanceNorm1d(256, eps=1e-05, momentum=0.1, affine=False, track_running_stats=False)
+              (2): SiLU()
+              (3): Conv1d(256, 256, kernel_size=(5,), stride=(1,), padding=(2,), groups=256)
+              (4): InstanceNorm1d(256, eps=1e-05, momentum=0.1, affine=False, track_running_stats=False)
+              (5): SiLU()
+              (6): Conv1d(256, 256, kernel_size=(1,), stride=(1,))
+            )
+          )
+          (1): LocalConvBlock1D(
+            (block): Sequential(
+              (0): Conv1d(256, 256, kernel_size=(1,), stride=(1,))
+              (1): InstanceNorm1d(256, eps=1e-05, momentum=0.1, affine=False, track_running_stats=False)
+              (2): SiLU()
+              (3): Conv1d(256, 256, kernel_size=(7,), stride=(1,), padding=(3,), groups=256)
+              (4): InstanceNorm1d(256, eps=1e-05, momentum=0.1, affine=False, track_running_stats=False)
+              (5): SiLU()
+              (6): Conv1d(256, 256, kernel_size=(1,), stride=(1,))
+            )
+          )
+        )
+        (proj): Linear(in_features=768, out_features=256, bias=True)
+      )
+    )
+    (decoder): Linear(in_features=256, out_features=126, bias=True)
+  )
+  (forecast_branch): MambaTSADForecast(
+    (enc_embedding): InvertedTimeEmbedding(
+      (proj): Linear(in_features=12, out_features=256, bias=True)
+      (dropout): Dropout(p=0.1, inplace=False)
+    )
+    (encoder_layers): ModuleList(
+      (0-2): 3 x BiMambaBlock1D(
+        (norm): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+        (mamba_fwd): Mamba(
+          (in_proj): Linear(in_features=256, out_features=1024, bias=False)
+          (conv1d): Conv1d(512, 512, kernel_size=(4,), stride=(1,), padding=(3,), groups=512)
+          (act): SiLU()
+          (x_proj): Linear(in_features=512, out_features=48, bias=False)
+          (dt_proj): Linear(in_features=16, out_features=512, bias=True)
+          (out_proj): Linear(in_features=512, out_features=256, bias=False)
+        )
+        (mamba_bwd): Mamba(
+          (in_proj): Linear(in_features=256, out_features=1024, bias=False)
+          (conv1d): Conv1d(512, 512, kernel_size=(4,), stride=(1,), padding=(3,), groups=512)
+          (act): SiLU()
+          (x_proj): Linear(in_features=512, out_features=48, bias=False)
+          (dt_proj): Linear(in_features=16, out_features=512, bias=True)
+          (out_proj): Linear(in_features=512, out_features=256, bias=False)
+        )
+        (ffn): Sequential(
+          (0): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+          (1): Linear(in_features=256, out_features=1024, bias=True)
+          (2): GELU(approximate='none')
+          (3): Dropout(p=0.1, inplace=False)
+          (4): Linear(in_features=1024, out_features=256, bias=True)
+        )
+        (dropout): Dropout(p=0.1, inplace=False)
+      )
+    )
+    (enc_norm): LayerNorm((256,), eps=1e-05, elementwise_affine=True)
+    (projector): Linear(in_features=256, out_features=3, bias=True)
+  )
+)
+[2025-12-18 11:48:49,339] [INFO] ========== Epoch 1/50 (hybrid) ==========
+[2025-12-18 11:51:08,735] [INFO] [Epoch 1] 混合模型训练损失: total=0.675238, recon=0.256054, forecast=0.163129
+[2025-12-18 11:51:20,833] [INFO] [Eval-recon(hybrid)] F1=0.2212, P=0.4710, R=0.1446, AUC=0.4242, thr=119915.561458, point_adjust=True
+[2025-12-18 11:51:29,139] [INFO] [Eval-forecast(hybrid)] F1=0.8251, P=0.7575, R=0.9059, AUC=0.5924, thr=2.357944, point_adjust=True
+[2025-12-18 11:51:34,787] [WARNING] 融合后 AUC=0.4017 < 0.5，疑似得分方向被反转，将 scores 取反后重新计算。
+[2025-12-18 11:51:40,436] [INFO] [Eval-hybrid] F1=0.2583, P=0.9497, R=0.1495, AUC=0.5983, thr=0.735379, point_adjust=True; recon_F1=0.2212, forecast_F1=0.8251
+[2025-12-18 11:51:40,781] [INFO] 发现更优模型，已保存至 ./logs/wadi_hybrid/best_model_hybrid.pt
+[2025-12-18 11:51:41,047] [INFO] 已保存可视化图：./logs/wadi_hybrid/scores_epoch1_hybrid.png
+[2025-12-18 11:51:41,047] [INFO] ========== Epoch 2/50 (hybrid) ==========
+[2025-12-18 11:53:49,320] [INFO] [Epoch 2] 混合模型训练损失: total=0.441274, recon=0.145371, forecast=0.150531
+[2025-12-18 11:54:01,405] [INFO] [Eval-recon(hybrid)] F1=0.2267, P=0.5252, R=0.1446, AUC=0.4315, thr=49733.632552, point_adjust=True
+[2025-12-18 11:54:09,741] [INFO] [Eval-forecast(hybrid)] F1=0.8284, P=0.7631, R=0.9059, AUC=0.5814, thr=2.324181, point_adjust=True
+[2025-12-18 11:54:15,271] [WARNING] 融合后 AUC=0.4145 < 0.5，疑似得分方向被反转，将 scores 取反后重新计算。
+[2025-12-18 11:54:20,801] [INFO] [Eval-hybrid] F1=0.2588, P=0.9618, R=0.1495, AUC=0.5855, thr=0.733754, point_adjust=True; recon_F1=0.2267, forecast_F1=0.8284
+[2025-12-18 11:54:21,142] [INFO] 发现更优模型，已保存至 ./logs/wadi_hybrid/best_model_hybrid.pt
+[2025-12-18 11:54:21,394] [INFO] 已保存可视化图：./logs/wadi_hybrid/scores_epoch2_hybrid.png
+[2025-12-18 11:54:21,394] [INFO] ========== Epoch 3/50 (hybrid) ==========
+[2025-12-18 11:56:30,753] [INFO] [Epoch 3] 混合模型训练损失: total=0.420865, recon=0.137533, forecast=0.145800
+[2025-12-18 11:56:42,659] [INFO] [Eval-recon(hybrid)] F1=0.2200, P=0.4606, R=0.1446, AUC=0.4386, thr=33395.825260, point_adjust=True
+[2025-12-18 11:56:51,001] [INFO] [Eval-forecast(hybrid)] F1=0.8277, P=0.7619, R=0.9059, AUC=0.5807, thr=2.398998, point_adjust=True
+[2025-12-18 11:56:56,521] [WARNING] 融合后 AUC=0.4247 < 0.5，疑似得分方向被反转，将 scores 取反后重新计算。
+[2025-12-18 11:57:02,060] [INFO] [Eval-hybrid] F1=0.2583, P=0.9497, R=0.1495, AUC=0.5753, thr=0.733100, point_adjust=True; recon_F1=0.2200, forecast_F1=0.8277
+[2025-12-18 11:57:02,323] [INFO] 已保存可视化图：./logs/wadi_hybrid/scores_epoch3_hybrid.png
+[2025-12-18 11:57:02,323] [INFO] ========== Epoch 4/50 (hybrid) ==========
+[2025-12-18 11:59:09,437] [INFO] [Epoch 4] 混合模型训练损失: total=0.409515, recon=0.133416, forecast=0.142683
+[2025-12-18 11:59:21,379] [INFO] [Eval-recon(hybrid)] F1=0.2333, P=0.2760, R=0.2020, AUC=0.4345, thr=24629.308724, point_adjust=True
+[2025-12-18 11:59:29,812] [INFO] [Eval-forecast(hybrid)] F1=0.8284, P=0.7631, R=0.9059, AUC=0.5827, thr=2.366251, point_adjust=True
+[2025-12-18 11:59:35,296] [WARNING] 融合后 AUC=0.4225 < 0.5，疑似得分方向被反转，将 scores 取反后重新计算。
+[2025-12-18 11:59:40,762] [INFO] [Eval-hybrid] F1=0.2581, P=0.9437, R=0.1495, AUC=0.5775, thr=0.731484, point_adjust=True; recon_F1=0.2333, forecast_F1=0.8284
+[2025-12-18 11:59:41,022] [INFO] 已保存可视化图：./logs/wadi_hybrid/scores_epoch4_hybrid.png
+[2025-12-18 11:59:41,022] [INFO] ========== Epoch 5/50 (hybrid) ==========
+[2025-12-18 12:01:50,615] [INFO] [Epoch 5] 混合模型训练损失: total=0.401975, recon=0.130824, forecast=0.140326
+[2025-12-18 12:02:02,580] [INFO] [Eval-recon(hybrid)] F1=0.2186, P=0.4479, R=0.1446, AUC=0.4431, thr=23521.795573, point_adjust=True
+[2025-12-18 12:02:10,851] [INFO] [Eval-forecast(hybrid)] F1=0.8247, P=0.7568, R=0.9059, AUC=0.5829, thr=2.380663, point_adjust=True
+[2025-12-18 12:02:16,215] [WARNING] 融合后 AUC=0.4315 < 0.5，疑似得分方向被反转，将 scores 取反后重新计算。
+[2025-12-18 12:02:21,558] [INFO] [Eval-hybrid] F1=0.2590, P=0.9679, R=0.1495, AUC=0.5685, thr=0.731434, point_adjust=True; recon_F1=0.2186, forecast_F1=0.8247
+[2025-12-18 12:02:21,908] [INFO] 发现更优模型，已保存至 ./logs/wadi_hybrid/best_model_hybrid.pt
+[2025-12-18 12:02:22,161] [INFO] 已保存可视化图：./logs/wadi_hybrid/scores_epoch5_hybrid.png
+[2025-12-18 12:02:22,162] [INFO] ========== Epoch 6/50 (hybrid) ==========
+[2025-12-18 12:04:31,762] [INFO] [Epoch 6] 混合模型训练损失: total=0.396337, recon=0.128857, forecast=0.138622
+[2025-12-18 12:04:43,835] [INFO] [Eval-recon(hybrid)] F1=0.2381, P=0.2557, R=0.2228, AUC=0.4371, thr=23486.783984, point_adjust=True
+[2025-12-18 12:04:52,342] [INFO] [Eval-forecast(hybrid)] F1=0.8232, P=0.7543, R=0.9059, AUC=0.5889, thr=2.368423, point_adjust=True
+[2025-12-18 12:04:57,877] [WARNING] 融合后 AUC=0.4266 < 0.5，疑似得分方向被反转，将 scores 取反后重新计算。
+[2025-12-18 12:05:03,413] [INFO] [Eval-hybrid] F1=0.2586, P=0.9557, R=0.1495, AUC=0.5734, thr=0.732055, point_adjust=True; recon_F1=0.2381, forecast_F1=0.8232
+[2025-12-18 12:05:03,667] [INFO] 已保存可视化图：./logs/wadi_hybrid/scores_epoch6_hybrid.png
+[2025-12-18 12:05:03,667] [INFO] ========== Epoch 7/50 (hybrid) ==========
+[2025-12-18 12:07:13,062] [INFO] [Epoch 7] 混合模型训练损失: total=0.391136, recon=0.127375, forecast=0.136387
+[2025-12-18 12:07:24,967] [INFO] [Eval-recon(hybrid)] F1=0.2648, P=0.3842, R=0.2020, AUC=0.4399, thr=20151.994922, point_adjust=True
+[2025-12-18 12:07:33,299] [INFO] [Eval-forecast(hybrid)] F1=0.8228, P=0.7537, R=0.9059, AUC=0.5814, thr=2.368161, point_adjust=True
+[2025-12-18 12:07:38,782] [WARNING] 融合后 AUC=0.4298 < 0.5，疑似得分方向被反转，将 scores 取反后重新计算。
+[2025-12-18 12:07:44,115] [INFO] [Eval-hybrid] F1=0.2583, P=0.9497, R=0.1495, AUC=0.5702, thr=0.730457, point_adjust=True; recon_F1=0.2648, forecast_F1=0.8228
+[2025-12-18 12:07:44,370] [INFO] 已保存可视化图：./logs/wadi_hybrid/scores_epoch7_hybrid.png
+[2025-12-18 12:07:44,370] [INFO] ========== Epoch 8/50 (hybrid) ==========
+[2025-12-18 12:09:49,972] [INFO] [Epoch 8] 混合模型训练损失: total=0.387186, recon=0.126243, forecast=0.134701
+[2025-12-18 12:10:01,866] [INFO] [Eval-recon(hybrid)] F1=0.2173, P=0.4371, R=0.1446, AUC=0.4468, thr=21135.837240, point_adjust=True
+[2025-12-18 12:10:10,247] [INFO] [Eval-forecast(hybrid)] F1=0.8251, P=0.7575, R=0.9059, AUC=0.5882, thr=2.395302, point_adjust=True
+[2025-12-18 12:10:15,657] [WARNING] 融合后 AUC=0.4363 < 0.5，疑似得分方向被反转，将 scores 取反后重新计算。
+[2025-12-18 12:10:21,015] [INFO] [Eval-hybrid] F1=0.2583, P=0.9497, R=0.1495, AUC=0.5637, thr=0.731194, point_adjust=True; recon_F1=0.2173, forecast_F1=0.8251
+[2025-12-18 12:10:21,275] [INFO] 已保存可视化图：./logs/wadi_hybrid/scores_epoch8_hybrid.png
+[2025-12-18 12:10:21,275] [INFO] ========== Epoch 9/50 (hybrid) ==========
+[2025-12-18 12:12:29,281] [INFO] [Epoch 9] 混合模型训练损失: total=0.383822, recon=0.125161, forecast=0.133500
+[2025-12-18 12:12:41,297] [INFO] [Eval-recon(hybrid)] F1=0.3562, P=0.6222, R=0.2495, AUC=0.4891, thr=6390.613249, point_adjust=True
+[2025-12-18 12:12:49,625] [INFO] [Eval-forecast(hybrid)] F1=0.8217, P=0.7518, R=0.9059, AUC=0.5862, thr=2.370201, point_adjust=True
+[2025-12-18 12:12:54,978] [WARNING] 融合后 AUC=0.4845 < 0.5，疑似得分方向被反转，将 scores 取反后重新计算。
+[2025-12-18 12:13:00,331] [INFO] [Eval-hybrid] F1=0.2586, P=0.9557, R=0.1495, AUC=0.5155, thr=0.692786, point_adjust=True; recon_F1=0.3562, forecast_F1=0.8217
+[2025-12-18 12:13:00,712] [INFO] 已保存可视化图：./logs/wadi_hybrid/scores_epoch9_hybrid.png
+[2025-12-18 12:13:00,712] [INFO] ========== Epoch 10/50 (hybrid) ==========
+[2025-12-18 12:15:09,212] [INFO] [Epoch 10] 混合模型训练损失: total=0.381136, recon=0.124507, forecast=0.132122
+[2025-12-18 12:15:21,190] [INFO] [Eval-recon(hybrid)] F1=0.2202, P=0.4620, R=0.1446, AUC=0.4507, thr=21378.876042, point_adjust=True
+[2025-12-18 12:15:29,459] [INFO] [Eval-forecast(hybrid)] F1=0.8214, P=0.7512, R=0.9059, AUC=0.5862, thr=2.376767, point_adjust=True
+[2025-12-18 12:15:34,933] [WARNING] 融合后 AUC=0.4406 < 0.5，疑似得分方向被反转，将 scores 取反后重新计算。
+[2025-12-18 12:15:40,319] [INFO] [Eval-hybrid] F1=0.2601, P=1.0000, R=0.1495, AUC=0.5594, thr=0.730792, point_adjust=True; recon_F1=0.2202, forecast_F1=0.8214
+[2025-12-18 12:15:40,666] [INFO] 发现更优模型，已保存至 ./logs/wadi_hybrid/best_model_hybrid.pt
+[2025-12-18 12:15:40,921] [INFO] 已保存可视化图：./logs/wadi_hybrid/scores_epoch10_hybrid.png
+[2025-12-18 12:15:40,921] [INFO] ========== Epoch 11/50 (hybrid) ==========
+[2025-12-18 12:17:48,610] [INFO] [Epoch 11] 混合模型训练损失: total=0.378725, recon=0.123729, forecast=0.131268
+[2025-12-18 12:18:00,591] [INFO] [Eval-recon(hybrid)] F1=0.2321, P=0.2422, R=0.2228, AUC=0.4503, thr=22525.052995, point_adjust=True
+[2025-12-18 12:18:08,968] [INFO] [Eval-forecast(hybrid)] F1=0.8184, P=0.7463, R=0.9059, AUC=0.5816, thr=2.367847, point_adjust=True
+[2025-12-18 12:18:14,322] [WARNING] 融合后 AUC=0.4384 < 0.5，疑似得分方向被反转，将 scores 取反后重新计算。
+[2025-12-18 12:18:19,700] [INFO] [Eval-hybrid] F1=0.2624, P=0.1852, R=0.4495, AUC=0.5616, thr=0.730858, point_adjust=True; recon_F1=0.2321, forecast_F1=0.8184
+[2025-12-18 12:18:20,045] [INFO] 发现更优模型，已保存至 ./logs/wadi_hybrid/best_model_hybrid.pt
+[2025-12-18 12:18:20,309] [INFO] 已保存可视化图：./logs/wadi_hybrid/scores_epoch11_hybrid.png
+[2025-12-18 12:18:20,309] [INFO] ========== Epoch 12/50 (hybrid) ==========
+[2025-12-18 12:20:28,796] [INFO] [Epoch 12] 混合模型训练损失: total=0.377373, recon=0.123449, forecast=0.130476
+[2025-12-18 12:20:40,859] [INFO] [Eval-recon(hybrid)] F1=0.2287, P=0.5468, R=0.1446, AUC=0.4454, thr=16820.024219, point_adjust=True
+[2025-12-18 12:20:49,330] [INFO] [Eval-forecast(hybrid)] F1=0.8203, P=0.7494, R=0.9059, AUC=0.5904, thr=2.368387, point_adjust=True
+[2025-12-18 12:20:54,850] [WARNING] 融合后 AUC=0.4371 < 0.5，疑似得分方向被反转，将 scores 取反后重新计算。
+[2025-12-18 12:21:00,382] [INFO] [Eval-hybrid] F1=0.2583, P=0.9497, R=0.1495, AUC=0.5629, thr=0.728219, point_adjust=True; recon_F1=0.2287, forecast_F1=0.8203
+[2025-12-18 12:21:00,640] [INFO] 已保存可视化图：./logs/wadi_hybrid/scores_epoch12_hybrid.png
+[2025-12-18 12:21:00,640] [INFO] ========== Epoch 13/50 (hybrid) ==========
+[2025-12-18 12:23:05,054] [INFO] [Epoch 13] 混合模型训练损失: total=0.374711, recon=0.122569, forecast=0.129574
+[2025-12-18 12:23:17,119] [INFO] [Eval-recon(hybrid)] F1=0.2382, P=0.2902, R=0.2020, AUC=0.4480, thr=13449.538607, point_adjust=True
+[2025-12-18 12:23:25,585] [INFO] [Eval-forecast(hybrid)] F1=0.8217, P=0.7518, R=0.9059, AUC=0.5835, thr=2.384344, point_adjust=True
+[2025-12-18 12:23:31,119] [WARNING] 融合后 AUC=0.4408 < 0.5，疑似得分方向被反转，将 scores 取反后重新计算。
+[2025-12-18 12:23:36,629] [INFO] [Eval-hybrid] F1=0.2601, P=1.0000, R=0.1495, AUC=0.5592, thr=0.723747, point_adjust=True; recon_F1=0.2382, forecast_F1=0.8217
+[2025-12-18 12:23:36,887] [INFO] 已保存可视化图：./logs/wadi_hybrid/scores_epoch13_hybrid.png
+[2025-12-18 12:23:36,888] [INFO] ========== Epoch 14/50 (hybrid) ==========
+[2025-12-18 12:25:45,124] [INFO] [Epoch 14] 混合模型训练损失: total=0.372466, recon=0.121844, forecast=0.128779
+[2025-12-18 12:25:57,078] [INFO] [Eval-recon(hybrid)] F1=0.2900, P=0.5139, R=0.2020, AUC=0.4424, thr=13282.499935, point_adjust=True
+[2025-12-18 12:26:05,431] [INFO] [Eval-forecast(hybrid)] F1=0.8192, P=0.7475, R=0.9059, AUC=0.5852, thr=2.366165, point_adjust=True
+[2025-12-18 12:26:10,837] [WARNING] 融合后 AUC=0.4353 < 0.5，疑似得分方向被反转，将 scores 取反后重新计算。
+[2025-12-18 12:26:16,227] [INFO] [Eval-hybrid] F1=0.2586, P=0.9557, R=0.1495, AUC=0.5647, thr=0.723460, point_adjust=True; recon_F1=0.2900, forecast_F1=0.8192
+[2025-12-18 12:26:16,492] [INFO] 已保存可视化图：./logs/wadi_hybrid/scores_epoch14_hybrid.png
+[2025-12-18 12:26:16,492] [INFO] ========== Epoch 15/50 (hybrid) ==========
+[2025-12-18 12:28:22,299] [INFO] [Epoch 15] 混合模型训练损失: total=0.370534, recon=0.121145, forecast=0.128244
+[2025-12-18 12:28:34,227] [INFO] [Eval-recon(hybrid)] F1=0.2766, P=0.4387, R=0.2020, AUC=0.4420, thr=12612.436393, point_adjust=True
+[2025-12-18 12:28:42,501] [INFO] [Eval-forecast(hybrid)] F1=0.8225, P=0.7531, R=0.9059, AUC=0.5841, thr=2.365219, point_adjust=True
+[2025-12-18 12:28:47,842] [WARNING] 融合后 AUC=0.4350 < 0.5，疑似得分方向被反转，将 scores 取反后重新计算。
+[2025-12-18 12:28:53,228] [INFO] [Eval-hybrid] F1=0.2586, P=0.9557, R=0.1495, AUC=0.5650, thr=0.722427, point_adjust=True; recon_F1=0.2766, forecast_F1=0.8225
+[2025-12-18 12:28:53,496] [INFO] 已保存可视化图：./logs/wadi_hybrid/scores_epoch15_hybrid.png
+[2025-12-18 12:28:53,496] [INFO] ========== Epoch 16/50 (hybrid) ==========
+[2025-12-18 12:31:02,844] [INFO] [Epoch 16] 混合模型训练损失: total=0.368748, recon=0.120577, forecast=0.127594
+[2025-12-18 12:31:14,920] [INFO] [Eval-recon(hybrid)] F1=0.2985, P=0.5714, R=0.2020, AUC=0.4481, thr=11583.519206, point_adjust=True
+[2025-12-18 12:31:23,408] [INFO] [Eval-forecast(hybrid)] F1=0.8195, P=0.7482, R=0.9059, AUC=0.5853, thr=2.392149, point_adjust=True
+[2025-12-18 12:31:28,979] [WARNING] 融合后 AUC=0.4416 < 0.5，疑似得分方向被反转，将 scores 取反后重新计算。
+[2025-12-18 12:31:34,546] [INFO] [Eval-hybrid] F1=0.2583, P=0.9497, R=0.1495, AUC=0.5584, thr=0.720080, point_adjust=True; recon_F1=0.2985, forecast_F1=0.8195
+[2025-12-18 12:31:34,791] [INFO] 已保存可视化图：./logs/wadi_hybrid/scores_epoch16_hybrid.png
+[2025-12-18 12:31:34,791] [INFO] ========== Epoch 17/50 (hybrid) ==========
+[2025-12-18 12:33:41,845] [INFO] [Epoch 17] 混合模型训练损失: total=0.367057, recon=0.120090, forecast=0.126876
+[2025-12-18 12:33:53,866] [INFO] [Eval-recon(hybrid)] F1=0.2802, P=0.4574, R=0.2020, AUC=0.4425, thr=11560.660677, point_adjust=True
+[2025-12-18 12:34:02,065] [INFO] [Eval-forecast(hybrid)] F1=0.8162, P=0.7427, R=0.9059, AUC=0.5826, thr=2.361890, point_adjust=True
+[2025-12-18 12:34:07,394] [WARNING] 融合后 AUC=0.4354 < 0.5，疑似得分方向被反转，将 scores 取反后重新计算。
+[2025-12-18 12:34:12,724] [INFO] [Eval-hybrid] F1=0.2586, P=0.9557, R=0.1495, AUC=0.5646, thr=0.720439, point_adjust=True; recon_F1=0.2802, forecast_F1=0.8162
+[2025-12-18 12:34:12,970] [INFO] 已保存可视化图：./logs/wadi_hybrid/scores_epoch17_hybrid.png
+[2025-12-18 12:34:12,970] [INFO] ========== Epoch 18/50 (hybrid) ==========
+[2025-12-18 12:36:19,273] [INFO] [Epoch 18] 混合模型训练损失: total=0.366314, recon=0.119789, forecast=0.126736
+[2025-12-18 12:36:31,377] [INFO] [Eval-recon(hybrid)] F1=0.3038, P=0.6126, R=0.2020, AUC=0.4401, thr=12336.396289, point_adjust=True
+[2025-12-18 12:36:39,817] [INFO] [Eval-forecast(hybrid)] F1=0.8195, P=0.7482, R=0.9059, AUC=0.5845, thr=2.372065, point_adjust=True
+[2025-12-18 12:36:45,324] [WARNING] 融合后 AUC=0.4338 < 0.5，疑似得分方向被反转，将 scores 取反后重新计算。
+[2025-12-18 12:36:50,959] [INFO] [Eval-hybrid] F1=0.2695, P=0.2059, R=0.3901, AUC=0.5662, thr=0.721874, point_adjust=True; recon_F1=0.3038, forecast_F1=0.8195
+[2025-12-18 12:36:51,309] [INFO] 发现更优模型，已保存至 ./logs/wadi_hybrid/best_model_hybrid.pt
+[2025-12-18 12:36:51,569] [INFO] 已保存可视化图：./logs/wadi_hybrid/scores_epoch18_hybrid.png
+[2025-12-18 12:36:51,569] [INFO] ========== Epoch 19/50 (hybrid) ==========
+[2025-12-18 12:38:56,976] [INFO] [Epoch 19] 混合模型训练损失: total=0.364306, recon=0.119312, forecast=0.125682
+[2025-12-18 12:39:08,986] [INFO] [Eval-recon(hybrid)] F1=0.2987, P=0.5730, R=0.2020, AUC=0.4430, thr=12346.635612, point_adjust=True
+[2025-12-18 12:39:17,303] [INFO] [Eval-forecast(hybrid)] F1=0.8192, P=0.7475, R=0.9059, AUC=0.5855, thr=2.397596, point_adjust=True
+[2025-12-18 12:39:22,656] [WARNING] 融合后 AUC=0.4362 < 0.5，疑似得分方向被反转，将 scores 取反后重新计算。
+[2025-12-18 12:39:28,063] [INFO] [Eval-hybrid] F1=0.2691, P=0.2054, R=0.3901, AUC=0.5638, thr=0.722031, point_adjust=True; recon_F1=0.2987, forecast_F1=0.8192
+[2025-12-18 12:39:28,328] [INFO] 已保存可视化图：./logs/wadi_hybrid/scores_epoch19_hybrid.png
+[2025-12-18 12:39:28,328] [INFO] ========== Epoch 20/50 (hybrid) ==========
+[2025-12-18 12:41:36,247] [INFO] [Epoch 20] 混合模型训练损失: total=0.363524, recon=0.118918, forecast=0.125689
+[2025-12-18 12:41:48,303] [INFO] [Eval-recon(hybrid)] F1=0.2944, P=0.5426, R=0.2020, AUC=0.4530, thr=9781.976107, point_adjust=True
+[2025-12-18 12:41:56,801] [INFO] [Eval-forecast(hybrid)] F1=0.8210, P=0.7506, R=0.9059, AUC=0.5836, thr=2.395645, point_adjust=True
+[2025-12-18 12:42:02,303] [WARNING] 融合后 AUC=0.4471 < 0.5，疑似得分方向被反转，将 scores 取反后重新计算。
+[2025-12-18 12:42:07,856] [INFO] [Eval-hybrid] F1=0.2590, P=0.9679, R=0.1495, AUC=0.5529, thr=0.714106, point_adjust=True; recon_F1=0.2944, forecast_F1=0.8210
+[2025-12-18 12:42:08,101] [INFO] 已保存可视化图：./logs/wadi_hybrid/scores_epoch20_hybrid.png
+[2025-12-18 12:42:08,101] [INFO] ========== Epoch 21/50 (hybrid) ==========
+[2025-12-18 12:44:13,628] [INFO] [Epoch 21] 混合模型训练损失: total=0.362247, recon=0.118600, forecast=0.125047
+[2025-12-18 12:44:25,782] [INFO] [Eval-recon(hybrid)] F1=0.2939, P=0.5397, R=0.2020, AUC=0.4396, thr=16876.997266, point_adjust=True
+[2025-12-18 12:44:34,528] [INFO] [Eval-forecast(hybrid)] F1=0.8177, P=0.7451, R=0.9059, AUC=0.5836, thr=2.394345, point_adjust=True
+[2025-12-18 12:44:40,033] [WARNING] 融合后 AUC=0.4305 < 0.5，疑似得分方向被反转，将 scores 取反后重新计算。
+[2025-12-18 12:44:45,513] [INFO] [Eval-hybrid] F1=0.2594, P=0.1823, R=0.4495, AUC=0.5695, thr=0.727674, point_adjust=True; recon_F1=0.2939, forecast_F1=0.8177
+[2025-12-18 12:44:45,780] [INFO] 已保存可视化图：./logs/wadi_hybrid/scores_epoch21_hybrid.png
+[2025-12-18 12:44:45,780] [INFO] ========== Epoch 22/50 (hybrid) ==========
+[2025-12-18 12:46:54,469] [INFO] [Epoch 22] 混合模型训练损失: total=0.360927, recon=0.118279, forecast=0.124369
+[2025-12-18 12:47:06,693] [INFO] [Eval-recon(hybrid)] F1=0.2906, P=0.5178, R=0.2020, AUC=0.4434, thr=11008.532227, point_adjust=True
+[2025-12-18 12:47:15,331] [INFO] [Eval-forecast(hybrid)] F1=0.8188, P=0.7469, R=0.9059, AUC=0.5855, thr=2.359221, point_adjust=True
+[2025-12-18 12:47:20,958] [WARNING] 融合后 AUC=0.4375 < 0.5，疑似得分方向被反转，将 scores 取反后重新计算。
+[2025-12-18 12:47:26,523] [INFO] [Eval-hybrid] F1=0.2626, P=0.1979, R=0.3901, AUC=0.5625, thr=0.718388, point_adjust=True; recon_F1=0.2906, forecast_F1=0.8188
+[2025-12-18 12:47:26,771] [INFO] 已保存可视化图：./logs/wadi_hybrid/scores_epoch22_hybrid.png
+[2025-12-18 12:47:26,771] [INFO] ========== Epoch 23/50 (hybrid) ==========
+[2025-12-18 12:49:35,954] [INFO] [Epoch 23] 混合模型训练损失: total=0.360228, recon=0.118027, forecast=0.124174
+[2025-12-18 12:49:47,933] [INFO] [Eval-recon(hybrid)] F1=0.2918, P=0.5258, R=0.2020, AUC=0.4408, thr=10695.609766, point_adjust=True
+[2025-12-18 12:49:56,326] [INFO] [Eval-forecast(hybrid)] F1=0.8181, P=0.7457, R=0.9059, AUC=0.5856, thr=2.356569, point_adjust=True
+[2025-12-18 12:50:01,859] [WARNING] 融合后 AUC=0.4341 < 0.5，疑似得分方向被反转，将 scores 取反后重新计算。
+[2025-12-18 12:50:07,377] [INFO] [Eval-hybrid] F1=0.2592, P=0.1941, R=0.3901, AUC=0.5659, thr=0.717804, point_adjust=True; recon_F1=0.2918, forecast_F1=0.8181
+[2025-12-18 12:50:07,624] [INFO] 已保存可视化图：./logs/wadi_hybrid/scores_epoch23_hybrid.png
+[2025-12-18 12:50:07,625] [INFO] ========== Epoch 24/50 (hybrid) ==========
+[2025-12-18 12:52:16,012] [INFO] [Epoch 24] 混合模型训练损失: total=0.359431, recon=0.117833, forecast=0.123765
+[2025-12-18 12:52:28,120] [INFO] [Eval-recon(hybrid)] F1=0.3954, P=0.5556, R=0.3069, AUC=0.4755, thr=6318.142904, point_adjust=True
+[2025-12-18 12:52:36,669] [INFO] [Eval-forecast(hybrid)] F1=0.8159, P=0.7421, R=0.9059, AUC=0.5814, thr=2.377478, point_adjust=True
+[2025-12-18 12:52:42,154] [WARNING] 融合后 AUC=0.4713 < 0.5，疑似得分方向被反转，将 scores 取反后重新计算。
+[2025-12-18 12:52:47,599] [INFO] [Eval-hybrid] F1=0.2650, P=0.2006, R=0.3901, AUC=0.5287, thr=0.689049, point_adjust=True; recon_F1=0.3954, forecast_F1=0.8159
+[2025-12-18 12:52:47,850] [INFO] 已保存可视化图：./logs/wadi_hybrid/scores_epoch24_hybrid.png
+[2025-12-18 12:52:47,850] [INFO] ========== Epoch 25/50 (hybrid) ==========
+[2025-12-18 12:54:57,138] [INFO] [Epoch 25] 混合模型训练损失: total=0.358094, recon=0.117367, forecast=0.123360
+[2025-12-18 12:55:09,237] [INFO] [Eval-recon(hybrid)] F1=0.2777, P=0.4444, R=0.2020, AUC=0.4432, thr=7463.778385, point_adjust=True
+[2025-12-18 12:55:17,594] [INFO] [Eval-forecast(hybrid)] F1=0.8192, P=0.7475, R=0.9059, AUC=0.5808, thr=2.370954, point_adjust=True
+[2025-12-18 12:55:22,987] [WARNING] 融合后 AUC=0.4391 < 0.5，疑似得分方向被反转，将 scores 取反后重新计算。
+[2025-12-18 12:55:28,378] [INFO] [Eval-hybrid] F1=0.2601, P=1.0000, R=0.1495, AUC=0.5609, thr=0.701797, point_adjust=True; recon_F1=0.2777, forecast_F1=0.8192
+[2025-12-18 12:55:28,629] [INFO] 已保存可视化图：./logs/wadi_hybrid/scores_epoch25_hybrid.png
+[2025-12-18 12:55:28,630] [INFO] ========== Epoch 26/50 (hybrid) ==========
+[2025-12-18 12:57:36,517] [INFO] [Epoch 26] 混合模型训练损失: total=0.356791, recon=0.117064, forecast=0.122663
+[2025-12-18 12:57:48,474] [INFO] [Eval-recon(hybrid)] F1=0.3500, P=0.5860, R=0.2495, AUC=0.4852, thr=9407.183333, point_adjust=True
+[2025-12-18 12:57:56,840] [INFO] [Eval-forecast(hybrid)] F1=0.8173, P=0.7445, R=0.9059, AUC=0.5797, thr=2.398630, point_adjust=True
+[2025-12-18 12:58:02,408] [WARNING] 融合后 AUC=0.4795 < 0.5，疑似得分方向被反转，将 scores 取反后重新计算。
+[2025-12-18 12:58:07,915] [INFO] [Eval-hybrid] F1=0.2701, P=0.2066, R=0.3901, AUC=0.5205, thr=0.712503, point_adjust=True; recon_F1=0.3500, forecast_F1=0.8173
+[2025-12-18 12:58:08,266] [INFO] 发现更优模型，已保存至 ./logs/wadi_hybrid/best_model_hybrid.pt
+[2025-12-18 12:58:08,510] [INFO] 已保存可视化图：./logs/wadi_hybrid/scores_epoch26_hybrid.png
+[2025-12-18 12:58:08,510] [INFO] ========== Epoch 27/50 (hybrid) ==========
+[2025-12-18 13:00:15,788] [INFO] [Epoch 27] 混合模型训练损失: total=0.355964, recon=0.116604, forecast=0.122757
+[2025-12-18 13:00:27,971] [INFO] [Eval-recon(hybrid)] F1=0.4026, P=0.5849, R=0.3069, AUC=0.4817, thr=7233.847559, point_adjust=True
+[2025-12-18 13:00:36,308] [INFO] [Eval-forecast(hybrid)] F1=0.8170, P=0.7439, R=0.9059, AUC=0.5837, thr=2.348938, point_adjust=True
+[2025-12-18 13:00:41,696] [WARNING] 融合后 AUC=0.4773 < 0.5，疑似得分方向被反转，将 scores 取反后重新计算。
+[2025-12-18 13:00:47,145] [INFO] [Eval-hybrid] F1=0.2592, P=0.1941, R=0.3901, AUC=0.5227, thr=0.699913, point_adjust=True; recon_F1=0.4026, forecast_F1=0.8170
+[2025-12-18 13:00:47,393] [INFO] 已保存可视化图：./logs/wadi_hybrid/scores_epoch27_hybrid.png
+[2025-12-18 13:00:47,393] [INFO] ========== Epoch 28/50 (hybrid) ==========
+[2025-12-18 13:02:56,321] [INFO] [Epoch 28] 混合模型训练损失: total=0.355073, recon=0.116537, forecast=0.121998
+[2025-12-18 13:03:08,291] [INFO] [Eval-recon(hybrid)] F1=0.2894, P=0.5100, R=0.2020, AUC=0.4429, thr=17411.700260, point_adjust=True
+[2025-12-18 13:03:16,587] [INFO] [Eval-forecast(hybrid)] F1=0.8184, P=0.7463, R=0.9059, AUC=0.5813, thr=2.386271, point_adjust=True
+[2025-12-18 13:03:22,063] [WARNING] 融合后 AUC=0.4347 < 0.5，疑似得分方向被反转，将 scores 取反后重新计算。
+[2025-12-18 13:03:27,547] [INFO] [Eval-hybrid] F1=0.2771, P=0.2003, R=0.4495, AUC=0.5653, thr=0.728566, point_adjust=True; recon_F1=0.2894, forecast_F1=0.8184
+[2025-12-18 13:03:27,890] [INFO] 发现更优模型，已保存至 ./logs/wadi_hybrid/best_model_hybrid.pt
+[2025-12-18 13:03:28,148] [INFO] 已保存可视化图：./logs/wadi_hybrid/scores_epoch28_hybrid.png
+[2025-12-18 13:03:28,148] [INFO] ========== Epoch 29/50 (hybrid) ==========
+[2025-12-18 13:05:37,477] [INFO] [Epoch 29] 混合模型训练损失: total=0.354407, recon=0.116368, forecast=0.121671
+[2025-12-18 13:05:49,414] [INFO] [Eval-recon(hybrid)] F1=0.2339, P=0.2779, R=0.2020, AUC=0.4389, thr=15016.612305, point_adjust=True
+[2025-12-18 13:05:57,756] [INFO] [Eval-forecast(hybrid)] F1=0.8159, P=0.7421, R=0.9059, AUC=0.5807, thr=2.355537, point_adjust=True
+[2025-12-18 13:06:03,125] [WARNING] 融合后 AUC=0.4320 < 0.5，疑似得分方向被反转，将 scores 取反后重新计算。
+[2025-12-18 13:06:08,498] [INFO] [Eval-hybrid] F1=0.2734, P=0.2105, R=0.3901, AUC=0.5680, thr=0.725361, point_adjust=True; recon_F1=0.2339, forecast_F1=0.8159
+[2025-12-18 13:06:08,758] [INFO] 已保存可视化图：./logs/wadi_hybrid/scores_epoch29_hybrid.png
+[2025-12-18 13:06:08,758] [INFO] ========== Epoch 30/50 (hybrid) ==========
+[2025-12-18 13:08:15,479] [INFO] [Epoch 30] 混合模型训练损失: total=0.353530, recon=0.116195, forecast=0.121139
+[2025-12-18 13:08:27,365] [INFO] [Eval-recon(hybrid)] F1=0.3942, P=0.5506, R=0.3069, AUC=0.4705, thr=4783.181608, point_adjust=True
+[2025-12-18 13:08:35,890] [INFO] [Eval-forecast(hybrid)] F1=0.8141, P=0.7391, R=0.9059, AUC=0.5799, thr=2.345704, point_adjust=True
+[2025-12-18 13:08:41,440] [WARNING] 融合后 AUC=0.4668 < 0.5，疑似得分方向被反转，将 scores 取反后重新计算。
+[2025-12-18 13:08:47,051] [INFO] [Eval-hybrid] F1=0.2650, P=0.2006, R=0.3901, AUC=0.5332, thr=0.664257, point_adjust=True; recon_F1=0.3942, forecast_F1=0.8141
+[2025-12-18 13:08:47,308] [INFO] 已保存可视化图：./logs/wadi_hybrid/scores_epoch30_hybrid.png
+[2025-12-18 13:08:47,308] [INFO] ========== Epoch 31/50 (hybrid) ==========
+[2025-12-18 13:10:54,173] [INFO] [Epoch 31] 混合模型训练损失: total=0.352928, recon=0.115859, forecast=0.121210
+[2025-12-18 13:11:06,212] [INFO] [Eval-recon(hybrid)] F1=0.3952, P=0.5546, R=0.3069, AUC=0.4698, thr=4656.509603, point_adjust=True
+[2025-12-18 13:11:14,626] [INFO] [Eval-forecast(hybrid)] F1=0.8184, P=0.7463, R=0.9059, AUC=0.5767, thr=2.399119, point_adjust=True
+[2025-12-18 13:11:20,096] [WARNING] 融合后 AUC=0.4666 < 0.5，疑似得分方向被反转，将 scores 取反后重新计算。
+[2025-12-18 13:11:25,558] [INFO] [Eval-hybrid] F1=0.2602, P=0.1951, R=0.3901, AUC=0.5334, thr=0.659856, point_adjust=True; recon_F1=0.3952, forecast_F1=0.8184
+[2025-12-18 13:11:25,813] [INFO] 已保存可视化图：./logs/wadi_hybrid/scores_epoch31_hybrid.png
+[2025-12-18 13:11:25,813] [INFO] ========== Epoch 32/50 (hybrid) ==========
+[2025-12-18 13:13:32,653] [INFO] [Epoch 32] 混合模型训练损失: total=0.352289, recon=0.115764, forecast=0.120760
+[2025-12-18 13:13:44,751] [INFO] [Eval-recon(hybrid)] F1=0.2965, P=0.5574, R=0.2020, AUC=0.4360, thr=14624.013216, point_adjust=True
+[2025-12-18 13:13:53,243] [INFO] [Eval-forecast(hybrid)] F1=0.8173, P=0.7445, R=0.9059, AUC=0.5780, thr=2.397556, point_adjust=True
+[2025-12-18 13:13:58,687] [WARNING] 融合后 AUC=0.4287 < 0.5，疑似得分方向被反转，将 scores 取反后重新计算。
+[2025-12-18 13:14:04,280] [INFO] [Eval-hybrid] F1=0.2782, P=0.2162, R=0.3901, AUC=0.5713, thr=0.725580, point_adjust=True; recon_F1=0.2965, forecast_F1=0.8173
+[2025-12-18 13:14:04,621] [INFO] 发现更优模型，已保存至 ./logs/wadi_hybrid/best_model_hybrid.pt
+[2025-12-18 13:14:04,880] [INFO] 已保存可视化图：./logs/wadi_hybrid/scores_epoch32_hybrid.png
+[2025-12-18 13:14:04,880] [INFO] ========== Epoch 33/50 (hybrid) ==========
+[2025-12-18 13:16:11,261] [INFO] [Epoch 33] 混合模型训练损失: total=0.358778, recon=0.119166, forecast=0.120446
+[2025-12-18 13:16:23,215] [INFO] [Eval-recon(hybrid)] F1=0.4047, P=0.5939, R=0.3069, AUC=0.4696, thr=6799.704492, point_adjust=True
+[2025-12-18 13:16:31,497] [INFO] [Eval-forecast(hybrid)] F1=0.8181, P=0.7457, R=0.9059, AUC=0.5815, thr=2.353402, point_adjust=True
+[2025-12-18 13:16:36,819] [WARNING] 融合后 AUC=0.4652 < 0.5，疑似得分方向被反转，将 scores 取反后重新计算。
+[2025-12-18 13:16:42,266] [INFO] [Eval-hybrid] F1=0.2705, P=0.2070, R=0.3901, AUC=0.5348, thr=0.694864, point_adjust=True; recon_F1=0.4047, forecast_F1=0.8181
+[2025-12-18 13:16:42,521] [INFO] 已保存可视化图：./logs/wadi_hybrid/scores_epoch33_hybrid.png
+[2025-12-18 13:16:42,522] [INFO] ========== Epoch 34/50 (hybrid) ==========
+[2025-12-18 13:18:48,330] [INFO] [Epoch 34] 混合模型训练损失: total=0.350499, recon=0.115256, forecast=0.119987
+[2025-12-18 13:19:00,357] [INFO] [Eval-recon(hybrid)] F1=0.2187, P=0.4492, R=0.1446, AUC=0.4250, thr=16144.724089, point_adjust=True
+[2025-12-18 13:19:08,758] [INFO] [Eval-forecast(hybrid)] F1=0.8184, P=0.7463, R=0.9059, AUC=0.5780, thr=2.361287, point_adjust=True
+[2025-12-18 13:19:14,181] [WARNING] 融合后 AUC=0.4171 < 0.5，疑似得分方向被反转，将 scores 取反后重新计算。
+[2025-12-18 13:19:19,633] [INFO] [Eval-hybrid] F1=0.2949, P=0.2371, R=0.3901, AUC=0.5829, thr=0.727185, point_adjust=True; recon_F1=0.2187, forecast_F1=0.8184
+[2025-12-18 13:19:19,980] [INFO] 发现更优模型，已保存至 ./logs/wadi_hybrid/best_model_hybrid.pt
+[2025-12-18 13:19:20,392] [INFO] 已保存可视化图：./logs/wadi_hybrid/scores_epoch34_hybrid.png
+[2025-12-18 13:19:20,392] [INFO] ========== Epoch 35/50 (hybrid) ==========
+[2025-12-18 13:21:25,123] [INFO] [Epoch 35] 混合模型训练损失: total=0.349484, recon=0.115130, forecast=0.119223
+[2025-12-18 13:21:37,192] [INFO] [Eval-recon(hybrid)] F1=0.2766, P=0.4387, R=0.2020, AUC=0.4288, thr=5545.109668, point_adjust=True
+[2025-12-18 13:21:45,641] [INFO] [Eval-forecast(hybrid)] F1=0.8181, P=0.7457, R=0.9059, AUC=0.5784, thr=2.377677, point_adjust=True
+[2025-12-18 13:21:51,167] [WARNING] 融合后 AUC=0.4252 < 0.5，疑似得分方向被反转，将 scores 取反后重新计算。
+[2025-12-18 13:21:56,628] [INFO] [Eval-hybrid] F1=0.2608, P=0.1959, R=0.3901, AUC=0.5748, thr=0.676821, point_adjust=True; recon_F1=0.2766, forecast_F1=0.8181
+[2025-12-18 13:21:56,882] [INFO] 已保存可视化图：./logs/wadi_hybrid/scores_epoch35_hybrid.png
+[2025-12-18 13:21:56,882] [INFO] ========== Epoch 36/50 (hybrid) ==========
+[2025-12-18 13:24:03,438] [INFO] [Epoch 36] 混合模型训练损失: total=0.349229, recon=0.115113, forecast=0.119003
+[2025-12-18 13:24:15,441] [INFO] [Eval-recon(hybrid)] F1=0.4082, P=0.6090, R=0.3069, AUC=0.4738, thr=7211.295638, point_adjust=True
+[2025-12-18 13:24:23,863] [INFO] [Eval-forecast(hybrid)] F1=0.8181, P=0.7457, R=0.9059, AUC=0.5781, thr=2.367243, point_adjust=True
+[2025-12-18 13:24:29,429] [WARNING] 融合后 AUC=0.4692 < 0.5，疑似得分方向被反转，将 scores 取反后重新计算。
+[2025-12-18 13:24:34,923] [INFO] [Eval-hybrid] F1=0.2601, P=1.0000, R=0.1495, AUC=0.5308, thr=0.698353, point_adjust=True; recon_F1=0.4082, forecast_F1=0.8181
+[2025-12-18 13:24:35,175] [INFO] 已保存可视化图：./logs/wadi_hybrid/scores_epoch36_hybrid.png
+[2025-12-18 13:24:35,175] [INFO] ========== Epoch 37/50 (hybrid) ==========
+[2025-12-18 13:26:41,329] [INFO] [Epoch 37] 混合模型训练损失: total=0.348319, recon=0.114808, forecast=0.118703
+[2025-12-18 13:26:53,345] [INFO] [Eval-recon(hybrid)] F1=0.3653, P=0.7300, R=0.2436, AUC=0.4772, thr=5089.058561, point_adjust=True
+[2025-12-18 13:27:01,664] [INFO] [Eval-forecast(hybrid)] F1=0.8159, P=0.7421, R=0.9059, AUC=0.5802, thr=2.386431, point_adjust=True
+[2025-12-18 13:27:07,127] [WARNING] 融合后 AUC=0.4739 < 0.5，疑似得分方向被反转，将 scores 取反后重新计算。
+[2025-12-18 13:27:12,642] [INFO] [Eval-hybrid] F1=0.2588, P=0.9618, R=0.1495, AUC=0.5261, thr=0.673691, point_adjust=True; recon_F1=0.3653, forecast_F1=0.8159
+[2025-12-18 13:27:12,895] [INFO] 已保存可视化图：./logs/wadi_hybrid/scores_epoch37_hybrid.png
+[2025-12-18 13:27:12,895] [INFO] ========== Epoch 38/50 (hybrid) ==========
+[2025-12-18 13:29:18,773] [INFO] [Epoch 38] 混合模型训练损失: total=0.347876, recon=0.114777, forecast=0.118321
+[2025-12-18 13:29:30,648] [INFO] [Eval-recon(hybrid)] F1=0.4752, P=0.6796, R=0.3653, AUC=0.4995, thr=5814.336165, point_adjust=True
+[2025-12-18 13:29:39,174] [INFO] [Eval-forecast(hybrid)] F1=0.8151, P=0.7409, R=0.9059, AUC=0.5768, thr=2.361571, point_adjust=True
+[2025-12-18 13:29:44,574] [WARNING] 融合后 AUC=0.4953 < 0.5，疑似得分方向被反转，将 scores 取反后重新计算。
+[2025-12-18 13:29:50,028] [INFO] [Eval-hybrid] F1=0.2618, P=0.1970, R=0.3901, AUC=0.5047, thr=0.683563, point_adjust=True; recon_F1=0.4752, forecast_F1=0.8151
+[2025-12-18 13:29:50,286] [INFO] 已保存可视化图：./logs/wadi_hybrid/scores_epoch38_hybrid.png
+[2025-12-18 13:29:50,287] [INFO] ========== Epoch 39/50 (hybrid) ==========
+[2025-12-18 13:31:55,426] [INFO] [Epoch 39] 混合模型训练损失: total=0.346939, recon=0.114476, forecast=0.117987
+[2025-12-18 13:32:07,297] [INFO] [Eval-recon(hybrid)] F1=0.2302, P=0.2521, R=0.2119, AUC=0.4316, thr=14896.565495, point_adjust=True
+[2025-12-18 13:32:15,501] [INFO] [Eval-forecast(hybrid)] F1=0.8188, P=0.7469, R=0.9059, AUC=0.5754, thr=2.371159, point_adjust=True
+[2025-12-18 13:32:20,949] [WARNING] 融合后 AUC=0.4247 < 0.5，疑似得分方向被反转，将 scores 取反后重新计算。
+[2025-12-18 13:32:26,371] [INFO] [Eval-hybrid] F1=0.2678, P=0.1908, R=0.4495, AUC=0.5753, thr=0.726028, point_adjust=True; recon_F1=0.2302, forecast_F1=0.8188
+[2025-12-18 13:32:26,628] [INFO] 已保存可视化图：./logs/wadi_hybrid/scores_epoch39_hybrid.png
+[2025-12-18 13:32:26,628] [INFO] ========== Epoch 40/50 (hybrid) ==========
+[2025-12-18 13:34:33,697] [INFO] [Epoch 40] 混合模型训练损失: total=0.346825, recon=0.114578, forecast=0.117670
+[2025-12-18 13:34:45,714] [INFO] [Eval-recon(hybrid)] F1=0.4525, P=0.5942, R=0.3653, AUC=0.4915, thr=8426.749089, point_adjust=True
+[2025-12-18 13:34:54,201] [INFO] [Eval-forecast(hybrid)] F1=0.8177, P=0.7451, R=0.9059, AUC=0.5773, thr=2.369197, point_adjust=True
+[2025-12-18 13:34:59,678] [WARNING] 融合后 AUC=0.4870 < 0.5，疑似得分方向被反转，将 scores 取反后重新计算。
+[2025-12-18 13:35:05,127] [INFO] [Eval-hybrid] F1=0.2608, P=0.2188, R=0.3228, AUC=0.5130, thr=0.707742, point_adjust=True; recon_F1=0.4525, forecast_F1=0.8177
+[2025-12-18 13:35:05,372] [INFO] 已保存可视化图：./logs/wadi_hybrid/scores_epoch40_hybrid.png
+[2025-12-18 13:35:05,372] [INFO] ========== Epoch 41/50 (hybrid) ==========
+[2025-12-18 13:37:10,206] [INFO] [Epoch 41] 混合模型训练损失: total=0.345262, recon=0.114235, forecast=0.116792
+[2025-12-18 13:37:22,154] [INFO] [Eval-recon(hybrid)] F1=0.2865, P=0.4928, R=0.2020, AUC=0.4306, thr=10098.462500, point_adjust=True
+[2025-12-18 13:37:30,580] [INFO] [Eval-forecast(hybrid)] F1=0.8159, P=0.7421, R=0.9059, AUC=0.5766, thr=2.383865, point_adjust=True
+[2025-12-18 13:37:36,027] [WARNING] 融合后 AUC=0.4250 < 0.5，疑似得分方向被反转，将 scores 取反后重新计算。
+[2025-12-18 13:37:41,479] [INFO] [Eval-hybrid] F1=0.2661, P=0.2019, R=0.3901, AUC=0.5750, thr=0.715578, point_adjust=True; recon_F1=0.2865, forecast_F1=0.8159
+[2025-12-18 13:37:41,728] [INFO] 已保存可视化图：./logs/wadi_hybrid/scores_epoch41_hybrid.png
+[2025-12-18 13:37:41,728] [INFO] ========== Epoch 42/50 (hybrid) ==========
+[2025-12-18 13:39:48,852] [INFO] [Epoch 42] 混合模型训练损失: total=0.344827, recon=0.114085, forecast=0.116657
+[2025-12-18 13:40:00,950] [INFO] [Eval-recon(hybrid)] F1=0.4241, P=0.6858, R=0.3069, AUC=0.4585, thr=8407.680339, point_adjust=True
+[2025-12-18 13:40:09,415] [INFO] [Eval-forecast(hybrid)] F1=0.8159, P=0.7421, R=0.9059, AUC=0.5787, thr=2.349644, point_adjust=True
+[2025-12-18 13:40:14,882] [WARNING] 融合后 AUC=0.4530 < 0.5，疑似得分方向被反转，将 scores 取反后重新计算。
+[2025-12-18 13:40:20,347] [INFO] [Eval-hybrid] F1=0.2601, P=1.0000, R=0.1495, AUC=0.5470, thr=0.708363, point_adjust=True; recon_F1=0.4241, forecast_F1=0.8159
+[2025-12-18 13:40:20,347] [INFO] 早停触发：连续 8 个 epoch F1 未提升，停止训练。
+[2025-12-18 13:40:20,348] [INFO] 训练结束，最佳 F1=0.2949, 最佳指标={'precision': 0.2370637785785977, 'recall': 0.3900990098971277, 'f1': 0.2949101749362204, 'auc': 0.5828662362241142, 'threshold': 0.7271850562292096, 'use_point_adjust': True}
+[2025-12-18 13:40:20,349] [INFO] 训练流程已结束。

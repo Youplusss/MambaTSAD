@@ -1,25 +1,24 @@
 #!/bin/bash
-# 在 SMD 数据集上运行 实验版（共享 encoder + 对抗训练 + 伪标签）混合模型
+# 在 MSL 数据集上运行：原 hybrid 模型 + 输入对抗训练
 
 DATA_ROOT=./dataset/MSL
 LOG_DIR=./logs/msl_adv_hybrid
 
-CUDA_VISIBLE_DEVICES=2 python main_adv.py \
+CUDA_VISIBLE_DEVICES=6 python -u main_adv.py \
   --dataset msl \
   --processed_root ${DATA_ROOT} \
   --log_dir ${LOG_DIR} \
-  --branch hybrid_shared_adv \
   --win_size 100 \
   --pred_len 10 \
-  --train_stride 1 \
-  --test_stride 1 \
   --batch_size 64 \
   --epochs 50 \
-  --lr 1e-3 \
-  --weight_decay 1e-4 \
+  --lr 1e-4 \
+  --weight_decay 5e-4 \
+  --train_stride 1 \
+  --test_stride 1 \
   --lambda_recon 1.0 \
   --lambda_forecast 1.0 \
+  --use_adv_training \
   --adv_epsilon 0.05 \
   --adv_beta 0.5 \
   --adv_warmup_epochs 5
-

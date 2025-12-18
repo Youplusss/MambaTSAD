@@ -4,13 +4,13 @@
 DATA_ROOT=./dataset/WADI
 LOG_DIR=./logs/wadi_hybrid
 
-CUDA_VISIBLE_DEVICES=2 python -u main.py \
+CUDA_VISIBLE_DEVICES=1 python -u main.py \
   --dataset wadi \
   --branch hybrid \
   --processed_root ${DATA_ROOT} \
   --log_dir ${LOG_DIR} \
-  --win_size 50 \
-  --pred_len 5 \
+  --win_size 15 \
+  --pred_len 3 \
   --batch_size 64 \
   --epochs 50 \
   --lr 1e-4 \
